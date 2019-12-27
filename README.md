@@ -1,2 +1,2 @@
-# Asgarde
-Asgarde Framework
+# Asgard
+Asgard Framework
