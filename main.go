@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"runtime/debug"
 
-	"Asgarde/cmd"
+	"Asgard/cmd"
 )
 
 func main() {

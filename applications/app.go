@@ -56,7 +56,7 @@ func Start(name string) bool {
 	return false
 }
 
-func Register(config map[string]string) *App {
+func RegisterApp(config map[string]string) {
 	app := App{
 		Name:    config["name"],
 		Dir:     config["dir"],
@@ -66,24 +66,31 @@ func Register(config map[string]string) *App {
 		Stderr:  config["stderr"],
 	}
 	APPs = append(APPs, &app)
-	return &app
 }
 
-func (a *App) Run() {
+func (a *App) BuildCmd() error  {
 	a.Cmd = exec.Command(a.Program, a.Args)
 	a.Cmd.Dir = a.Dir
 	stdout, err := os.OpenFile(a.Stdout, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 	if err != nil {
 		logger.Error("open stdout error:", err)
-		return
+		return err
 	}
 	stderr, err := os.OpenFile(a.Stderr, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 	if err != nil {
 		logger.Error("open stderr error:", err)
-		return
+		return err
 	}
 	a.Cmd.Stdout = stdout
 	a.Cmd.Stderr = stderr
+	return nil
+}
+
+func (a *App) Run() {
+	err := a.BuildCmd()
+	if err != nil {
+		return
+	}
 	err = a.Cmd.Start()
 	if err != nil {
 		logger.Error(a.Name+" start fail:", err)
@@ -94,6 +101,21 @@ func (a *App) Run() {
 	logger.Debug(a.Name+" started at ", a.Pid)
 	go a.wait()
 	go a.moniter()
+}
+
+func (a *App) Exec() {
+	err := a.BuildCmd()
+	if err != nil {
+		return
+	}
+	err = a.Cmd.Start()
+	if err != nil {
+		logger.Error(a.Name+" start fail:", err)
+		return
+	}
+	a.Begin = time.Now()
+	a.Pid = a.Cmd.Process.Pid
+	a.wait()
 }
 
 func (a *App) wait() {
