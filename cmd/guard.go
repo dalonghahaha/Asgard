@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
+	"github.com/dalonghahaha/avenger/components/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -15,20 +17,43 @@ func init() {
 }
 
 var guardCommonCmd = &cobra.Command{
-	Use:   "guard",
-	Short: "guard apps",
+	Use:    "guard",
+	Short:  "guard apps",
 	PreRun: PreRun,
 	Run: func(cmd *cobra.Command, args []string) {
-		configs := viper.GetStringMap("app")
-		if len(configs) == 0 {
+		configs := viper.Get("app")
+		if configs == nil {
 			fmt.Println("no apps!")
 			return
 		}
-		for key := range configs {
-			config := viper.GetStringMapString("app." + key)
-			applications.RegisterApp(config)
+		_configs, ok := configs.([]interface{})
+		if !ok {
+			fmt.Println("apps config wrong!")
+			return
 		}
-		applications.StartAll()
-		NotityKill(applications.KillAll)
+		for _, v := range _configs {
+			_v, ok := v.(map[interface{}]interface{})
+			if !ok {
+				fmt.Println("apps config wrong!")
+				return
+			}
+			config := map[string]interface{}{}
+			for k, v := range _v {
+				_k, ok := k.(string)
+				if !ok {
+					fmt.Println("apps config wrong!")
+					return
+				}
+				config[_k] = v
+			}
+			err := applications.AppRegister(config)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+		}
+		logger.Info("guard started at ", os.Getpid())
+		applications.AppStartAll()
+		NotityKill(applications.AppStopAll)
 	},
 }

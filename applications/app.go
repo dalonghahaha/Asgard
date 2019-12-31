@@ -1,52 +1,31 @@
 package applications
 
 import (
-	"os"
-	"os/exec"
-	"syscall"
-	"time"
+	"fmt"
 
 	"github.com/dalonghahaha/avenger/components/logger"
-	"github.com/shirou/gopsutil/process"
 )
 
 var APPs = []*App{}
 
-type App struct {
-	Name        string
-	Dir         string
-	Program     string
-	Args        string
-	Stdout      string
-	Stderr      string
-	Pid         int
-	Cmd         *exec.Cmd
-	Finished    bool
-	AutoRestart bool
-	Begin       time.Time
-	End         time.Time
-}
-
-func KillAll() {
+func AppStopAll() {
+	MoniterStop()
+	processExit = true
 	for _, app := range APPs {
 		if !app.Finished {
-			err := app.Cmd.Process.Kill()
-			if err != nil {
-				logger.Error(err)
-			} else {
-				logger.Debug(app.Name + " killed!")
-			}
+			app.stop()
 		}
 	}
 }
 
-func StartAll() {
+func AppStartAll() {
 	for _, app := range APPs {
 		go app.Run()
 	}
+	MoniterStart()
 }
 
-func Start(name string) bool {
+func AppStart(name string) bool {
 	for _, app := range APPs {
 		if app.Name == name {
 			go app.Run()
@@ -56,103 +35,59 @@ func Start(name string) bool {
 	return false
 }
 
-func RegisterApp(config map[string]string) {
-	app := App{
-		Name:    config["name"],
-		Dir:     config["dir"],
-		Program: config["program"],
-		Args:    config["args"],
-		Stdout:  config["stdout"],
-		Stderr:  config["stderr"],
+func AppStop(name string) bool {
+	for _, app := range APPs {
+		if app.Name == name {
+			app.stop()
+			return true
+		}
 	}
-	APPs = append(APPs, &app)
+	return false
 }
 
-func (a *App) BuildCmd() error  {
-	a.Cmd = exec.Command(a.Program, a.Args)
-	a.Cmd.Dir = a.Dir
-	stdout, err := os.OpenFile(a.Stdout, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
-	if err != nil {
-		logger.Error("open stdout error:", err)
-		return err
-	}
-	stderr, err := os.OpenFile(a.Stderr, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
-	if err != nil {
-		logger.Error("open stderr error:", err)
-		return err
-	}
-	a.Cmd.Stdout = stdout
-	a.Cmd.Stderr = stderr
-	return nil
+type App struct {
+	Command
+	AutoRestart bool
 }
 
 func (a *App) Run() {
-	err := a.BuildCmd()
+	err := a.build()
 	if err != nil {
 		return
 	}
-	err = a.Cmd.Start()
+	err = a.start()
 	if err != nil {
-		logger.Error(a.Name+" start fail:", err)
 		return
 	}
-	a.Begin = time.Now()
-	a.Pid = a.Cmd.Process.Pid
-	logger.Debug(a.Name+" started at ", a.Pid)
-	go a.wait()
-	go a.moniter()
+	go a.wait(a.restart)
 }
 
-func (a *App) Exec() {
-	err := a.BuildCmd()
-	if err != nil {
-		return
+func (a *App) restart() {
+	if a.AutoRestart && !processExit {
+		logger.Info(a.Name + " Restart.....")
+		go a.Run()
 	}
-	err = a.Cmd.Start()
-	if err != nil {
-		logger.Error(a.Name+" start fail:", err)
-		return
-	}
-	a.Begin = time.Now()
-	a.Pid = a.Cmd.Process.Pid
-	a.wait()
 }
 
-func (a *App) wait() {
-	err := a.Cmd.Wait()
-	status := a.Cmd.ProcessState.Sys().(syscall.WaitStatus)
-	signaled := status.Signaled()
-	signal := status.Signal()
-	if signaled {
-		logger.Info(a.Name+" signaled:", signal.String())
-	} else if err != nil {
-		logger.Error(a.Name+" wait fail:", err)
+func NewApp(config map[string]interface{}) (*App, error) {
+	app := new(App)
+	err := app.configure(config)
+	if err != nil {
+		return nil, err
 	}
-	a.End = time.Now()
-	a.Finished = true
-	logger.Debug(a.Name+" exit with ", a.Cmd.ProcessState.ExitCode())
+	autoRestart, ok := config["auto_restart"].(bool)
+	if !ok {
+		return nil, fmt.Errorf("config auto_restart type wrong")
+	}
+	app.AutoRestart = autoRestart
+	return app, nil
 }
 
-func (a *App) moniter() {
-	loop := time.Second * time.Duration(5)
-	ticker := time.NewTicker(loop)
-	defer func() {
-		ticker.Stop()
-	}()
-	for range ticker.C {
-		//app finish exit ticker
-		if a.Finished {
-			return
-		}
-		info, err := process.NewProcess(int32(a.Pid))
-		if err != nil {
-			logger.Error(a.Name+" process info err:", err)
-			continue
-		}
-		data := map[string]interface{}{}
-		data["memory_percent"], _ = info.MemoryPercent()
-		data["cpu_percent"], _ = info.CPUPercent()
-		data["threads"], _ = info.NumThreads()
-		logger.Debug(a.Name+" process info:", data)
+func AppRegister(config map[string]interface{}) error {
+	app, err := NewApp(config)
+	if err != nil {
+		return err
 	}
+	APPs = append(APPs, app)
+	return nil
 }

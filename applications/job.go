@@ -1,6 +1,7 @@
 package applications
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/dalonghahaha/avenger/components/logger"
@@ -11,66 +12,48 @@ var crontab *cron.Cron
 
 var Jobs = []*Job{}
 
-func buildJob(config map[string]string) (*Job, error) {
-	job := Job{
-		Spec: config["spec"],
-		App: &App{
-			Name:    config["name"],
-			Dir:     config["dir"],
-			Program: config["program"],
-			Args:    config["args"],
-			Stdout:  config["stdout"],
-			Stderr:  config["stderr"],
-		},
+func JobStopAll() {
+	MoniterStop()
+	processExit = true
+	for _, job := range Jobs {
+		if !job.Finished {
+			job.stop()
+		}
 	}
-	return &job, nil
 }
 
-func AddJob(config map[string]string) error {
-	job, err := buildJob(config)
-	if job != nil {
-		logger.Error("build Job Error:", err)
-		return err
-	}
-	Jobs = append(Jobs, job)
-	id, err := crontab.AddJob(job.Spec, job)
-	if err != nil {
-		logger.Error("AddJob Error:", err)
-		return err
-	}
-	job.ID = id
-	return nil
-}
-
-func RegisterJob(config map[string]string) error {
-	job, err := buildJob(config)
-	if job != nil {
-		logger.Error("build Job Error:", err)
-		return err
-	}
-	Jobs = append(Jobs, job)
-	return nil
-}
-
-func CronAll() {
+func JobStartAll() {
 	crontab = cron.New()
 	for _, job := range Jobs {
-		id, err := crontab.AddJob(job.Spec, job)
-		if err != nil {
-			logger.Error("AddJob Error:", err)
-		}
-		job.ID = id
+		JobAdd(job)
 	}
 	crontab.Start()
+	MoniterStart()
 }
 
-func StopJob(name string) error {
+func JobAdd(job *Job) {
+	id, err := crontab.AddJob(job.Spec, job)
+	if err != nil {
+		logger.Error(job.Name+" add fail:", err)
+	}
+	logger.Info(job.Name + " add seccess!")
+	job.ID = id
+}
+
+func JobStart(name string) bool {
 	for _, job := range Jobs {
-		if job.App.Name == name {
-			err := job.App.Cmd.Process.Kill()
-			if err != nil {
-				logger.Error("app Kill Error:", err)
-			}
+		if job.Name == name {
+			go job.Run()
+			return true
+		}
+	}
+	return false
+}
+
+func JobStop(name string) error {
+	for _, job := range Jobs {
+		if job.Name == name {
+			job.stop()
 			crontab.Remove(job.ID)
 		}
 	}
@@ -78,36 +61,86 @@ func StopJob(name string) error {
 }
 
 type Job struct {
+	Command
 	ID      cron.EntryID
 	Spec    string
 	TimeOut time.Duration
-	App     *App
 }
 
 func (j *Job) Run() {
+	err := j.build()
+	if err != nil {
+		return
+	}
 	stop := make(chan bool, 1)
-	go j.timer(stop)
-	j.App.Exec()
-	stop <- true
-	go j.record()
+	if j.TimeOut > 0 {
+		go j.timer(stop)
+	}
+	err = j.start()
+	if err != nil {
+		stop <- true
+		return
+	}
+	j.wait(j.record)
+	if j.TimeOut > 0 {
+		stop <- true
+	}
 }
 
-
 func (j *Job) timer(ch chan bool) {
-	timer := time.NewTimer(j.TimeOut)
-	for{
-		select{
-		case <- timer.C:
-			err := j.App.Cmd.Process.Kill()
+	timer := time.NewTimer(time.Second * j.TimeOut)
+	for {
+		select {
+		case <-timer.C:
+			err := j.Cmd.Process.Kill()
 			if err != nil {
 				logger.Error("app Kill Error:", err)
 			}
-		case <- ch:
+		case <-ch:
 			timer.Stop()
 		}
 	}
 }
 
 func (j *Job) record() {
-	//TODO record
+	info := fmt.Sprintf("%s finished with %.2f seconds", j.Name, j.End.Sub(j.Begin).Seconds())
+	logger.Info(info)
+}
+
+func NewJob(config map[string]interface{}) (*Job, error) {
+	job := new(Job)
+	err := job.configure(config)
+	if err != nil {
+		return nil, err
+	}
+	spec, ok := config["spec"].(string)
+	if !ok {
+		return nil, fmt.Errorf("config spec type wrong")
+	}
+	job.Spec = spec
+	timeout, ok := config["timeout"].(int)
+	if !ok {
+		return nil, fmt.Errorf("config timeout type wrong")
+	}
+	job.TimeOut = time.Duration(timeout)
+	return job, nil
+}
+
+func JobAppend(config map[string]interface{}) error {
+	job, err := NewJob(config)
+	if err != nil {
+		return err
+	}
+	Jobs = append(Jobs, job)
+	JobAdd(job)
+	return nil
+}
+
+func JobRegister(config map[string]interface{}) error {
+	job, err := NewJob(config)
+	if err != nil {
+		return err
+	}
+	Jobs = append(Jobs, job)
+	return nil
 }
