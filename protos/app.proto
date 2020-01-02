@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+import "base.proto";
+
+option go_package = "rpc";
+
+message App {
+	string name = 1;
+    string dir = 2;
+    string program = 3;
+    string args = 4;
+    string std_out = 5;
+    string std_err = 6;
+    bool auto_restart = 7;
+}
+
+message AppNameRequest {
+    string name = 1;
+}
+
+message AppResponse {
+    int32 code = 1;
+    App app = 2;
+}
+
+message AppListResponse {
+    int32 code = 1;
+    repeated App apps = 2;
+}
+
+service Guard {
+    rpc List (Empty) returns (AppListResponse) {}
+    rpc Get (AppNameRequest) returns (AppResponse) {}
+    rpc Add (App) returns (Response) {}
+    rpc Update (App) returns (Response) {}
+    rpc Remove (AppNameRequest) returns (Response) {}
+}
+

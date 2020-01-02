@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+option go_package = "rpc";
+
+message Empty {
+    
+}
+
+// Response 响应结构
+message Response {
+	int32 code = 1;
+    string message = 2;
+}
