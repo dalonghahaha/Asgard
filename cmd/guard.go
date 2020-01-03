@@ -21,39 +21,43 @@ var guardCommonCmd = &cobra.Command{
 	Short:  "guard apps",
 	PreRun: PreRun,
 	Run: func(cmd *cobra.Command, args []string) {
-		configs := viper.Get("app")
-		if configs == nil {
-			fmt.Println("no apps!")
-			return
-		}
-		_configs, ok := configs.([]interface{})
+		StartGuard()
+		NotityKill(applications.AppStopAll)
+	},
+}
+
+func StartGuard() {
+	configs := viper.Get("app")
+	if configs == nil {
+		fmt.Println("no apps!")
+		return
+	}
+	_configs, ok := configs.([]interface{})
+	if !ok {
+		fmt.Println("apps config wrong!")
+		return
+	}
+	for _, v := range _configs {
+		_v, ok := v.(map[interface{}]interface{})
 		if !ok {
 			fmt.Println("apps config wrong!")
 			return
 		}
-		for _, v := range _configs {
-			_v, ok := v.(map[interface{}]interface{})
+		config := map[string]interface{}{}
+		for k, v := range _v {
+			_k, ok := k.(string)
 			if !ok {
 				fmt.Println("apps config wrong!")
 				return
 			}
-			config := map[string]interface{}{}
-			for k, v := range _v {
-				_k, ok := k.(string)
-				if !ok {
-					fmt.Println("apps config wrong!")
-					return
-				}
-				config[_k] = v
-			}
-			err := applications.AppRegister(config)
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
+			config[_k] = v
 		}
-		logger.Info("guard started at ", os.Getpid())
-		applications.AppStartAll()
-		NotityKill(applications.AppStopAll)
-	},
+		err := applications.AppRegister(config)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+	logger.Info("guard started at ", os.Getpid())
+	applications.AppStartAll(true)
 }

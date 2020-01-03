@@ -22,13 +22,15 @@ func JobStopAll() {
 	}
 }
 
-func JobStartAll() {
+func JobStartAll(moniter bool) {
 	crontab = cron.New()
 	for _, job := range Jobs {
 		JobAdd(job)
 	}
 	crontab.Start()
-	MoniterStart()
+	if moniter {
+		MoniterStart()
+	}
 }
 
 func JobAdd(job *Job) {

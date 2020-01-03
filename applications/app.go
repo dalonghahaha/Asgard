@@ -18,11 +18,13 @@ func AppStopAll() {
 	}
 }
 
-func AppStartAll() {
+func AppStartAll(moniter bool) {
 	for _, app := range APPs {
 		go app.Run()
 	}
-	MoniterStart()
+	if moniter {
+		MoniterStart()
+	}
 }
 
 func AppStart(name string) bool {

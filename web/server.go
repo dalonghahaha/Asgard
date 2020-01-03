@@ -53,7 +53,7 @@ func setupRouter() {
 
 func Run() {
 	setupRouter()
-	addr := fmt.Sprintf(":%s", viper.GetString("server.port"))
+	addr := fmt.Sprintf(":%s", viper.GetString("master.web.port"))
 	err := server.Run(addr)
 	if err != nil {
 		panic("web服务启动失败!")

@@ -1,19 +1,23 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"net"
-	"os"
+	"time"
 
 	"github.com/dalonghahaha/avenger/components/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
 	"Asgard/applications"
 	"Asgard/rpc"
 	"Asgard/server"
 )
+
+var masterClient rpc.MasterClient
 
 func init() {
 	agentCommonCmd.PersistentFlags().StringP("conf", "c", "conf", "config path")
@@ -25,58 +29,62 @@ var agentCommonCmd = &cobra.Command{
 	Short:  "run as agent",
 	PreRun: PreRun,
 	Run: func(cmd *cobra.Command, args []string) {
-		port := viper.GetString("agent.port")
-		listen, err := net.Listen("tcp", ":"+port)
-		if err != nil {
-			logger.Error("failed to listen:", err)
-			return
-		}
-		s := server.DefaultServer()
-		rpc.RegisterGuardServer(s, &server.GuardServer{})
-		reflection.Register(s)
-		go test()
-		logger.Info("agent started at ", port)
-		err = s.Serve(listen)
-		if err != nil {
-			logger.Error("failed to serve:", err)
-			return
-		}
+		go StartAgent()
+		go StartAgentRpcServer()
+		go RegisterAgent()
+		NotityKill(StopAgent)
 	},
 }
 
-func test() {
-	logger.Info("guard started at ", os.Getpid())
-	configs := viper.Get("app")
-	if configs == nil {
-		fmt.Println("no apps!")
-		return
+func StartAgent() {
+	applications.AppStartAll(false)
+	applications.JobStartAll(false)
+	applications.MoniterStart()
+}
+
+func StopAgent() {
+	applications.AppStopAll()
+	applications.JobStopAll()
+}
+
+func StartAgentRpcServer() {
+	port := viper.GetString("agent.rpc.port")
+	listen, err := net.Listen("tcp", ":"+port)
+	if err != nil {
+		logger.Error("failed to listen:", err)
+		panic(err)
 	}
-	_configs, ok := configs.([]interface{})
-	if !ok {
-		fmt.Println("apps config wrong!")
-		return
+	s := server.DefaultServer()
+	rpc.RegisterGuardServer(s, &server.GuardServer{})
+	rpc.RegisterCronServer(s, &server.CronServer{})
+	reflection.Register(s)
+	logger.Info("agent rpc started at ", port)
+	err = s.Serve(listen)
+	if err != nil {
+		logger.Error("failed to serve:", err)
+		panic(err)
 	}
-	for _, v := range _configs {
-		_v, ok := v.(map[interface{}]interface{})
-		if !ok {
-			fmt.Println("apps config wrong!")
-			return
-		}
-		config := map[string]interface{}{}
-		for k, v := range _v {
-			_k, ok := k.(string)
-			if !ok {
-				fmt.Println("apps config wrong!")
-				return
-			}
-			config[_k] = v
-		}
-		err := applications.AppRegister(config)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
+}
+
+func RegisterAgent() {
+	masterIP := viper.GetString("agent.master.ip")
+	masterPort := viper.GetString("agent.master.port")
+	agentIP := viper.GetString("agent.rpc.ip")
+	agentPort := viper.GetString("agent.rpc.port")
+	addr := fmt.Sprintf("%s:%s", masterIP, masterPort)
+	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+	if err != nil {
+		panic("Can't connect: " + addr)
 	}
-	applications.AppStartAll()
-	NotityKill(applications.AppStopAll)
+	masterClient = rpc.NewMasterClient(conn)
+	timeout := time.Second * 30
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	response, err := masterClient.Register(ctx, &rpc.Agent{Ip: agentIP, Port: agentPort})
+	if err != nil {
+		panic("agent register fail: " + err.Error())
+	}
+	if response.GetCode() != 200 {
+		panic("agent register fail: " + response.GetMessage())
+	}
 }

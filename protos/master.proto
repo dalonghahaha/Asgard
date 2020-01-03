@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+import "base.proto";
+import "app.proto";
+import "job.proto";
+
+option go_package = "rpc";
+
+message Agent {
+    string ip = 1;
+    string port = 2;
+}
+
+message Monitor {
+    int32 pid = 2;
+    float cpu = 3;
+    float memory = 4;
+    int32 threads = 5;
+}
+
+message Exception {
+    string type = 1;
+    string message = 2;
+}
+
+message AppMonitor {
+    App app = 1;
+    Monitor monitor = 2;
+}
+
+message JobMonior {
+    Job job = 1;
+    Monitor monitor = 2;
+}
+
+message AppException {
+    App app = 1;
+    Exception exception = 2;
+}
+
+message JobException {
+    Job job = 1;
+    Exception exception = 2;
+}
+
+service Master {
+    rpc Register(Agent) returns (Response) {}
+    rpc AppMonitorReport(AppMonitor) returns (Response) {}
+    rpc JobMoniorReport(JobMonior) returns (Response) {}
+    rpc AppExceptionReport(AppException) returns (Response) {}
+    rpc JobExceptionReport(JobException) returns (Response) {}
+}

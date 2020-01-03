@@ -21,39 +21,43 @@ var cronCommonCmd = &cobra.Command{
 	Short:  "cron jobs",
 	PreRun: PreRun,
 	Run: func(cmd *cobra.Command, args []string) {
-		configs := viper.Get("cron")
-		if configs == nil {
-			fmt.Println("no crons!")
-			return
-		}
-		_configs, ok := configs.([]interface{})
+		StartCron()
+		NotityKill(applications.JobStopAll)
+	},
+}
+
+func StartCron() {
+	configs := viper.Get("cron")
+	if configs == nil {
+		fmt.Println("no crons!")
+		return
+	}
+	_configs, ok := configs.([]interface{})
+	if !ok {
+		fmt.Println("crons config wrong!")
+		return
+	}
+	for _, v := range _configs {
+		_v, ok := v.(map[interface{}]interface{})
 		if !ok {
 			fmt.Println("crons config wrong!")
 			return
 		}
-		for _, v := range _configs {
-			_v, ok := v.(map[interface{}]interface{})
+		config := map[string]interface{}{}
+		for k, v := range _v {
+			_k, ok := k.(string)
 			if !ok {
 				fmt.Println("crons config wrong!")
 				return
 			}
-			config := map[string]interface{}{}
-			for k, v := range _v {
-				_k, ok := k.(string)
-				if !ok {
-					fmt.Println("crons config wrong!")
-					return
-				}
-				config[_k] = v
-			}
-			err := applications.JobRegister(config)
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
+			config[_k] = v
 		}
-		logger.Info("cron started at ", os.Getpid())
-		applications.JobStartAll()
-		NotityKill(applications.JobStopAll)
-	},
+		err := applications.JobRegister(config)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+	logger.Info("cron started at ", os.Getpid())
+	applications.JobStartAll(true)
 }

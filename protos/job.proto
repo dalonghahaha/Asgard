@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+import "base.proto";
+
+option go_package = "rpc";
+
+message Job {
+	string name = 1;
+    string dir = 2;
+    string program = 3;
+    string args = 4;
+    string std_out = 5;
+    string std_err = 6;
+    string spec = 7;
+    int64 timeout = 8;
+}
+
+message JobNameRequest {
+    string name = 1;
+}
+
+message JobResponse {
+    int32 code = 1;
+    Job job = 2;
+}
+
+message JobListResponse {
+    int32 code = 1;
+    repeated Job jobs = 2;
+}
+
+service Cron {
+    rpc List (Empty) returns (JobListResponse) {}
+    rpc Get (JobNameRequest) returns (JobResponse) {}
+    rpc Add (Job) returns (Response) {}
+    rpc Update (Job) returns (Response) {}
+    rpc Remove (JobNameRequest) returns (Response) {}
+}
