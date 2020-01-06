@@ -28,7 +28,6 @@ func Init() error {
 	if err != nil {
 		return fmt.Errorf("数据库组件初始化错误：%e", err)
 	}
-
 	if viper.GetString("server.mode") == "release" {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -44,6 +43,7 @@ func Init() error {
 
 func setupRouter() {
 	server.GET("/ping", controllers.Ping)
+	server.GET("/", controllers.Index)
 	app := server.Group("/app")
 	{
 		appController := controllers.NewAppController()
