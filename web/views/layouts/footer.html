@@ -5,3 +5,16 @@
 <script src="/assets/js/selectize.min.js"></script>
 <!-- Tabler Core -->
 <script src="/assets/js/tabler.min.js"></script>
+<script>
+    $(document).ready(function(){
+        var path = window.location.pathname;
+        console.log(path);
+        $(".sidebar-nav li a").each(function(){
+            var href = $(this).attr("href");
+            if (href == path) {
+                $(this).addClass("active")
+                return false;
+            }
+        });
+    });
+</script>

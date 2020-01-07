@@ -2,6 +2,7 @@ package web
 
 import (
 	"fmt"
+	"html/template"
 
 	"github.com/foolin/goview"
 	"github.com/foolin/goview/supports/ginview"
@@ -15,7 +16,12 @@ import (
 	"Asgard/web/controllers"
 )
 
-var server *gin.Engine
+var (
+	server          *gin.Engine
+	appController   *controllers.AppController
+	agentController *controllers.AgentController
+	useController   *controllers.UserController
+)
 
 func Init() error {
 	//初始化日志组件
@@ -36,18 +42,29 @@ func Init() error {
 	server.Use(middlewares.Recover)
 	viewConfig := goview.DefaultConfig
 	viewConfig.Root = "web/views"
+	viewConfig.Funcs = template.FuncMap{
+		"unescaped": controllers.Unescaped,
+	}
 	server.HTMLRender = ginview.New(viewConfig)
 	server.Static("/assets", "web/assets")
+	appController = controllers.NewAppController()
+	agentController = controllers.NewAgentController()
+	useController = controllers.NewUserController()
 	return nil
 }
 
 func setupRouter() {
 	server.GET("/ping", controllers.Ping)
 	server.GET("/", controllers.Index)
+	server.GET("/register", useController.Register)
+	server.POST("/register", useController.DoRegister)
 	app := server.Group("/app")
 	{
-		appController := controllers.NewAppController()
 		app.GET("/list", appController.List)
+	}
+	agent := server.Group("/agent")
+	{
+		agent.GET("/list", agentController.List)
 	}
 }
 

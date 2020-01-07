@@ -1,0 +1,51 @@
+{{define "content"}}
+<div class="page-title-box">
+    <div class="row align-items-center">
+        <div class="col-auto">
+            <h2 class="page-title">实例列表</h2>
+        </div>
+        <div class="col-auto">
+            <div class="text-muted text-h4" style="margin-top: 10px;">总记录数:{{.Total}}</div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table card-table table-vcenter text-nowrap datatable overflow-hidden">
+                    <thead>
+                        <tr>
+                            <th style="width: 20%"><span>地址</span></th>
+                            <th style="width: 10%"><span>状态</span></th>
+                            <th style="width: 50%"><span>标签</span></th>
+                            <th style="width: 20%"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{- range .List}}
+                        <tr>
+                            <td>{{.IP}}:{{.Port}}</td>
+                            <td>{{if eq .Status 1}}在线{{else if eq .Status 0}}离线{{else if eq .Status -1}}禁用{{end}}</td>
+                            <td></td>
+                            <td class="text-right">
+                                <span class="dropdown">
+                                    <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown">操作</button>
+                                    <div class="dropdown-menu">
+                                        <a class="dropdown-item" href="#">运行状态</a>
+                                        <a class="dropdown-item" href="#">应用列表</a>
+                                    </div>
+                                </span>
+                            </td>
+                        </tr>
+                        {{- end}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="d-flex">
+    {{.Pagination | unescaped}}
+</div>
+{{end}}
