@@ -4,6 +4,8 @@ go 1.13
 
 require (
 	github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d // indirect
+	github.com/axgle/mahonia v0.0.0-20180208002826-3358181d7394 // indirect
+	github.com/clbanning/mxj v1.8.4 // indirect
 	github.com/dalonghahaha/avenger v0.0.0-20191227071321-95c8508e8794
 	github.com/foolin/goview v0.2.0
 	github.com/gin-gonic/gin v1.5.0
@@ -19,5 +21,7 @@ require (
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.3.2
+	github.com/tidwall/gjson v1.3.5 // indirect
 	google.golang.org/grpc v1.26.0
+	gopkg.in/go-playground/validator.v9 v9.29.1
 )

@@ -29,33 +29,20 @@
                         <div class="text-center mb-4">
                             <img src="/assets/image/logo.svg" class="h-8" alt="">
                         </div>
-                        <form id="register" class="card" method="post">
+                        <form id="login" class="card" method="post">
                             <div class="card-header">
-                                <h3 class="card-title">创建账户</h3>
+                                <h3 class="card-title">登录系统</h3>
                             </div>
                             <div class="card-body">
                                 <div class="mb-2">
-                                    <label class="form-label">昵称</label>
-                                    <input name="nickname" type="text" class="form-control" placeholder="请输入用户名"
+                                    <label class="form-label">账号：</label>
+                                    <input name="username" type="text" class="form-control" placeholder="请输入用户名/邮箱/电话"
                                         required>
                                 </div>
                                 <div class="mb-2">
-                                    <label class="form-label">邮箱</label>
-                                    <input name="email" type="email" class="form-control" placeholder="请输入邮箱" required>
-                                </div>
-                                <div class="mb-2">
-                                    <label class="form-label">手机号</label>
-                                    <input name="mobile" type="text" class="form-control" placeholder="请输入手机号" required>
-                                </div>
-                                <div class="mb-2">
-                                    <label class="form-label">密码</label>
+                                    <label class="form-label">密码：</label>
                                     <input name="password" type="password" class="form-control" placeholder="请输入密码"
                                         required>
-                                </div>
-                                <div class="mb-2">
-                                    <label class="form-label">确认密码</label>
-                                    <input name="password-confirm" type="password" class="form-control"
-                                        placeholder="请再次输入密码" required>
                                 </div>
                             </div>
                             <div class="card-footer text-right">
@@ -63,7 +50,7 @@
                             </div>
                         </form>
                         <div class="text-center text-muted">
-                            已经有账户? <a href="/login">登录</a>
+                            没有账户? <a href="/register">前往注册</a>
                         </div>
                     </div>
                 </div>
@@ -78,9 +65,9 @@
     <script type="text/javascript" src="/assets/js/jquery.form.min.js"></script>
     <script type="text/javascript">
         $(document).ready(function () {
-            $("#register").on("submit", function (event) {
-                $('#register').ajaxSubmit({
-                    url: "/register",
+            $("#login").on("submit", function (event) {
+                $('#login').ajaxSubmit({
+                    url: "/login",
                     dataType: "json",
                     timeout: 60000,
                     success: function (data) {

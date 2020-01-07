@@ -21,7 +21,7 @@ func (c *AgentController) List(ctx *gin.Context) {
 	agentList := c.agentService.GetAllAgent()
 	total := len(agentList)
 	mpurl := "/agent/list"
-	ctx.HTML(200, "agent_list", gin.H{
+	ctx.HTML(200, "agent/list", gin.H{
 		"Subtitle":   "实例列表",
 		"List":       agentList,
 		"Total":      total,

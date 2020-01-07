@@ -3,6 +3,7 @@ package controllers
 import (
 	"html/template"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -10,9 +11,47 @@ import (
 )
 
 var (
-	StatusOK = http.StatusOK
-	PageSize = 10
+	StatusOK         = http.StatusOK
+	StatusBadRequest = http.StatusBadRequest
+	StatusError      = http.StatusInternalServerError
+	PageSize         = 10
 )
+
+func EmailFormat(email string) bool {
+	pattern := `^[0-9a-z][_.0-9a-z-]{0,31}@([0-9a-z][0-9a-z-]{0,30}[0-9a-z]\.){1,4}[a-z]{2,4}$`
+	reg := regexp.MustCompile(pattern)
+	return reg.MatchString(email)
+}
+
+func MobileFormat(mobileNum string) bool {
+	regular := "^((13[0-9])|(14[5,7])|(15[0-3,5-9])|(17[0,3,5-8])|(18[0-9])|166|198|199|(147))\\d{8}$"
+	reg := regexp.MustCompile(regular)
+	return reg.MatchString(mobileNum)
+}
+
+func Required(ctx *gin.Context, val *string, message string) bool {
+	if *val == "" {
+		APIBadRequest(ctx, message)
+		return false
+	}
+	return true
+}
+
+func APIOK(ctx *gin.Context) {
+	ctx.JSON(StatusOK, gin.H{"code": StatusOK})
+}
+
+func APIData(ctx *gin.Context, data interface{}) {
+	ctx.JSON(StatusOK, gin.H{"code": StatusOK, "data": data})
+}
+
+func APIBadRequest(ctx *gin.Context, message string) {
+	ctx.JSON(StatusOK, gin.H{"code": StatusBadRequest, "message": message})
+}
+
+func APIError(ctx *gin.Context, message string) {
+	ctx.JSON(StatusOK, gin.H{"code": StatusError, "message": message})
+}
 
 func DefaultInt(ctx *gin.Context, key string, defaultVal int) int {
 	page := ctx.Query(key)
@@ -34,7 +73,9 @@ func totalPage(total int) int {
 	}
 }
 
-func Unescaped(x string) interface{} { return template.HTML(x) }
+func Unescaped(x string) interface{} {
+	return template.HTML(x)
+}
 
 func PagerHtml(total int, page int, mpurl string) string {
 	totalpage := totalPage(total)

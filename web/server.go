@@ -42,6 +42,7 @@ func Init() error {
 	server.Use(middlewares.Recover)
 	viewConfig := goview.DefaultConfig
 	viewConfig.Root = "web/views"
+	viewConfig.DisableCache = true
 	viewConfig.Funcs = template.FuncMap{
 		"unescaped": controllers.Unescaped,
 	}
@@ -58,6 +59,12 @@ func setupRouter() {
 	server.GET("/", controllers.Index)
 	server.GET("/register", useController.Register)
 	server.POST("/register", useController.DoRegister)
+	server.GET("/login", useController.Login)
+	server.POST("/login", useController.DoLogin)
+	user := server.Group("/user")
+	{
+		user.GET("/list", useController.List)
+	}
 	app := server.Group("/app")
 	{
 		app.GET("/list", appController.List)

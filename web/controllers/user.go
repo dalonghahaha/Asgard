@@ -1,8 +1,11 @@
 package controllers
 
 import (
+	"github.com/dalonghahaha/avenger/tools/coding"
+	"github.com/dalonghahaha/avenger/tools/random"
 	"github.com/gin-gonic/gin"
 
+	"Asgard/models"
 	"Asgard/services"
 )
 
@@ -16,14 +19,97 @@ func NewUserController() *UserController {
 	}
 }
 
+func (c *UserController) List(ctx *gin.Context) {
+	page := DefaultInt(ctx, "page", 1)
+	list := c.useService.GetAllUser()
+	total := len(list)
+	mpurl := "/agent/list"
+	ctx.HTML(200, "agent/list", gin.H{
+		"Subtitle":   "用户列表",
+		"List":       list,
+		"Total":      total,
+		"Pagination": PagerHtml(total, page, mpurl),
+	})
+}
+
 func (c *UserController) Register(ctx *gin.Context) {
-	ctx.HTML(StatusOK, "register.html", gin.H{
+	ctx.HTML(StatusOK, "user/register.html", gin.H{
 		"Subtitle": "用户注册",
 	})
 }
 
 func (c *UserController) DoRegister(ctx *gin.Context) {
-	ctx.JSON(StatusOK, gin.H{
-		"code": 200,
+	nickname := ctx.PostForm("nickname")
+	email := ctx.PostForm("email")
+	mobile := ctx.PostForm("mobile")
+	password := ctx.PostForm("password")
+	passwordConfirm := ctx.PostForm("password-confirm")
+	if !Required(ctx, &email, "邮箱不能为空") {
+		return
+	}
+	if !Required(ctx, &mobile, "手机号不能为空") {
+		return
+	}
+	if !Required(ctx, &password, "密码不能为空") {
+		return
+	}
+	if !Required(ctx, &passwordConfirm, "确认密码不能为空") {
+		return
+	}
+	if password != passwordConfirm {
+		APIBadRequest(ctx, "两次输入的密码不一致")
+		return
+	}
+	salt := random.Letters(8)
+	password, err := coding.MD5(password + "|" + salt)
+	if err != nil {
+		APIError(ctx, "生产密码失败")
+		return
+	}
+	user := new(models.User)
+	user.NickName = nickname
+	user.Email = email
+	user.Mobile = mobile
+	user.Salt = salt
+	user.Password = password
+	user.Salt = salt
+	ok := c.useService.CreateUser(user)
+	if !ok {
+		APIError(ctx, "注册失败")
+		return
+	}
+	APIOK(ctx)
+}
+
+func (c *UserController) Login(ctx *gin.Context) {
+	ctx.HTML(StatusOK, "user/login.html", gin.H{
+		"Subtitle": "用户登录",
 	})
+}
+
+func (c *UserController) DoLogin(ctx *gin.Context) {
+	username := ctx.PostForm("username")
+	password := ctx.PostForm("password")
+	var user *models.User
+	if EmailFormat(username) {
+		user = c.useService.GetUserByEmail(username)
+	} else if MobileFormat(username) {
+		user = c.useService.GetUserByMobile(username)
+	} else {
+		user = c.useService.GetUserByNickName(username)
+	}
+	if user == nil {
+		APIError(ctx, "用户不存在")
+		return
+	}
+	passwordCheck, err := coding.MD5(password + "|" + user.Salt)
+	if err != nil {
+		APIError(ctx, "密码不正确")
+		return
+	}
+	if passwordCheck != user.Password {
+		APIError(ctx, "密码不正确")
+		return
+	}
+	APIOK(ctx)
 }
