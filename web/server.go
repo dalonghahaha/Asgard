@@ -11,9 +11,10 @@ import (
 
 	"github.com/dalonghahaha/avenger/components/db"
 	"github.com/dalonghahaha/avenger/components/logger"
-	middlewares "github.com/dalonghahaha/avenger/middlewares/gin"
+	common_middlewares "github.com/dalonghahaha/avenger/middlewares/gin"
 
 	"Asgard/web/controllers"
+	"Asgard/web/middlewares"
 )
 
 var (
@@ -37,9 +38,17 @@ func Init() error {
 	if viper.GetString("server.mode") == "release" {
 		gin.SetMode(gin.ReleaseMode)
 	}
+	cookieSalt := viper.GetString("server.cookie_salt")
+	if cookieSalt != "" {
+		controllers.CookieSalt = cookieSalt
+	}
+	domain := viper.GetString("server.domain")
+	if cookieSalt != "" {
+		controllers.Domain = domain
+	}
 	server = gin.New()
-	server.Use(middlewares.Logger)
-	server.Use(middlewares.Recover)
+	server.Use(common_middlewares.Logger)
+	server.Use(common_middlewares.Recover)
 	viewConfig := goview.DefaultConfig
 	viewConfig.Root = "web/views"
 	viewConfig.DisableCache = true
@@ -56,20 +65,25 @@ func Init() error {
 
 func setupRouter() {
 	server.GET("/ping", controllers.Ping)
-	server.GET("/", controllers.Index)
+	server.GET("/", middlewares.Login, controllers.Index)
+	server.GET("/nologin", controllers.Nologin)
+	server.GET("/error", controllers.Error)
 	server.GET("/register", useController.Register)
 	server.POST("/register", useController.DoRegister)
 	server.GET("/login", useController.Login)
 	server.POST("/login", useController.DoLogin)
 	user := server.Group("/user")
+	user.Use(middlewares.Login)
 	{
 		user.GET("/list", useController.List)
 	}
 	app := server.Group("/app")
+	app.Use(middlewares.Login)
 	{
 		app.GET("/list", appController.List)
 	}
 	agent := server.Group("/agent")
+	agent.Use(middlewares.Login)
 	{
 		agent.GET("/list", agentController.List)
 	}

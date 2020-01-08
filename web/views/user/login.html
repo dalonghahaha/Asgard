@@ -46,7 +46,7 @@
                                 </div>
                             </div>
                             <div class="card-footer text-right">
-                                <button type="submit" class="btn btn-primary col-md-4">创建账户</button>
+                                <button type="submit" class="btn btn-primary col-md-4">登录系统</button>
                             </div>
                         </form>
                         <div class="text-center text-muted">
@@ -74,7 +74,7 @@
                         if (data.code == 200) {
                             window.location.href = "/";
                         } else {
-                            alert(data.msg);
+                            alert(data.message);
                         }
                     }
                 })

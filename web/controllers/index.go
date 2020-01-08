@@ -1,14 +1,24 @@
 package controllers
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 )
 
 func Index(c *gin.Context) {
-	c.HTML(http.StatusOK, "index", gin.H{
+	c.HTML(StatusOK, "index", gin.H{
 		"Subtitle": "首页",
+	})
+}
+
+func Nologin(c *gin.Context) {
+	c.HTML(StatusOK, "error/nologin.html", gin.H{
+		"Subtitle": "未登录提示页",
+	})
+}
+
+func Error(c *gin.Context) {
+	c.HTML(StatusOK, "error/err.html", gin.H{
+		"Subtitle": "服务器异常",
 	})
 }
 

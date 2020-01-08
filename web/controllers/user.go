@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"strconv"
+
 	"github.com/dalonghahaha/avenger/tools/coding"
 	"github.com/dalonghahaha/avenger/tools/random"
 	"github.com/gin-gonic/gin"
@@ -111,5 +113,10 @@ func (c *UserController) DoLogin(ctx *gin.Context) {
 		APIError(ctx, "密码不正确")
 		return
 	}
+	cookie, err := coding.DesEncrypt(strconv.Itoa(int(user.ID)), CookieSalt)
+	if err != nil {
+		APIError(ctx, "登录失败")
+	}
+	ctx.SetCookie("token", cookie, 3600, "/", Domain, false, true)
 	APIOK(ctx)
 }

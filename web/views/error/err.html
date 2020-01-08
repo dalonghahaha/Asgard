@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Asgard Framework - {{.Subtitle}}</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <meta http-equiv="Content-Language" content="en" />
+    <meta name="msapplication-TileColor" content="#206bc4" />
+    <meta name="theme-color" content="#206bc4" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="MobileOptimized" content="320" />
+    <link rel="icon" href="/assets/image/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="/assets/image/favicon.ico" type="image/x-icon" />
+    <link href="/assets/css/tabler.min.css" rel="stylesheet" />
+    <link href="/assets/css/tabler-flags.min.css" rel="stylesheet" />
+</head>
+
+<body class="antialiased border-top-wide border-primary">
+    <div class="d-flex align-items-center justify-content-center min-vh-100">
+        <div class="empty">
+            <div class="empty-icon">
+                <div class="display-4">服务器出错了，😂😂😂</div>
+            </div>
+            <p class="empty-title h3">请联系管理员大大</p>
+            <p class="empty-subtitle text-muted">
+                该页面将于5秒后跳转到登录页面
+            </p>
+            <div class="empty-action">
+                <a href="/login" class="btn btn-primary">前往登录页</a>
+            </div>
+        </div>
+    </div>
+</body>
+
+<footer>
+    <script type="text/javascript">
+        setTimeout(function () {
+            window.location.href = "/login"
+        }, 5000);
+    </script>
+</footer>
+
+</html>

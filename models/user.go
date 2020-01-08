@@ -3,7 +3,7 @@ package models
 import "github.com/dalonghahaha/avenger/components/db"
 
 type User struct {
-	ID       int64  `gorm:"column:id;primary_key" json:"id"`
+	BaseModel
 	NickName string `gorm:"column:nickname" json:"nickname"`
 	Avatar   string `gorm:"column:avatar" json:"avatar"`
 	Email    string `gorm:"column:email" json:"email"`

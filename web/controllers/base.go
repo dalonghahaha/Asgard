@@ -15,6 +15,8 @@ var (
 	StatusBadRequest = http.StatusBadRequest
 	StatusError      = http.StatusInternalServerError
 	PageSize         = 10
+	CookieSalt       = "sdswqeqx"
+	Domain           = "localhost"
 )
 
 func EmailFormat(email string) bool {
