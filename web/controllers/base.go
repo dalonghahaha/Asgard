@@ -7,13 +7,16 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/dalonghahaha/avenger/tools/coding"
 	"github.com/gin-gonic/gin"
 )
 
 var (
+	ErrorUrl         = "/error"
 	StatusOK         = http.StatusOK
 	StatusBadRequest = http.StatusBadRequest
 	StatusError      = http.StatusInternalServerError
+	StatusFound      = http.StatusFound
 	PageSize         = 10
 	CookieSalt       = "sdswqeqx"
 	Domain           = "localhost"
@@ -65,6 +68,26 @@ func DefaultInt(ctx *gin.Context, key string, defaultVal int) int {
 		return defaultVal
 	}
 	return _page
+}
+
+func GetUserID(ctx *gin.Context) int64 {
+	token, err := ctx.Cookie("token")
+	if err != nil {
+		return 0
+	}
+	_token, err := coding.DesDecrypt(token, CookieSalt)
+	if err != nil {
+		return 0
+	}
+	userID, err := strconv.Atoi(_token)
+	if err != nil {
+		return 0
+	}
+	return int64(userID)
+}
+
+func JumpError(ctx *gin.Context) {
+	ctx.Redirect(http.StatusFound, ErrorUrl)
 }
 
 func totalPage(total int) int {

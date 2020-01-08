@@ -92,6 +92,12 @@ func (c *UserController) Login(ctx *gin.Context) {
 func (c *UserController) DoLogin(ctx *gin.Context) {
 	username := ctx.PostForm("username")
 	password := ctx.PostForm("password")
+	if !Required(ctx, &username, "用户名不能为空") {
+		return
+	}
+	if !Required(ctx, &password, "密码不能为空") {
+		return
+	}
 	var user *models.User
 	if EmailFormat(username) {
 		user = c.useService.GetUserByEmail(username)
@@ -117,6 +123,13 @@ func (c *UserController) DoLogin(ctx *gin.Context) {
 	if err != nil {
 		APIError(ctx, "登录失败")
 	}
+	//add cookie
 	ctx.SetCookie("token", cookie, 3600, "/", Domain, false, true)
 	APIOK(ctx)
+}
+
+func (c *UserController) Logout(ctx *gin.Context) {
+	//remove cookie
+	ctx.SetCookie("token", "", 0, "/", Domain, false, true)
+	ctx.Redirect(StatusFound, "/login")
 }

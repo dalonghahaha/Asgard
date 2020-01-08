@@ -23,7 +23,7 @@ func (s *GroupService) GetAllGroup() []*models.Group {
 	return list
 }
 
-func (s *UserService) GetGroupByID(id int64) *models.Group {
+func (s *GroupService) GetGroupByID(id int64) *models.Group {
 	user := new(models.Group)
 	err := user.Get(id)
 	if err != nil {
