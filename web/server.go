@@ -22,6 +22,7 @@ var (
 	appController   *controllers.AppController
 	agentController *controllers.AgentController
 	useController   *controllers.UserController
+	groupController *controllers.GroupController
 )
 
 func Init() error {
@@ -60,6 +61,7 @@ func Init() error {
 	appController = controllers.NewAppController()
 	agentController = controllers.NewAgentController()
 	useController = controllers.NewUserController()
+	groupController = controllers.NewGroupController()
 	return nil
 }
 
@@ -76,6 +78,15 @@ func setupRouter() {
 	user.Use(middlewares.Login)
 	{
 		user.GET("/list", useController.List)
+	}
+	group := server.Group("/group")
+	group.Use(middlewares.Login)
+	{
+		group.GET("/list", groupController.List)
+		group.GET("/add", groupController.Add)
+		group.POST("/create", groupController.Create)
+		group.GET("/edit", groupController.Edit)
+		group.POST("/update", groupController.Update)
 	}
 	app := server.Group("/app")
 	app.Use(middlewares.Login)

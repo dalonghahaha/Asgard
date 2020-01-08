@@ -1,0 +1,50 @@
+{{define "content"}}
+<div class="page-title-box">
+    <div class="row align-items-center">
+        <div class="col-auto">
+            <h2 class="page-title">添加分组</h2>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <form id="group" class="card" method="post">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="mb-2">
+                            <label class="form-label">名称</label>
+                            <input name="name" type="text" class="form-control" placeholder="请输入名称" value="{{.Group.Name}}" required>
+                            <input name="id" type="hidden" class="form-control" placeholder="请输入名称" value="{{.Group.ID}}" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer text-right">
+                <button type="submit" class="btn btn-primary">提交</button>
+            </div>
+        </form>
+    </div>
+</div>
+{{end}}
+{{define "script"}}
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#group").on("submit", function (event) {
+            $('#group').ajaxSubmit({
+                url: "/group/update",
+                dataType: "json",
+                timeout: 60000,
+                success: function (data) {
+                    if (data.code == 200) {
+                        window.location.href = "/group/list";
+                    } else {
+                        alert(data.message);
+                    }
+                }
+            })
+            return false;
+        });
+    });
+</script>
+{{end}}

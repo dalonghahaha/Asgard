@@ -73,7 +73,7 @@ func (c *GroupController) Edit(ctx *gin.Context) {
 }
 
 func (c *GroupController) Update(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
+	id := FormDefaultInt(ctx, "id", 0)
 	name := ctx.PostForm("name")
 	status := ctx.PostForm("status")
 	if id == 0 {
@@ -110,7 +110,7 @@ func (c *GroupController) Update(ctx *gin.Context) {
 }
 
 func (c *GroupController) Delete(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
+	id := FormDefaultInt(ctx, "id", 0)
 	if id == 0 {
 		APIBadRequest(ctx, "ID格式错误")
 		return

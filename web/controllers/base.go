@@ -70,6 +70,18 @@ func DefaultInt(ctx *gin.Context, key string, defaultVal int) int {
 	return _page
 }
 
+func FormDefaultInt(ctx *gin.Context, key string, defaultVal int) int {
+	page := ctx.PostForm(key)
+	if page == "" {
+		return defaultVal
+	}
+	_page, err := strconv.Atoi(page)
+	if err != nil {
+		return defaultVal
+	}
+	return _page
+}
+
 func GetUserID(ctx *gin.Context) int64 {
 	token, err := ctx.Cookie("token")
 	if err != nil {
