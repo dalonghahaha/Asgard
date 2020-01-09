@@ -8,7 +8,7 @@
 </div>
 <div class="row">
     <div class="col-12">
-        <form id="job" class="card" method="post">
+        <form id="app" class="card" method="post">
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
@@ -40,7 +40,7 @@
                     <div class="col-md-12">
                         <div class="mb-2">
                             <label class="form-label">名称</label>
-                            <input name="name" type="text" class="form-control" placeholder="请输入名称" value="" required>
+                            <input name="name" type="text" class="form-control" placeholder="请输入名称" value="{{.Job.Name}}" required>
                         </div>
                     </div>
                 </div>
@@ -48,7 +48,7 @@
                     <div class="col-md-12">
                         <div class="mb-2">
                             <label class="form-label">执行目录</label>
-                            <input name="dir" type="text" class="form-control" placeholder="请输入执行目录" value="" required>
+                            <input name="dir" type="text" class="form-control" placeholder="请输入执行目录" value="{{.Job.Dir}}" required>
                         </div>
                     </div>
                 </div>
@@ -56,7 +56,7 @@
                     <div class="col-md-12">
                         <div class="mb-2">
                             <label class="form-label">执行程序</label>
-                            <input name="program" type="text" class="form-control" placeholder="请输入执行程序" value="" required>
+                            <input name="program" type="text" class="form-control" placeholder="请输入执行程序" value="{{.Job.Program}}" required>
                         </div>
                     </div>
                 </div>
@@ -64,7 +64,7 @@
                     <div class="col-md-12">
                         <div class="mb-2">
                             <label class="form-label">执行参数</label>
-                            <input name="args" type="text" class="form-control" placeholder="请输入执行参数" value="">
+                            <input name="args" type="text" class="form-control" placeholder="请输入执行参数" value="{{.Job.Args}}">
                         </div>
                     </div>
                 </div>
@@ -72,7 +72,7 @@
                     <div class="col-md-12">
                         <div class="mb-2">
                             <label class="form-label">标准输出路径</label>
-                            <input name="std_out" type="text" class="form-control" placeholder="请输入标准输出路径" value="">
+                            <input name="std_out" type="text" class="form-control" placeholder="请输入标准输出路径" value="{{.Job.StdOut}}">
                         </div>
                     </div>
                 </div>
@@ -80,7 +80,7 @@
                     <div class="col-md-12">
                         <div class="mb-2">
                             <label class="form-label">错误输出路径</label>
-                            <input name="std_err" type="text" class="form-control" placeholder="请输入错误输出路径" value="">
+                            <input name="std_err" type="text" class="form-control" placeholder="请输入错误输出路径" value="{{.Job.StdErr}}">
                         </div>
                     </div>
                 </div>
@@ -88,7 +88,7 @@
                     <div class="col-md-12">
                         <div class="mb-2">
                             <label class="form-label">计划配置</label>
-                            <input name="spec" type="text" class="form-control" placeholder="请输入错误输出路径" value="">
+                            <input name="spec" type="text" class="form-control" placeholder="请输入错误输出路径" value="{{.Job.Spec}}">
                         </div>
                     </div>
                 </div>
@@ -96,7 +96,7 @@
                     <div class="col-md-12">
                         <div class="mb-2">
                             <label class="form-label">超时时间</label>
-                            <input name="spec" type="text" class="form-control" placeholder="请输入错误输出路径" value="">
+                            <input name="spec" type="text" class="form-control" placeholder="请输入错误输出路径" value="{{.Job.Timout}}">
                         </div>
                     </div>
                 </div>
@@ -105,7 +105,7 @@
                         <div class="mb-2">
                             <label class="form-label">是否开启监控</label>
                             <label class="form-check form-switch">
-                                <input name="is_monitor" class="form-check-input" type="checkbox">
+                                <input name="is_monitor" class="form-check-input" type="checkbox" {{if eq .Job.IsMonitor 1}}checked{{end}}>
                             </label>
                         </div>
                     </div>

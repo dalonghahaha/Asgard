@@ -21,8 +21,8 @@ func NewGroupController() *GroupController {
 
 func (c *GroupController) List(ctx *gin.Context) {
 	page := DefaultInt(ctx, "page", 1)
-	list := c.groupService.GetAllGroup()
-	total := len(list)
+	where := map[string]interface{}{}
+	list, total := c.groupService.GetGroupPageList(where, page, PageSize)
 	mpurl := "/group/list"
 	ctx.HTML(StatusOK, "group/list", gin.H{
 		"Subtitle":   "分组列表",

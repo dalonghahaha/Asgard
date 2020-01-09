@@ -23,6 +23,24 @@ func (s *AgentService) GetAllAgent() []*models.Agent {
 	return list
 }
 
+func (s *GroupService) GetAgentPageList(where map[string]interface{}, page int, pageSize int) (list []map[string]interface{}, count int) {
+	_list := []models.Agent{}
+	err := models.PageList(&models.Agent{}, where, page, pageSize, &_list, &count)
+	if err != nil {
+		logger.Error("GetAgentPageList Error:", err)
+		return nil, 0
+	}
+	for _, val := range _list {
+		list = append(list, map[string]interface{}{
+			"ID":     val.ID,
+			"IP":     val.IP,
+			"Port":   val.Port,
+			"Status": val.Status,
+		})
+	}
+	return
+}
+
 func (s *AgentService) GetAgentByID(id int64) *models.Agent {
 	agent := new(models.Agent)
 	err := agent.Get(id)

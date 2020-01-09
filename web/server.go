@@ -20,6 +20,7 @@ import (
 var (
 	server          *gin.Engine
 	appController   *controllers.AppController
+	jobController   *controllers.JobController
 	agentController *controllers.AgentController
 	useController   *controllers.UserController
 	groupController *controllers.GroupController
@@ -62,6 +63,7 @@ func Init() error {
 	agentController = controllers.NewAgentController()
 	useController = controllers.NewUserController()
 	groupController = controllers.NewGroupController()
+	jobController = controllers.NewJobController()
 	return nil
 }
 
@@ -92,6 +94,19 @@ func setupRouter() {
 	app.Use(middlewares.Login)
 	{
 		app.GET("/list", appController.List)
+		app.GET("/add", appController.Add)
+		app.POST("/create", appController.Create)
+		app.GET("/edit", appController.Edit)
+		app.POST("/update", appController.Update)
+	}
+	job := server.Group("/job")
+	job.Use(middlewares.Login)
+	{
+		job.GET("/list", jobController.List)
+		job.GET("/add", jobController.Add)
+		job.POST("/create", jobController.Create)
+		job.GET("/edit", jobController.Edit)
+		job.POST("/update", jobController.Update)
 	}
 	agent := server.Group("/agent")
 	agent.Use(middlewares.Login)

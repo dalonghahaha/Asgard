@@ -8,21 +8,21 @@ import (
 	"Asgard/services"
 )
 
-type AppController struct {
-	appService   *services.AppService
+type JobController struct {
+	jobService   *services.JobService
 	agentService *services.AgentService
 	groupService *services.GroupService
 }
 
-func NewAppController() *AppController {
-	return &AppController{
-		appService:   services.NewAppService(),
+func NewJobController() *JobController {
+	return &JobController{
+		jobService:   services.NewJobService(),
 		agentService: services.NewAgentService(),
 		groupService: services.NewGroupService(),
 	}
 }
 
-func (c *AppController) formatApp(info *models.App) map[string]interface{} {
+func (c *JobController) formatJob(info *models.Job) map[string]interface{} {
 	data := models.ModelToMap(info)
 	group := c.groupService.GetGroupByID(info.GroupID)
 	if group != nil {
@@ -39,37 +39,37 @@ func (c *AppController) formatApp(info *models.App) map[string]interface{} {
 	return data
 }
 
-func (c *AppController) List(ctx *gin.Context) {
+func (c *JobController) List(ctx *gin.Context) {
 	page := DefaultInt(ctx, "page", 1)
 	where := map[string]interface{}{}
-	appList, total := c.appService.GetAppPageList(where, page, PageSize)
-	if appList == nil {
-		APIError(ctx, "获取应用列表失败")
+	jobList, total := c.jobService.GetJobPageList(where, page, PageSize)
+	if jobList == nil {
+		APIError(ctx, "获取计划任务列表失败")
 	}
 	list := []map[string]interface{}{}
-	for _, app := range appList {
-		list = append(list, c.formatApp(&app))
+	for _, job := range jobList {
+		list = append(list, c.formatJob(&job))
 	}
-	mpurl := "/app/list"
-	ctx.HTML(StatusOK, "app/list", gin.H{
-		"Subtitle":   "应用列表",
+	mpurl := "/job/list"
+	ctx.HTML(StatusOK, "job/list", gin.H{
+		"Subtitle":   "计划任务列表",
 		"List":       list,
 		"Total":      total,
 		"Pagination": PagerHtml(total, page, mpurl),
 	})
 }
 
-func (c *AppController) Add(ctx *gin.Context) {
+func (c *JobController) Add(ctx *gin.Context) {
 	groups := c.groupService.GetAllGroup()
 	agents := c.agentService.GetAllAgent()
-	ctx.HTML(StatusOK, "app/add", gin.H{
-		"Subtitle":  "添加应用",
+	ctx.HTML(StatusOK, "job/add", gin.H{
+		"Subtitle":  "添加计划任务",
 		"GroupList": groups,
 		"AgentList": agents,
 	})
 }
 
-func (c *AppController) Create(ctx *gin.Context) {
+func (c *JobController) Create(ctx *gin.Context) {
 	groupID := FormDefaultInt(ctx, "group_id", 0)
 	name := ctx.PostForm("name")
 	agentID := FormDefaultInt(ctx, "agent_id", 0)
@@ -91,47 +91,47 @@ func (c *AppController) Create(ctx *gin.Context) {
 		APIBadRequest(ctx, "运行实例不能为空")
 		return
 	}
-	app := new(models.App)
-	app.GroupID = int64(groupID)
-	app.Name = name
-	app.AgentID = int64(agentID)
-	app.Dir = dir
-	app.Program = program
-	app.Args = args
-	app.StdOut = stdOut
-	app.StdErr = stdErr
-	app.Status = 0
-	app.Creator = GetUserID(ctx)
-	ok := c.appService.CreateApp(app)
+	job := new(models.Job)
+	job.GroupID = int64(groupID)
+	job.Name = name
+	job.AgentID = int64(agentID)
+	job.Dir = dir
+	job.Program = program
+	job.Args = args
+	job.StdOut = stdOut
+	job.StdErr = stdErr
+	job.Status = 0
+	job.Creator = GetUserID(ctx)
+	ok := c.jobService.CreateJob(job)
 	if !ok {
-		APIError(ctx, "创建应用失败")
+		APIError(ctx, "创建计划任务失败")
 		return
 	}
 	APIOK(ctx)
 }
 
-func (c *AppController) Edit(ctx *gin.Context) {
+func (c *JobController) Edit(ctx *gin.Context) {
 	id := DefaultInt(ctx, "id", 0)
 	if id == 0 {
 		JumpError(ctx)
 		return
 	}
-	app := c.appService.GetAppByID(int64(id))
-	if app == nil {
+	job := c.jobService.GetJobByID(int64(id))
+	if job == nil {
 		JumpError(ctx)
 		return
 	}
 	groups := c.groupService.GetAllGroup()
 	agents := c.agentService.GetAllAgent()
-	ctx.HTML(StatusOK, "app/edit", gin.H{
-		"Subtitle":  "编辑分组",
-		"App":       c.formatApp(app),
+	ctx.HTML(StatusOK, "job/edit", gin.H{
+		"Subtitle":  "编辑计划任务",
+		"Job":       c.formatJob(job),
 		"GroupList": groups,
 		"AgentList": agents,
 	})
 }
 
-func (c *AppController) Update(ctx *gin.Context) {
+func (c *JobController) Update(ctx *gin.Context) {
 	id := FormDefaultInt(ctx, "id", 0)
 	name := ctx.PostForm("name")
 	status := ctx.PostForm("status")
@@ -143,13 +143,13 @@ func (c *AppController) Update(ctx *gin.Context) {
 		APIBadRequest(ctx, "请求数据格式错误")
 		return
 	}
-	app := c.appService.GetAppByID(int64(id))
-	if app == nil {
+	job := c.jobService.GetJobByID(int64(id))
+	if job == nil {
 		APIBadRequest(ctx, "分组不存在")
 		return
 	}
 	if name != "" {
-		app.Name = name
+		job.Name = name
 	}
 	if status != "" {
 		_status, err := strconv.ParseInt(status, 10, 64)
@@ -157,26 +157,26 @@ func (c *AppController) Update(ctx *gin.Context) {
 			APIBadRequest(ctx, "status格式错误")
 			return
 		}
-		app.Status = _status
+		job.Status = _status
 	}
-	app.Updator = GetUserID(ctx)
-	ok := c.appService.UpdateApp(app)
+	job.Updator = GetUserID(ctx)
+	ok := c.jobService.UpdateJob(job)
 	if !ok {
-		APIError(ctx, "更新应用失败")
+		APIError(ctx, "更新计划任务失败")
 		return
 	}
 	APIOK(ctx)
 }
 
-func (c *AppController) Delete(ctx *gin.Context) {
+func (c *JobController) Delete(ctx *gin.Context) {
 	id := FormDefaultInt(ctx, "id", 0)
 	if id == 0 {
 		APIBadRequest(ctx, "ID格式错误")
 		return
 	}
-	ok := c.appService.DeleteAppByID(int64(id))
+	ok := c.jobService.DeleteJobByID(int64(id))
 	if !ok {
-		APIError(ctx, "删除应用失败")
+		APIError(ctx, "删除计划任务失败")
 		return
 	}
 	APIOK(ctx)
