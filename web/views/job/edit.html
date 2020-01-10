@@ -2,7 +2,7 @@
 <div class="page-title-box">
     <div class="row align-items-center">
         <div class="col-auto">
-            <h2 class="page-title">添加应用</h2>
+            <h2 class="page-title">编辑计划任务</h2>
         </div>
     </div>
 </div>
@@ -17,7 +17,7 @@
                             <select name="group_id" class="form-select">
                                 <option value="">请选择</option>
                                 {{- range .GroupList}}
-                                <option value="{{.ID}}">{{.Name}}</option>
+                                <option value="{{.ID}}" {{if eq $.Job.GroupID .ID}}selected{{end}}>{{.Name}}</option>
                                 {{- end}}
                             </select>
                         </div>
@@ -30,7 +30,7 @@
                             <select name="agent_id" class="form-select" required>
                                 <option value="">请选择</option>
                                 {{- range .AgentList}}
-                                <option value="{{.ID}}">{{.IP}}:{{.Port}}</option>
+                                <option value="{{.ID}}" {{if eq $.Job.AgentID .ID}}selected{{end}}>{{.IP}}:{{.Port}}</option>
                                 {{- end}}
                             </select>
                         </div>
@@ -123,7 +123,7 @@
     $(document).ready(function () {
         $("#job").on("submit", function (event) {
             $('#job').ajaxSubmit({
-                url: "/job/create",
+                url: "/job/update",
                 dataType: "json",
                 timeout: 60000,
                 success: function (data) {

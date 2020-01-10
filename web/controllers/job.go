@@ -23,7 +23,21 @@ func NewJobController() *JobController {
 }
 
 func (c *JobController) formatJob(info *models.Job) map[string]interface{} {
-	data := models.ModelToMap(info)
+	data := map[string]interface{}{
+		"ID":        info.ID,
+		"Name":      info.Name,
+		"GroupID":   info.GroupID,
+		"AgentID":   info.AgentID,
+		"Dir":       info.Dir,
+		"Program":   info.Program,
+		"Args":      info.Args,
+		"StdOut":    info.StdOut,
+		"StdErr":    info.StdErr,
+		"Spec":      info.Spec,
+		"Timeout":   info.Timeout,
+		"IsMonitor": info.IsMonitor,
+		"Status":    info.Status,
+	}
 	group := c.groupService.GetGroupByID(info.GroupID)
 	if group != nil {
 		data["GroupName"] = group.Name

@@ -1,8 +1,9 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 
 	"Asgard/models"
 	"Asgard/services"
@@ -23,7 +24,20 @@ func NewAppController() *AppController {
 }
 
 func (c *AppController) formatApp(info *models.App) map[string]interface{} {
-	data := models.ModelToMap(info)
+	data := map[string]interface{}{
+		"ID":          info.ID,
+		"Name":        info.Name,
+		"GroupID":     info.GroupID,
+		"AgentID":     info.AgentID,
+		"Dir":         info.Dir,
+		"Program":     info.Program,
+		"Args":        info.Args,
+		"StdOut":      info.StdOut,
+		"StdErr":      info.StdErr,
+		"AutoRestart": info.AutoRestart,
+		"IsMonitor":   info.IsMonitor,
+		"Status":      info.Status,
+	}
 	group := c.groupService.GetGroupByID(info.GroupID)
 	if group != nil {
 		data["GroupName"] = group.Name
