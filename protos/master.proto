@@ -45,6 +45,8 @@ message JobException {
 
 service Master {
     rpc Register(Agent) returns (Response) {}
+    rpc AppList(Agent) returns (AppListResponse) {}
+    rpc JobList(Agent) returns (JobListResponse) {}
     rpc AppMonitorReport(AppMonitor) returns (Response) {}
     rpc JobMoniorReport(JobMonior) returns (Response) {}
     rpc AppExceptionReport(AppException) returns (Response) {}

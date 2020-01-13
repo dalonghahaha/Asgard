@@ -39,7 +39,7 @@ func JobAdd(job *Job) {
 		logger.Error(job.Name+" add fail:", err)
 	}
 	logger.Info(job.Name + " add seccess!")
-	job.ID = id
+	job.CronID = id
 }
 
 func JobStart(name string) bool {
@@ -56,7 +56,7 @@ func JobStop(name string) error {
 	for _, job := range Jobs {
 		if job.Name == name {
 			job.stop()
-			crontab.Remove(job.ID)
+			crontab.Remove(job.CronID)
 		}
 	}
 	return nil
@@ -64,9 +64,11 @@ func JobStop(name string) error {
 
 type Job struct {
 	Command
-	ID      cron.EntryID
-	Spec    string
-	TimeOut time.Duration
+	ID        int64
+	Spec      string
+	TimeOut   time.Duration
+	IsMonitor bool
+	CronID    cron.EntryID
 }
 
 func (j *Job) Run() {
@@ -125,6 +127,11 @@ func NewJob(config map[string]interface{}) (*Job, error) {
 		return nil, fmt.Errorf("config timeout type wrong")
 	}
 	job.TimeOut = time.Duration(timeout)
+	isMonitor, ok := config["is_monitor"].(bool)
+	if !ok {
+		return nil, fmt.Errorf("config is_monitor type wrong")
+	}
+	job.IsMonitor = isMonitor
 	return job, nil
 }
 

@@ -35,6 +35,18 @@ func (s *AppService) GetAppByID(id int64) *models.App {
 	return &app
 }
 
+func (s *AppService) GetAppByAgentID(id int64) (list []models.App) {
+	where := map[string]interface{}{
+		"agent_id": id,
+	}
+	err := models.Search(&list, where)
+	if err != nil {
+		logger.Error("GetAppByAgentID Error:", err)
+		return nil
+	}
+	return
+}
+
 func (s *AppService) CreateApp(app *models.App) bool {
 	err := models.Create(app)
 	if err != nil {

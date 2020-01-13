@@ -1,0 +1,114 @@
+{{define "content"}}
+<div class="page-title-box">
+    <div class="row align-items-center">
+        <div class="col-auto">
+            <h2 class="page-title">
+                用户列表
+            </h2>
+        </div>
+        <div class="col-auto">
+            <div class="text-muted text-h5 mt-2">总记录数:{{.Total}}</div>
+        </div>
+        <div class="col-auto ml-auto d-print-none">
+            <div class="d-flex">
+                <a href="/user/add" class="btn btn-green">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="icon">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    新增用户
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table card-table table-vcenter text-nowrap datatable overflow-hidden">
+                    <thead>
+                        <tr>
+                            <th style="width: 5%"><span>头像</span></th>
+                            <th style="width: 30%"><span>用户名</span></th>
+                            <th style="width: 25%"><span>邮箱</span></th>
+                            <th style="width: 25%"><span>手机</span></th>
+                            <th style="width: 5%"><span>状态</span></th>
+                            <th style="width: 10%"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{- range .List}}
+                        <tr data-bind="{{.ID}}">
+                            <td>
+                                <span class="avatar avatar-md"
+                                    style="background-image: url(/assets/image/odin.jpeg)"></span>
+                            </td>
+                            <td>{{.NickName}}</td>
+                            <td>{{.Email}}</td>
+                            <td>{{.Mobile}}</td>
+                            <td>
+                                {{if eq .Status 0}}
+                                <span class="badge bg-gray">Unverified</span>
+                                {{end}}
+                                {{if eq .Status 1}}
+                                <span class="badge bg-green">Normal</span>
+                                {{end}}
+                                {{if eq .Status -1}}
+                                <span class="badge bg-red">Forbidden</span>
+                                {{end}}
+                            </td>
+                            <td class="text-right">
+                                <span class="dropdown">
+                                    <a class="btn-icon mx-2" data-toggle="dropdown">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" class="icon">
+                                            <circle cx="12" cy="12" r="1"></circle>
+                                            <circle cx="12" cy="5" r="1"></circle>
+                                            <circle cx="12" cy="19" r="1"></circle>
+                                        </svg>
+                                    </a>
+                                    <div class="dropdown-menu">
+                                        <a class="dropdown-item" href="/user/show?id={{.ID}}">
+                                            <svg class="icon icon-md" xmlns="http://www.w3.org/2000/svg" width="1em"
+                                                height="1em" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd"
+                                                    d="M12.442 12.442a1 1 0 011.415 0l3.85 3.85a1 1 0 01-1.414 1.415l-3.85-3.85a1 1 0 010-1.415z"
+                                                    clip-rule="evenodd"></path>
+                                                <path fill-rule="evenodd"
+                                                    d="M8.5 14a5.5 5.5 0 100-11 5.5 5.5 0 000 11zM15 8.5a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z"
+                                                    clip-rule="evenodd"></path>
+                                            </svg>
+                                            <span class="small text-muted">查看</span>
+                                        </a>
+                                        <a class="dropdown-item" href="javascript:;">
+                                            <svg class="icon icon-md" width="1em" height="1em" viewBox="0 0 20 20"
+                                                fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                                <path fill-rule="evenodd"
+                                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM7.354 6.646L10 9.293l2.646-2.647a.5.5 0 01.708.708L10.707 10l2.647 2.646a.5.5 0 01-.708.708L10 10.707l-2.646 2.647a.5.5 0 01-.708-.708L9.293 10 6.646 7.354a.5.5 0 11.708-.708z"
+                                                    clip-rule="evenodd"></path>
+                                            </svg>
+                                            <span class="cursor-pointer small text-muted">禁用</span>
+                                        </a>
+                                    </div>
+                                </span>
+                            </td>
+                        </tr>
+                        {{- end}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="d-flex">
+    {{.Pagination | unescaped}}
+</div>
+{{end}}
+{{define "script"}}
+<script type="text/javascript">
+</script>
+{{end}}

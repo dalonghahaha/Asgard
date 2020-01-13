@@ -49,7 +49,9 @@ func AppStop(name string) bool {
 
 type App struct {
 	Command
+	ID          int64
 	AutoRestart bool
+	IsMonitor   bool
 }
 
 func (a *App) Run() {
@@ -82,6 +84,11 @@ func NewApp(config map[string]interface{}) (*App, error) {
 		return nil, fmt.Errorf("config auto_restart type wrong")
 	}
 	app.AutoRestart = autoRestart
+	isMonitor, ok := config["is_monitor"].(bool)
+	if !ok {
+		return nil, fmt.Errorf("config is_monitor type wrong")
+	}
+	app.IsMonitor = isMonitor
 	return app, nil
 }
 

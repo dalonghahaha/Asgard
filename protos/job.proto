@@ -5,14 +5,16 @@ import "base.proto";
 option go_package = "rpc";
 
 message Job {
-	string name = 1;
-    string dir = 2;
-    string program = 3;
-    string args = 4;
-    string std_out = 5;
-    string std_err = 6;
-    string spec = 7;
-    int64 timeout = 8;
+    int64 id =1;
+	string name = 2;
+    string dir = 3;
+    string program = 4;
+    string args = 5;
+    string std_out = 6;
+    string std_err = 7;
+    string spec = 8;
+    int64 timeout = 9;
+    bool is_monitor = 10;
 }
 
 message JobNameRequest {

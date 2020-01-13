@@ -14,6 +14,10 @@ func Search(list interface{}, where map[string]interface{}) error {
 	return db.Get(DB_NAME).Where(where).Find(list).Error
 }
 
+func Where(list interface{}, query string, args ...string) error {
+	return db.Get(DB_NAME).Where(query, args).Find(list).Error
+}
+
 func Count(object interface{}, where map[string]interface{}, count *int) error {
 	return db.Get(DB_NAME).Model(object).Where(where).Count(count).Error
 }

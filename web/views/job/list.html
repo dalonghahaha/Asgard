@@ -31,31 +31,40 @@
                 <table class="table card-table table-vcenter text-nowrap datatable overflow-hidden">
                     <thead>
                         <tr>
-                            <th style="width: 30%"><span>名称</span></th>
+                            <th style="width: 25%"><span>名称</span></th>
                             <th style="width: 20%"><span>分组</span></th>
-                            <th style="width: 20%"><span>运行配置</span></th>
-                            <th style="width: 10%"><span>监控</span></th>
-                            <th style="width: 10%"><span>状态</span></th>
+                            <th style="width: 20%"><span>运行实例</span></th>
+                            <th style="width: 10%"><span>运行配置</span></th>
+                            <th style="width: 5%"><span>状态</span></th>
+                            <th style="width: 5%"><span>监控</span></th>
                             <th style="width: 10%" class="text-right"></th>
                         </tr>
                     </thead>
                     <tbody>
                         {{- range .List}}
-                        <tr>
+                        <tr data-bind="{{.ID}}">
                             <td>{{.Name}}</td>
                             <td>{{.GroupName}}</td>
+                            <td>{{.AgentName}}</td>
                             <td>{{.Spec}}</td>
                             <td>
-                                <label class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" {{if eq .IsMonitor 1}}checked{{end}}>
-                                </label>
+                                {{if eq .Status 0}}
+                                <span class="badge bg-gray">stop</span>
+                                {{end}}
+                                {{if eq .Status 1}}
+                                <span class="badge bg-green">running</span>
+                                {{end}}
+                                {{if eq .Status -1}}
+                                <span class="badge bg-red">error</span>
+                                {{end}}
                             </td>
                             <td>
                                 <label class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" {{if eq .Status 1}}checked{{end}}>
+                                    <input class="form-check-input" type="checkbox"
+                                        {{if eq .IsMonitor 1}}checked{{end}}>
                                 </label>
                             </td>
-                            <td class="text-right">
+                            <td>
                                 <span class="dropdown">
                                     <a class="btn-icon mx-2" data-toggle="dropdown">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
@@ -66,10 +75,56 @@
                                             <circle cx="12" cy="19" r="1"></circle>
                                         </svg>
                                     </a>
-                                    <div class="dropdown-menu">
-                                        <a class="dropdown-item" href="/job/edit?id={{.ID}}">编辑</a>
-                                        <a class="dropdown-item" href="/job/agent?id={{.ID}}">查看运行状态</a>
-                                        <a class="dropdown-item" href="javascript:;" data-bind="{{.ID}}" action="delete">删除</a>
+                                    <div class="dropdown-menu" data-bind="{{.ID}}">
+                                        <a class="dropdown-item" href="/job/show?id={{.ID}}">
+                                            <svg class="icon icon-md cursor-pointer" xmlns="http://www.w3.org/2000/svg"
+                                                width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd"
+                                                    d="M12.442 12.442a1 1 0 011.415 0l3.85 3.85a1 1 0 01-1.414 1.415l-3.85-3.85a1 1 0 010-1.415z"
+                                                    clip-rule="evenodd"></path>
+                                                <path fill-rule="evenodd"
+                                                    d="M8.5 14a5.5 5.5 0 100-11 5.5 5.5 0 000 11zM15 8.5a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z"
+                                                    clip-rule="evenodd"></path>
+                                            </svg>
+                                            <span class="cursor-pointer small text-muted">查看</span>
+                                        </a>
+                                        <a class="dropdown-item" href="/job/edit?id={{.ID}}">
+                                            <svg class="icon icon-md cursor-pointer" xmlns="http://www.w3.org/2000/svg"
+                                                width="1em" height="1em" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="1" stroke-linecap="round"
+                                                stroke-linejoin="round">
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7">
+                                                </path>
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z">
+                                                </path>
+                                            </svg>
+                                            <span class="cursor-pointer small text-muted">编辑</span>
+                                        </a>
+                                        <a class="dropdown-item" href="/job/moniter?id={{.ID}}">
+                                            <svg class="icon icon-md cursor-pointer" xmlns="http://www.w3.org/2000/svg"
+                                                width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M2 2h1v16H2V2zm1 15h15v1H3v-1z"></path>
+                                                <path fill-rule="evenodd"
+                                                    d="M16.39 6.312l-4.349 5.437L9 8.707l-3.646 3.647-.708-.708L9 7.293l2.959 2.958 3.65-4.563.781.624z"
+                                                    clip-rule="evenodd"></path>
+                                                <path fill-rule="evenodd"
+                                                    d="M12 5.5a.5.5 0 01.5-.5h4a.5.5 0 01.5.5v4a.5.5 0 01-1 0V6h-3.5a.5.5 0 01-.5-.5z"
+                                                    clip-rule="evenodd"></path>
+                                            </svg>
+                                            <span class="cursor-pointer small text-muted">监控信息</span>
+                                        </a>
+                                        <a class="dropdown-item" href="javascript:;" action="delete">
+                                            <svg class="icon icon-md cursor-pointer" xmlns="http://www.w3.org/2000/svg"
+                                                width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor">
+                                                <path
+                                                    d="M7.5 7.5A.5.5 0 018 8v6a.5.5 0 01-1 0V8a.5.5 0 01.5-.5zm2.5 0a.5.5 0 01.5.5v6a.5.5 0 01-1 0V8a.5.5 0 01.5-.5zm3 .5a.5.5 0 00-1 0v6a.5.5 0 001 0V8z">
+                                                </path>
+                                                <path fill-rule="evenodd"
+                                                    d="M16.5 5a1 1 0 01-1 1H15v9a2 2 0 01-2 2H7a2 2 0 01-2-2V6h-.5a1 1 0 01-1-1V4a1 1 0 011-1H8a1 1 0 011-1h2a1 1 0 011 1h3.5a1 1 0 011 1v1zM6.118 6L6 6.059V15a1 1 0 001 1h6a1 1 0 001-1V6.059L13.882 6H6.118zM4.5 5V4h11v1h-11z"
+                                                    clip-rule="evenodd"></path>
+                                            </svg>
+                                            <span class="cursor-pointer small text-muted">删除</span>
+                                        </a>
                                     </div>
                                 </span>
                             </td>
@@ -88,9 +143,9 @@
 {{define "script"}}
 <script type="text/javascript">
     $(document).ready(function () {
-        $("table").delegate("a[action=delete]", "click", function () {
+        $("table").delegate("svg[action=delete]", "click", function () {
             alert("删除");
-        });
+        })
     });
 </script>
 {{end}}

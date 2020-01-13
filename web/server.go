@@ -94,6 +94,7 @@ func setupRouter() {
 	app.Use(middlewares.Login)
 	{
 		app.GET("/list", appController.List)
+		app.GET("/show", appController.Show)
 		app.GET("/add", appController.Add)
 		app.POST("/create", appController.Create)
 		app.GET("/edit", appController.Edit)
@@ -103,6 +104,7 @@ func setupRouter() {
 	job.Use(middlewares.Login)
 	{
 		job.GET("/list", jobController.List)
+		job.GET("/show", jobController.Show)
 		job.GET("/add", jobController.Add)
 		job.POST("/create", jobController.Create)
 		job.GET("/edit", jobController.Edit)

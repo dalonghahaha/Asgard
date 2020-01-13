@@ -14,8 +14,8 @@ func NewAgentService() *AgentService {
 	return &AgentService{}
 }
 
-func (s *AgentService) GetAllAgent() []*models.Agent {
-	list, err := new(models.Agent).All()
+func (s *AgentService) GetAllAgent() (list []models.Agent) {
+	err := models.Where(&list, "status != ?", "-1")
 	if err != nil {
 		logger.Error("GetAllAgent Error:", err)
 		return nil
@@ -23,53 +23,45 @@ func (s *AgentService) GetAllAgent() []*models.Agent {
 	return list
 }
 
-func (s *GroupService) GetAgentPageList(where map[string]interface{}, page int, pageSize int) (list []map[string]interface{}, count int) {
-	_list := []models.Agent{}
-	err := models.PageList(&models.Agent{}, where, page, pageSize, &_list, &count)
+func (s *AgentService) GetAgentPageList(where map[string]interface{}, page int, pageSize int) (list []models.Agent, count int) {
+	err := models.PageList(&models.Agent{}, where, page, pageSize, &list, &count)
 	if err != nil {
 		logger.Error("GetAgentPageList Error:", err)
 		return nil, 0
-	}
-	for _, val := range _list {
-		list = append(list, map[string]interface{}{
-			"ID":     val.ID,
-			"IP":     val.IP,
-			"Port":   val.Port,
-			"Status": val.Status,
-		})
 	}
 	return
 }
 
 func (s *AgentService) GetAgentByID(id int64) *models.Agent {
-	agent := new(models.Agent)
-	err := agent.Get(id)
+	var agent models.Agent
+	err := models.Get(id, &agent)
 	if err != nil && err != gorm.ErrRecordNotFound {
 		if err != gorm.ErrRecordNotFound {
 			logger.Error("GetAgentByID Error:", err)
 		}
 		return nil
 	}
-	return agent
+	return &agent
 }
 
-func (s *AgentService) GetAgentByIP(ip string) *models.Agent {
+func (s *AgentService) GetAgentByIPAndPort(ip, port string) *models.Agent {
 	where := map[string]interface{}{
-		"ip": ip,
+		"ip":   ip,
+		"port": port,
 	}
-	agent := new(models.Agent)
-	err := agent.Find(where)
+	var agent models.Agent
+	err := models.Find(where, &agent)
 	if err != nil {
 		if err != gorm.ErrRecordNotFound {
 			logger.Error("GetAgentByIP Error:", err)
 		}
 		return nil
 	}
-	return agent
+	return &agent
 }
 
 func (s *AgentService) CreateAgent(agent *models.Agent) bool {
-	err := agent.Create()
+	err := models.Create(agent)
 	if err != nil {
 		logger.Error("CreateAgent Error:", err)
 		return false
@@ -78,7 +70,7 @@ func (s *AgentService) CreateAgent(agent *models.Agent) bool {
 }
 
 func (s *AgentService) UpdateAgent(agent *models.Agent) bool {
-	err := agent.Update()
+	err := models.Update(agent)
 	if err != nil {
 		logger.Error("UpdateAgent Error:", err)
 		return false
@@ -89,7 +81,7 @@ func (s *AgentService) UpdateAgent(agent *models.Agent) bool {
 func (s *AgentService) DeleteAgentByID(id int64) bool {
 	agent := new(models.Agent)
 	agent.ID = id
-	err := agent.Delete()
+	err := models.Delete(agent)
 	if err != nil {
 		logger.Error("DeleteAgentByID Error:", err)
 		return false

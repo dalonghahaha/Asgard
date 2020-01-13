@@ -1,8 +1,6 @@
 package controllers
 
 import (
-	"strconv"
-
 	"github.com/gin-gonic/gin"
 
 	"Asgard/models"
@@ -73,6 +71,23 @@ func (c *AppController) List(ctx *gin.Context) {
 	})
 }
 
+func (c *AppController) Show(ctx *gin.Context) {
+	id := DefaultInt(ctx, "id", 0)
+	if id == 0 {
+		JumpError(ctx)
+		return
+	}
+	app := c.appService.GetAppByID(int64(id))
+	if app == nil {
+		JumpError(ctx)
+		return
+	}
+	ctx.HTML(StatusOK, "app/show", gin.H{
+		"Subtitle": "查看应用",
+		"App":      c.formatApp(app),
+	})
+}
+
 func (c *AppController) Add(ctx *gin.Context) {
 	groups := c.groupService.GetAllGroup()
 	agents := c.agentService.GetAllAgent()
@@ -92,6 +107,8 @@ func (c *AppController) Create(ctx *gin.Context) {
 	args := ctx.PostForm("args")
 	stdOut := ctx.PostForm("std_out")
 	stdErr := ctx.PostForm("std_err")
+	autoRestart := ctx.PostForm("auto_restart")
+	isMonitor := ctx.PostForm("is_monitor")
 	if !Required(ctx, &name, "名称不能为空") {
 		return
 	}
@@ -99,6 +116,12 @@ func (c *AppController) Create(ctx *gin.Context) {
 		return
 	}
 	if !Required(ctx, &program, "执行程序不能为空") {
+		return
+	}
+	if !Required(ctx, &stdOut, "标准输出路径不能为空") {
+		return
+	}
+	if !Required(ctx, &stdErr, "错误输出路径不能为空") {
 		return
 	}
 	if agentID == 0 {
@@ -116,6 +139,12 @@ func (c *AppController) Create(ctx *gin.Context) {
 	app.StdErr = stdErr
 	app.Status = 0
 	app.Creator = GetUserID(ctx)
+	if autoRestart != "" {
+		app.AutoRestart = 1
+	}
+	if isMonitor != "" {
+		app.IsMonitor = 1
+	}
 	ok := c.appService.CreateApp(app)
 	if !ok {
 		APIError(ctx, "创建应用失败")
@@ -147,33 +176,59 @@ func (c *AppController) Edit(ctx *gin.Context) {
 
 func (c *AppController) Update(ctx *gin.Context) {
 	id := FormDefaultInt(ctx, "id", 0)
+	groupID := FormDefaultInt(ctx, "group_id", 0)
 	name := ctx.PostForm("name")
-	status := ctx.PostForm("status")
+	agentID := FormDefaultInt(ctx, "agent_id", 0)
+	dir := ctx.PostForm("dir")
+	program := ctx.PostForm("program")
+	args := ctx.PostForm("args")
+	stdOut := ctx.PostForm("std_out")
+	stdErr := ctx.PostForm("std_err")
+	autoRestart := ctx.PostForm("auto_restart")
+	isMonitor := ctx.PostForm("is_monitor")
 	if id == 0 {
 		APIBadRequest(ctx, "ID格式错误")
 		return
 	}
-	if name == "" && status == "" {
-		APIBadRequest(ctx, "请求数据格式错误")
+	if !Required(ctx, &name, "名称不能为空") {
+		return
+	}
+	if !Required(ctx, &dir, "执行目录不能为空") {
+		return
+	}
+	if !Required(ctx, &program, "执行程序不能为空") {
+		return
+	}
+	if !Required(ctx, &stdOut, "标准输出路径不能为空") {
+		return
+	}
+	if !Required(ctx, &stdErr, "错误输出路径不能为空") {
+		return
+	}
+	if agentID == 0 {
+		APIBadRequest(ctx, "运行实例不能为空")
 		return
 	}
 	app := c.appService.GetAppByID(int64(id))
 	if app == nil {
-		APIBadRequest(ctx, "分组不存在")
+		APIBadRequest(ctx, "应用不存在")
 		return
 	}
-	if name != "" {
-		app.Name = name
-	}
-	if status != "" {
-		_status, err := strconv.ParseInt(status, 10, 64)
-		if err != nil {
-			APIBadRequest(ctx, "status格式错误")
-			return
-		}
-		app.Status = _status
-	}
+	app.GroupID = int64(groupID)
+	app.Name = name
+	app.AgentID = int64(agentID)
+	app.Dir = dir
+	app.Program = program
+	app.Args = args
+	app.StdOut = stdOut
+	app.StdErr = stdErr
 	app.Updator = GetUserID(ctx)
+	if autoRestart != "" {
+		app.AutoRestart = 1
+	}
+	if isMonitor != "" {
+		app.IsMonitor = 1
+	}
 	ok := c.appService.UpdateApp(app)
 	if !ok {
 		APIError(ctx, "更新应用失败")

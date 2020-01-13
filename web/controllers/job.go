@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
-	"strconv"
 
 	"Asgard/models"
 	"Asgard/services"
@@ -73,6 +72,23 @@ func (c *JobController) List(ctx *gin.Context) {
 	})
 }
 
+func (c *JobController) Show(ctx *gin.Context) {
+	id := DefaultInt(ctx, "id", 0)
+	if id == 0 {
+		JumpError(ctx)
+		return
+	}
+	job := c.jobService.GetJobByID(int64(id))
+	if job == nil {
+		JumpError(ctx)
+		return
+	}
+	ctx.HTML(StatusOK, "job/show", gin.H{
+		"Subtitle": "查看计划任务",
+		"Job":      c.formatJob(job),
+	})
+}
+
 func (c *JobController) Add(ctx *gin.Context) {
 	groups := c.groupService.GetAllGroup()
 	agents := c.agentService.GetAllAgent()
@@ -92,6 +108,9 @@ func (c *JobController) Create(ctx *gin.Context) {
 	args := ctx.PostForm("args")
 	stdOut := ctx.PostForm("std_out")
 	stdErr := ctx.PostForm("std_err")
+	spec := ctx.PostForm("spec")
+	timeout := FormDefaultInt(ctx, "timeout", 0)
+	isMonitor := ctx.PostForm("is_monitor")
 	if !Required(ctx, &name, "名称不能为空") {
 		return
 	}
@@ -99,6 +118,15 @@ func (c *JobController) Create(ctx *gin.Context) {
 		return
 	}
 	if !Required(ctx, &program, "执行程序不能为空") {
+		return
+	}
+	if !Required(ctx, &stdOut, "标准输出路径不能为空") {
+		return
+	}
+	if !Required(ctx, &stdErr, "错误输出路径不能为空") {
+		return
+	}
+	if !Required(ctx, &spec, "运行配置不能为空") {
 		return
 	}
 	if agentID == 0 {
@@ -114,8 +142,13 @@ func (c *JobController) Create(ctx *gin.Context) {
 	job.Args = args
 	job.StdOut = stdOut
 	job.StdErr = stdErr
+	job.Spec = spec
+	job.Timeout = int64(timeout)
 	job.Status = 0
 	job.Creator = GetUserID(ctx)
+	if isMonitor != "" {
+		job.IsMonitor = 1
+	}
 	ok := c.jobService.CreateJob(job)
 	if !ok {
 		APIError(ctx, "创建计划任务失败")
@@ -147,33 +180,62 @@ func (c *JobController) Edit(ctx *gin.Context) {
 
 func (c *JobController) Update(ctx *gin.Context) {
 	id := FormDefaultInt(ctx, "id", 0)
+	groupID := FormDefaultInt(ctx, "group_id", 0)
 	name := ctx.PostForm("name")
-	status := ctx.PostForm("status")
+	agentID := FormDefaultInt(ctx, "agent_id", 0)
+	dir := ctx.PostForm("dir")
+	program := ctx.PostForm("program")
+	args := ctx.PostForm("args")
+	stdOut := ctx.PostForm("std_out")
+	stdErr := ctx.PostForm("std_err")
+	spec := ctx.PostForm("spec")
+	timeout := FormDefaultInt(ctx, "timeout", 0)
+	isMonitor := ctx.PostForm("is_monitor")
 	if id == 0 {
 		APIBadRequest(ctx, "ID格式错误")
 		return
 	}
-	if name == "" && status == "" {
-		APIBadRequest(ctx, "请求数据格式错误")
+	if !Required(ctx, &name, "名称不能为空") {
+		return
+	}
+	if !Required(ctx, &dir, "执行目录不能为空") {
+		return
+	}
+	if !Required(ctx, &program, "执行程序不能为空") {
+		return
+	}
+	if !Required(ctx, &stdOut, "标准输出路径不能为空") {
+		return
+	}
+	if !Required(ctx, &stdErr, "错误输出路径不能为空") {
+		return
+	}
+	if !Required(ctx, &spec, "运行配置不能为空") {
+		return
+	}
+	if agentID == 0 {
+		APIBadRequest(ctx, "运行实例不能为空")
 		return
 	}
 	job := c.jobService.GetJobByID(int64(id))
 	if job == nil {
-		APIBadRequest(ctx, "分组不存在")
+		APIBadRequest(ctx, "计划任务不存在")
 		return
 	}
-	if name != "" {
-		job.Name = name
-	}
-	if status != "" {
-		_status, err := strconv.ParseInt(status, 10, 64)
-		if err != nil {
-			APIBadRequest(ctx, "status格式错误")
-			return
-		}
-		job.Status = _status
-	}
+	job.GroupID = int64(groupID)
+	job.Name = name
+	job.AgentID = int64(agentID)
+	job.Dir = dir
+	job.Program = program
+	job.Args = args
+	job.StdOut = stdOut
+	job.StdErr = stdErr
+	job.Spec = spec
+	job.Timeout = int64(timeout)
 	job.Updator = GetUserID(ctx)
+	if isMonitor != "" {
+		job.IsMonitor = 1
+	}
 	ok := c.jobService.UpdateJob(job)
 	if !ok {
 		APIError(ctx, "更新计划任务失败")
