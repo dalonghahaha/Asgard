@@ -37,7 +37,7 @@ func StartGuard() {
 		fmt.Println("apps config wrong!")
 		return
 	}
-	for _, v := range _configs {
+	for index, v := range _configs {
 		_v, ok := v.(map[interface{}]interface{})
 		if !ok {
 			fmt.Println("apps config wrong!")
@@ -52,7 +52,7 @@ func StartGuard() {
 			}
 			config[_k] = v
 		}
-		err := applications.AppRegister(config)
+		err := applications.AppRegister(int64(index), config)
 		if err != nil {
 			fmt.Println(err)
 			return

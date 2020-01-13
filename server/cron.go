@@ -2,6 +2,8 @@ package server
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"Asgard/applications"
 	"Asgard/rpc"
@@ -50,10 +52,56 @@ func (s *CronServer) Get(ctx context.Context, request *rpc.JobNameRequest) (*rpc
 }
 
 func (s *CronServer) Add(ctx context.Context, request *rpc.Job) (*rpc.Response, error) {
+	id := request.GetId()
+	_, ok := applications.Jobs[id]
+	if ok {
+		return s.OK()
+	}
+	config := map[string]interface{}{
+		"id":      request.GetId(),
+		"name":    request.GetName(),
+		"dir":     request.GetDir(),
+		"program": request.GetProgram(),
+		"args":    request.GetArgs(),
+		"stdout":  request.GetStdOut(),
+		"stderr":  request.GetStdErr(),
+		"spec":    request.GetSpec(),
+		"timeout": request.GetTimeout(),
+	}
+	err := applications.JobRegister(id, config)
+	if err != nil {
+		return s.Error(err.Error())
+	}
+	ok = applications.JobStartByID(id)
+	if !ok {
+		return s.Error(fmt.Sprintf("job %d start failed", id))
+	}
 	return s.OK()
 }
 
 func (s *CronServer) Update(ctx context.Context, request *rpc.Job) (*rpc.Response, error) {
+	id := request.GetId()
+	job, ok := applications.Jobs[id]
+	if !ok {
+		return s.Error(fmt.Sprintf("no job %d", id))
+	}
+	ok = applications.JobStopByID(id)
+	if !ok {
+		return s.Error(fmt.Sprintf("job %d stop failed", id))
+	}
+	job.Name = request.GetName()
+	job.Dir = request.GetDir()
+	job.Program = request.GetProgram()
+	job.Args = request.GetArgs()
+	job.Stdout = request.GetStdOut()
+	job.Stderr = request.GetStdErr()
+	job.Spec = request.GetSpec()
+	job.TimeOut = time.Duration(request.GetTimeout())
+	job.IsMonitor = request.GetIsMonitor()
+	ok = applications.JobStartByID(id)
+	if !ok {
+		return s.Error(fmt.Sprintf("job %d start failed", id))
+	}
 	return s.OK()
 }
 

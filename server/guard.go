@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 
 	"Asgard/applications"
 	"Asgard/rpc"
@@ -48,10 +49,55 @@ func (s *GuardServer) Get(ctx context.Context, request *rpc.AppNameRequest) (*rp
 }
 
 func (s *GuardServer) Add(ctx context.Context, request *rpc.App) (*rpc.Response, error) {
+	id := request.GetId()
+	_, ok := applications.APPs[id]
+	if ok {
+		return s.OK()
+	}
+	config := map[string]interface{}{
+		"id":           request.GetId(),
+		"name":         request.GetName(),
+		"dir":          request.GetDir(),
+		"program":      request.GetProgram(),
+		"args":         request.GetArgs(),
+		"stdout":       request.GetStdOut(),
+		"stderr":       request.GetStdErr(),
+		"auto_restart": request.GetAutoRestart(),
+		"is_monitor":   request.GetIsMonitor(),
+	}
+	err := applications.AppRegister(id, config)
+	if err != nil {
+		return s.Error(err.Error())
+	}
+	ok = applications.AppStartByID(id)
+	if !ok {
+		return s.Error(fmt.Sprintf("app %d start failed", id))
+	}
 	return s.OK()
 }
 
 func (s *GuardServer) Update(ctx context.Context, request *rpc.App) (*rpc.Response, error) {
+	id := request.GetId()
+	app, ok := applications.APPs[id]
+	if !ok {
+		return s.Error(fmt.Sprintf("no app %d", id))
+	}
+	ok = applications.AppStopByID(id)
+	if !ok {
+		return s.Error(fmt.Sprintf("app %d stop failed", id))
+	}
+	app.Name = request.GetName()
+	app.Dir = request.GetDir()
+	app.Program = request.GetProgram()
+	app.Args = request.GetArgs()
+	app.Stdout = request.GetStdOut()
+	app.Stderr = request.GetStdErr()
+	app.AutoRestart = request.GetAutoRestart()
+	app.IsMonitor = request.GetIsMonitor()
+	ok = applications.AppStartByID(id)
+	if !ok {
+		return s.Error(fmt.Sprintf("app %d start failed", id))
+	}
 	return s.OK()
 }
 

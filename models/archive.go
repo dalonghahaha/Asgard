@@ -2,8 +2,6 @@ package models
 
 import (
 	"time"
-
-	"github.com/dalonghahaha/avenger/components/db"
 )
 
 type Archive struct {
@@ -18,39 +16,4 @@ type Archive struct {
 
 func (m *Archive) TableName() string {
 	return "archives"
-}
-
-func (c *Archive) All() (list []*Archive, err error) {
-	err = db.Get(DB_NAME).Find(&list).Error
-	return
-}
-
-func (c *Archive) Search(where map[string]interface{}) (list []*Archive, err error) {
-	err = db.Get(DB_NAME).Where(where).Find(&list).Error
-	return
-}
-
-func (c *Archive) Get(id int64) (err error) {
-	err = db.Get(DB_NAME).Where("id = ? ", id).First(c).Error
-	return
-}
-
-func (c *Archive) Find(where map[string]interface{}) (err error) {
-	err = db.Get(DB_NAME).Where(where).First(c).Error
-	return
-}
-
-func (c *Archive) Create() (err error) {
-	err = db.Get(DB_NAME).Create(c).Error
-	return
-}
-
-func (c *Archive) Update() (err error) {
-	err = db.Get(DB_NAME).Save(c).Error
-	return
-}
-
-func (c *Archive) Delete() (err error) {
-	err = db.Get(DB_NAME).Delete(c).Error
-	return
 }

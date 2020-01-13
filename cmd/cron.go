@@ -37,7 +37,7 @@ func StartCron() {
 		fmt.Println("crons config wrong!")
 		return
 	}
-	for _, v := range _configs {
+	for index, v := range _configs {
 		_v, ok := v.(map[interface{}]interface{})
 		if !ok {
 			fmt.Println("crons config wrong!")
@@ -52,7 +52,7 @@ func StartCron() {
 			}
 			config[_k] = v
 		}
-		err := applications.JobRegister(config)
+		err := applications.JobRegister(int64(index), config)
 		if err != nil {
 			fmt.Println(err)
 			return

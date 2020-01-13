@@ -10,7 +10,7 @@ import (
 
 var crontab *cron.Cron
 
-var Jobs = []*Job{}
+var Jobs = map[int64]*Job{}
 
 func JobStopAll() {
 	MoniterStop()
@@ -52,6 +52,15 @@ func JobStart(name string) bool {
 	return false
 }
 
+func JobStartByID(id int64) bool {
+	job, ok := Jobs[id]
+	if !ok {
+		return false
+	}
+	go job.Run()
+	return true
+}
+
 func JobStop(name string) error {
 	for _, job := range Jobs {
 		if job.Name == name {
@@ -60,6 +69,16 @@ func JobStop(name string) error {
 		}
 	}
 	return nil
+}
+
+func JobStopByID(id int64) bool {
+	job, ok := Jobs[id]
+	if !ok {
+		return false
+	}
+	job.stop()
+	crontab.Remove(job.CronID)
+	return true
 }
 
 type Job struct {
@@ -135,21 +154,21 @@ func NewJob(config map[string]interface{}) (*Job, error) {
 	return job, nil
 }
 
-func JobAppend(config map[string]interface{}) error {
+func JobAppend(id int64, config map[string]interface{}) error {
 	job, err := NewJob(config)
 	if err != nil {
 		return err
 	}
-	Jobs = append(Jobs, job)
+	Jobs[id] = job
 	JobAdd(job)
 	return nil
 }
 
-func JobRegister(config map[string]interface{}) error {
+func JobRegister(id int64, config map[string]interface{}) error {
 	job, err := NewJob(config)
 	if err != nil {
 		return err
 	}
-	Jobs = append(Jobs, job)
+	Jobs[id] = job
 	return nil
 }

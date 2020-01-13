@@ -6,7 +6,7 @@ import (
 	"github.com/dalonghahaha/avenger/components/logger"
 )
 
-var APPs = []*App{}
+var APPs = map[int64]*App{}
 
 func AppStopAll() {
 	MoniterStop()
@@ -37,6 +37,15 @@ func AppStart(name string) bool {
 	return false
 }
 
+func AppStartByID(id int64) bool {
+	app, ok := APPs[id]
+	if !ok {
+		return false
+	}
+	go app.Run()
+	return true
+}
+
 func AppStop(name string) bool {
 	for _, app := range APPs {
 		if app.Name == name {
@@ -45,6 +54,15 @@ func AppStop(name string) bool {
 		}
 	}
 	return false
+}
+
+func AppStopByID(id int64) bool {
+	app, ok := APPs[id]
+	if !ok {
+		return false
+	}
+	app.stop()
+	return true
 }
 
 type App struct {
@@ -92,11 +110,11 @@ func NewApp(config map[string]interface{}) (*App, error) {
 	return app, nil
 }
 
-func AppRegister(config map[string]interface{}) error {
+func AppRegister(id int64, config map[string]interface{}) error {
 	app, err := NewApp(config)
 	if err != nil {
 		return err
 	}
-	APPs = append(APPs, app)
+	APPs[id] = app
 	return nil
 }

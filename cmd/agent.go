@@ -126,7 +126,7 @@ func AppsRegister() {
 			"auto_restart": app.GetAutoRestart(),
 			"is_monitor":   app.GetIsMonitor(),
 		}
-		err := applications.AppRegister(config)
+		err := applications.AppRegister(app.GetId(), config)
 		if err != nil {
 			logger.Error("app register failed:"+err.Error(), config)
 			return
@@ -159,7 +159,7 @@ func JobsRegister() {
 			"timeout":    job.GetTimeout(),
 			"is_monitor": job.GetIsMonitor(),
 		}
-		err := applications.JobRegister(config)
+		err := applications.JobRegister(job.GetId(), config)
 		if err != nil {
 			logger.Error("job register failed:"+err.Error(), config)
 			return

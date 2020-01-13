@@ -23,8 +23,8 @@ func NewUserController() *UserController {
 
 func (c *UserController) List(ctx *gin.Context) {
 	page := DefaultInt(ctx, "page", 1)
-	list := c.useService.GetAllUser()
-	total := len(list)
+	where := map[string]interface{}{}
+	list, total := c.useService.GetUserPageList(where, page, PageSize)
 	mpurl := "/user/list"
 	ctx.HTML(200, "user/list", gin.H{
 		"Subtitle":   "用户列表",
