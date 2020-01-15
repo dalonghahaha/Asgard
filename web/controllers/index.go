@@ -10,6 +10,12 @@ func Index(c *gin.Context) {
 	})
 }
 
+func UI(c *gin.Context) {
+	c.HTML(StatusOK, "UI", gin.H{
+		"Subtitle": "布局",
+	})
+}
+
 func Nologin(c *gin.Context) {
 	c.HTML(StatusOK, "error/nologin.html", gin.H{
 		"Subtitle": "未登录提示页",

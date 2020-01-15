@@ -122,6 +122,8 @@
 {{define "script"}}
 <script type="text/javascript">
     $(document).ready(function () {
+        $('#group_id').selectize({});
+        $('#agent_id').selectize({});
         $("#job").on("submit", function (event) {
             $('#job').ajaxSubmit({
                 url: "/job/create",

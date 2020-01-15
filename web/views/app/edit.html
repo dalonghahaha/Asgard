@@ -116,6 +116,8 @@
 {{define "script"}}
 <script type="text/javascript">
     $(document).ready(function () {
+        $('#group_id').selectize({});
+        $('#agent_id').selectize({});
         $("#app").on("submit", function (event) {
             $('#app').ajaxSubmit({
                 url: "/app/update",

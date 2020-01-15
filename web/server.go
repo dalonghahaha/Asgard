@@ -69,6 +69,7 @@ func Init() error {
 
 func setupRouter() {
 	server.GET("/ping", controllers.Ping)
+	server.GET("/UI", controllers.UI)
 	server.GET("/", middlewares.Login, controllers.Index)
 	server.GET("/nologin", controllers.Nologin)
 	server.GET("/error", controllers.Error)
