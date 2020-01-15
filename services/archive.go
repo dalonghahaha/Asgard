@@ -14,7 +14,7 @@ func NewArchiveService() *ArchiveService {
 }
 
 func (s *ArchiveService) GetArchivePageList(where map[string]interface{}, page int, pageSize int) (list []models.Archive, count int) {
-	err := models.PageList(&models.Archive{}, where, page, pageSize, &list, &count)
+	err := models.PageList(&models.Archive{}, where, page, pageSize, "created_at desc", &list, &count)
 	if err != nil {
 		logger.Error("GetArchivePageList Error:", err)
 		return nil, 0

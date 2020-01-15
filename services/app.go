@@ -15,7 +15,7 @@ func NewAppService() *AppService {
 }
 
 func (s *AppService) GetAppPageList(where map[string]interface{}, page int, pageSize int) (list []models.App, count int) {
-	err := models.PageList(&models.App{}, where, page, pageSize, &list, &count)
+	err := models.PageList(&models.App{}, where, page, pageSize, "created_at desc", &list, &count)
 	if err != nil {
 		logger.Error("GetAppPageList Error:", err)
 		return nil, 0

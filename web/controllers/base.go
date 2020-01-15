@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/dalonghahaha/avenger/tools/coding"
 	"github.com/gin-gonic/gin"
@@ -21,6 +22,10 @@ var (
 	CookieSalt       = "sdswqeqx"
 	Domain           = "localhost"
 )
+
+func FormatTime(info time.Time) string {
+	return info.Format("2006-01-02 15:04:05")
+}
 
 func EmailFormat(email string) bool {
 	pattern := `^[0-9a-z][_.0-9a-z-]{0,31}@([0-9a-z][0-9a-z-]{0,30}[0-9a-z]\.){1,4}[a-z]{2,4}$`

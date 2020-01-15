@@ -24,7 +24,7 @@ func (s *GroupService) GetAllGroup() (list []models.Group) {
 }
 
 func (s *GroupService) GetGroupPageList(where map[string]interface{}, page int, pageSize int) (list []models.Group, count int) {
-	err := models.PageList(&models.Group{}, where, page, pageSize, &list, &count)
+	err := models.PageList(&models.Group{}, where, page, pageSize, "created_at desc", &list, &count)
 	if err != nil {
 		logger.Error("GetGroupPageList Error:", err)
 		return nil, 0

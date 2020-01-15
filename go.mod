@@ -13,6 +13,7 @@ require (
 	github.com/golang/protobuf v1.3.2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0
 	github.com/jinzhu/gorm v1.9.11
+	github.com/kr/pretty v0.2.0 // indirect
 	github.com/logrusorgru/aurora v0.0.0-20191116043053-66b7ad493a23 // indirect
 	github.com/rifflock/lfshook v0.0.0-20180920164130-b9218ef580f5 // indirect
 	github.com/robfig/cron/v3 v3.0.0
@@ -26,5 +27,4 @@ require (
 	github.com/spf13/viper v1.3.2
 	github.com/tidwall/gjson v1.3.5 // indirect
 	google.golang.org/grpc v1.26.0
-	gopkg.in/go-playground/validator.v9 v9.29.1
 )

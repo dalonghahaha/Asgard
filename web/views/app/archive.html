@@ -1,0 +1,51 @@
+{{define "content"}}
+<div class="page-title-box">
+    <div class="row align-items-center">
+        <div class="col-auto">
+            <h2 class="page-title">
+                归档列表
+            </h2>
+        </div>
+        <div class="col-auto">
+            <div class="text-muted text-h5 mt-2">总记录数:{{.Total}}</div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div>
+                <table class="table table-hover table-outline table-vcenter text-nowrap card-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%"><span>UUID</span></th>
+                            <th style="width: 10%"><span>PID</span></th>
+                            <th style="width: 20%"><span>开始运行时间</span></th>
+                            <th style="width: 20%"><span>结束运行时间</span></th>
+                            <th style="width: 10%"><span>结束状态</span></th>
+                            <th style="width: 15%"><span>退出信号</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{- range .List}}
+                        <tr data-bind="{{.ID}}">
+                            <td>{{.UUID}}</td>
+                            <td>{{.PID}}</td>
+                            <td>{{.BeginTime}}</td>
+                            <td>{{.EndTime}}</td>
+                            <td>{{.Status}}</td>
+                            <td>{{.Signal}}</td>
+                        </tr>
+                        {{- end}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="d-flex">
+    {{.Pagination | unescaped}}
+</div>
+{{end}}
+{{define "script"}}
+{{end}}

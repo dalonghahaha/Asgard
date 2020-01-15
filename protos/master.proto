@@ -25,6 +25,7 @@ message Archive {
     int64 begin_time = 3;
     int64 end_time = 4;
     int32 status = 5;
+    string signal = 6;
 }
 
 message AppMonitor {

@@ -102,7 +102,7 @@ func (s *MasterServer) JobList(ctx context.Context, request *rpc.Agent) (*rpc.Jo
 }
 
 func (s *MasterServer) AppMonitorReport(ctx context.Context, request *rpc.AppMonitor) (*rpc.Response, error) {
-	logger.Debug(fmt.Sprintf("app monitor: %v %v", request.GetApp().GetId(), request.GetMonitor()))
+	logger.Debug(fmt.Sprintf("app monitor: %v", request.GetApp().GetId()))
 	monitorService := services.NewMonitorService()
 	monitor := &models.Monitor{
 		Type:      models.TYPE_APP,
@@ -121,7 +121,7 @@ func (s *MasterServer) AppMonitorReport(ctx context.Context, request *rpc.AppMon
 }
 
 func (s *MasterServer) JobMoniorReport(ctx context.Context, request *rpc.JobMonior) (*rpc.Response, error) {
-	logger.Debug(fmt.Sprintf("job monitor: %v %v", request.GetJob().GetId(), request.GetMonitor()))
+	logger.Debug(fmt.Sprintf("job monitor: %v", request.GetJob().GetId()))
 	monitorService := services.NewMonitorService()
 	monitor := &models.Monitor{
 		Type:      models.TYPE_JOB,
@@ -140,7 +140,7 @@ func (s *MasterServer) JobMoniorReport(ctx context.Context, request *rpc.JobMoni
 }
 
 func (s *MasterServer) AppArchiveReport(ctx context.Context, request *rpc.AppArchive) (*rpc.Response, error) {
-	logger.Debug(fmt.Sprintf("app archive: %v %v", request.GetApp().GetId(), request.GetArchive()))
+	logger.Debug(fmt.Sprintf("app archive: %v", request.GetApp().GetId()))
 	archiveService := services.NewArchiveService()
 	archive := &models.Archive{
 		Type:      models.TYPE_APP,
@@ -149,6 +149,8 @@ func (s *MasterServer) AppArchiveReport(ctx context.Context, request *rpc.AppArc
 		PID:       int64(request.GetArchive().GetPid()),
 		BeginTime: time.Unix(request.GetArchive().GetBeginTime(), 0),
 		EndTime:   time.Unix(request.GetArchive().GetEndTime(), 0),
+		Status:    int64(request.GetArchive().GetStatus()),
+		Signal:    request.GetArchive().GetSignal(),
 		CreatedAt: time.Now(),
 	}
 	ok := archiveService.CreateArchive(archive)
@@ -159,7 +161,7 @@ func (s *MasterServer) AppArchiveReport(ctx context.Context, request *rpc.AppArc
 }
 
 func (s *MasterServer) JobArchiveReport(ctx context.Context, request *rpc.JobArchive) (*rpc.Response, error) {
-	logger.Debug(fmt.Sprintf("add archive: %v %v", request.GetJob().GetId(), request.GetArchive()))
+	logger.Debug(fmt.Sprintf("add archive: %v", request.GetJob().GetId()))
 	archiveService := services.NewArchiveService()
 	archive := &models.Archive{
 		Type:      models.TYPE_JOB,
@@ -168,6 +170,8 @@ func (s *MasterServer) JobArchiveReport(ctx context.Context, request *rpc.JobArc
 		PID:       int64(request.GetArchive().GetPid()),
 		BeginTime: time.Unix(request.GetArchive().GetBeginTime(), 0),
 		EndTime:   time.Unix(request.GetArchive().GetEndTime(), 0),
+		Status:    int64(request.GetArchive().GetStatus()),
+		Signal:    request.GetArchive().GetSignal(),
 		CreatedAt: time.Now(),
 	}
 	ok := archiveService.CreateArchive(archive)

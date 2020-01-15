@@ -1,6 +1,9 @@
 package controllers
 
 import (
+	"fmt"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 
 	"Asgard/models"
@@ -8,16 +11,20 @@ import (
 )
 
 type AppController struct {
-	appService   *services.AppService
-	agentService *services.AgentService
-	groupService *services.GroupService
+	appService     *services.AppService
+	agentService   *services.AgentService
+	groupService   *services.GroupService
+	moniterService *services.MonitorService
+	archiveService *services.ArchiveService
 }
 
 func NewAppController() *AppController {
 	return &AppController{
-		appService:   services.NewAppService(),
-		agentService: services.NewAgentService(),
-		groupService: services.NewGroupService(),
+		appService:     services.NewAppService(),
+		agentService:   services.NewAgentService(),
+		groupService:   services.NewGroupService(),
+		moniterService: services.NewMonitorService(),
+		archiveService: services.NewArchiveService(),
 	}
 }
 
@@ -249,4 +256,55 @@ func (c *AppController) Delete(ctx *gin.Context) {
 		return
 	}
 	APIOK(ctx)
+}
+
+func (c *AppController) Monitor(ctx *gin.Context) {
+	id := DefaultInt(ctx, "id", 0)
+	if id == 0 {
+		JumpError(ctx)
+		return
+	}
+	cpus := []string{}
+	memorys := []string{}
+	times := []string{}
+	moniters := c.moniterService.GetAppMonitor(id, 100)
+	for _, moniter := range moniters {
+		cpus = append(cpus, strconv.FormatFloat(moniter.CPU, 'f', -1, 64))
+		memorys = append(memorys, strconv.FormatFloat(moniter.Memory, 'f', -1, 64))
+		times = append(times, moniter.CreatedAt.Format("2006-01-02 15:04:05"))
+	}
+	ctx.HTML(StatusOK, "app/monitor", gin.H{
+		"Subtitle": "监控信息",
+		"CPU":      cpus,
+		"Memory":   memorys,
+		"Time":     times,
+	})
+}
+
+func (c *AppController) Archive(ctx *gin.Context) {
+	id := DefaultInt(ctx, "id", 0)
+	page := DefaultInt(ctx, "page", 1)
+	where := map[string]interface{}{
+		"type":       models.TYPE_APP,
+		"related_id": id,
+	}
+	if id == 0 {
+		JumpError(ctx)
+		return
+	}
+	archiveList, total := c.archiveService.GetArchivePageList(where, page, PageSize)
+	if archiveList == nil {
+		APIError(ctx, "获取归档列表失败")
+	}
+	list := []map[string]interface{}{}
+	for _, archive := range archiveList {
+		list = append(list, formatArchive(&archive))
+	}
+	mpurl := fmt.Sprintf("/app/archive?id=%d", id)
+	ctx.HTML(StatusOK, "app/archive", gin.H{
+		"Subtitle":   "归档列表",
+		"List":       list,
+		"Total":      total,
+		"Pagination": PagerHtml(total, page, mpurl),
+	})
 }

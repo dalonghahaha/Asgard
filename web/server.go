@@ -99,6 +99,8 @@ func setupRouter() {
 		app.POST("/create", appController.Create)
 		app.GET("/edit", appController.Edit)
 		app.POST("/update", appController.Update)
+		app.GET("/monitor", appController.Monitor)
+		app.GET("/archive", appController.Archive)
 	}
 	job := server.Group("/job")
 	job.Use(middlewares.Login)
@@ -109,6 +111,8 @@ func setupRouter() {
 		job.POST("/create", jobController.Create)
 		job.GET("/edit", jobController.Edit)
 		job.POST("/update", jobController.Update)
+		job.GET("/monitor", jobController.Monitor)
+		job.GET("/archive", jobController.Archive)
 	}
 	agent := server.Group("/agent")
 	agent.Use(middlewares.Login)

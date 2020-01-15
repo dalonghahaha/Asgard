@@ -13,6 +13,7 @@ type Archive struct {
 	BeginTime time.Time `gorm:"column:begin_time" json:"begin_time"`
 	EndTime   time.Time `gorm:"column:end_time" json:"end_time"`
 	Status    int64     `gorm:"column:status" json:"status"`
+	Signal    string    `gorm:"column:signal" json:"signal"`
 	CreatedAt time.Time `gorm:"column:created_at" json:"created_at"`
 }
 

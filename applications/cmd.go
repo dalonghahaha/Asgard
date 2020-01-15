@@ -30,6 +30,7 @@ type Command struct {
 	End             time.Time
 	Finished        bool
 	Status          int
+	Signal          string
 	Cmd             *exec.Cmd
 	ExceptionReport func(message string)
 	MonitorReport   func(monitor *Monitor)
@@ -155,6 +156,7 @@ func (c *Command) wait(callback func()) {
 		logger.Info(c.Name + " finished")
 	}
 	c.Status = c.Cmd.ProcessState.ExitCode()
+	c.Signal = signal.String()
 	if c.ArchiveReport != nil {
 		c.ArchiveReport(c)
 	}
@@ -175,6 +177,7 @@ func (c *Command) stop() {
 		}
 		logger.Info(c.Name + " killed!")
 		c.Status = -2
+		c.Signal = "Killed"
 		if c.ArchiveReport != nil {
 			c.ArchiveReport(c)
 		}

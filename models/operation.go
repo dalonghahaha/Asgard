@@ -30,8 +30,8 @@ func AllList(object interface{}, where map[string]interface{}, list interface{},
 	return db.Get(DB_NAME).Model(object).Where(where).Count(count).Error
 }
 
-func PageList(object interface{}, where map[string]interface{}, page int, pageSize int, list interface{}, count *int) error {
-	err := db.Get(DB_NAME).Where(where).Limit(pageSize).Offset((page - 1) * pageSize).Find(list).Error
+func PageList(object interface{}, where map[string]interface{}, page int, pageSize int, order string, list interface{}, count *int) error {
+	err := db.Get(DB_NAME).Where(where).Limit(pageSize).Offset((page - 1) * pageSize).Order(order).Find(list).Error
 	if err != nil {
 		return err
 	}

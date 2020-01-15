@@ -15,7 +15,7 @@ func NewJobService() *JobService {
 }
 
 func (s *JobService) GetJobPageList(where map[string]interface{}, page int, pageSize int) (list []models.Job, count int) {
-	err := models.PageList(&models.Job{}, where, page, pageSize, &list, &count)
+	err := models.PageList(&models.Job{}, where, page, pageSize, "created_at desc", &list, &count)
 	if err != nil {
 		logger.Error("GetJobPageList Error:", err)
 		return nil, 0

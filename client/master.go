@@ -65,6 +65,7 @@ func buildArchive(command *applications.Command) *rpc.Archive {
 		BeginTime: command.Begin.Unix(),
 		EndTime:   command.End.Unix(),
 		Status:    int32(command.Status),
+		Signal:    command.Signal,
 	}
 }
 

@@ -1,6 +1,9 @@
 package controllers
 
 import (
+	"fmt"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 
 	"Asgard/models"
@@ -8,16 +11,20 @@ import (
 )
 
 type JobController struct {
-	jobService   *services.JobService
-	agentService *services.AgentService
-	groupService *services.GroupService
+	jobService     *services.JobService
+	agentService   *services.AgentService
+	groupService   *services.GroupService
+	moniterService *services.MonitorService
+	archiveService *services.ArchiveService
 }
 
 func NewJobController() *JobController {
 	return &JobController{
-		jobService:   services.NewJobService(),
-		agentService: services.NewAgentService(),
-		groupService: services.NewGroupService(),
+		jobService:     services.NewJobService(),
+		agentService:   services.NewAgentService(),
+		groupService:   services.NewGroupService(),
+		moniterService: services.NewMonitorService(),
+		archiveService: services.NewArchiveService(),
 	}
 }
 
@@ -256,4 +263,55 @@ func (c *JobController) Delete(ctx *gin.Context) {
 		return
 	}
 	APIOK(ctx)
+}
+
+func (c *JobController) Monitor(ctx *gin.Context) {
+	id := DefaultInt(ctx, "id", 0)
+	if id == 0 {
+		JumpError(ctx)
+		return
+	}
+	cpus := []string{}
+	memorys := []string{}
+	times := []string{}
+	moniters := c.moniterService.GetJobMonitor(id, 100)
+	for _, moniter := range moniters {
+		cpus = append(cpus, strconv.FormatFloat(moniter.CPU, 'f', -1, 64))
+		memorys = append(memorys, strconv.FormatFloat(moniter.Memory, 'f', -1, 64))
+		times = append(times, moniter.CreatedAt.Format("2006-01-02 15:04:05"))
+	}
+	ctx.HTML(StatusOK, "app/monitor", gin.H{
+		"Subtitle": "监控信息",
+		"CPU":      cpus,
+		"Memory":   memorys,
+		"Time":     times,
+	})
+}
+
+func (c *JobController) Archive(ctx *gin.Context) {
+	id := DefaultInt(ctx, "id", 0)
+	page := DefaultInt(ctx, "page", 1)
+	where := map[string]interface{}{
+		"type":       models.TYPE_JOB,
+		"related_id": id,
+	}
+	if id == 0 {
+		JumpError(ctx)
+		return
+	}
+	archiveList, total := c.archiveService.GetArchivePageList(where, page, PageSize)
+	if archiveList == nil {
+		APIError(ctx, "获取归档列表失败")
+	}
+	list := []map[string]interface{}{}
+	for _, archive := range archiveList {
+		list = append(list, formatArchive(&archive))
+	}
+	mpurl := fmt.Sprintf("/job/archive?id=%d", id)
+	ctx.HTML(StatusOK, "job/archive", gin.H{
+		"Subtitle":   "归档列表",
+		"List":       list,
+		"Total":      total,
+		"Pagination": PagerHtml(total, page, mpurl),
+	})
 }
