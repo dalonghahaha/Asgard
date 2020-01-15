@@ -23,6 +23,24 @@ func (s *AgentService) GetAllAgent() (list []models.Agent) {
 	return list
 }
 
+func (s *AgentService) GetOnlineAgent() (list []models.Agent) {
+	err := models.Where(&list, "status = ?", "1")
+	if err != nil {
+		logger.Error("GetOnlineAgent Error:", err)
+		return nil
+	}
+	return list
+}
+
+func (s *AgentService) GetOfflineAgent() (list []models.Agent) {
+	err := models.Where(&list, "status = ?", "0")
+	if err != nil {
+		logger.Error("GetOfflineAgent Error:", err)
+		return nil
+	}
+	return list
+}
+
 func (s *AgentService) GetAgentPageList(where map[string]interface{}, page int, pageSize int) (list []models.Agent, count int) {
 	err := models.PageList(&models.Agent{}, where, page, pageSize, &list, &count)
 	if err != nil {

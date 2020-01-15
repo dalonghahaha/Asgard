@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"Asgard/applications"
+	"Asgard/client"
 	"Asgard/rpc"
 )
 
@@ -17,6 +18,7 @@ func (s *GuardServer) List(ctx context.Context, request *rpc.Empty) (*rpc.AppLis
 	list := []*rpc.App{}
 	for _, app := range apps {
 		_app := new(rpc.App)
+		_app.Id = app.ID
 		_app.Name = app.Name
 		_app.Dir = app.Dir
 		_app.Program = app.Program
@@ -65,9 +67,15 @@ func (s *GuardServer) Add(ctx context.Context, request *rpc.App) (*rpc.Response,
 		"auto_restart": request.GetAutoRestart(),
 		"is_monitor":   request.GetIsMonitor(),
 	}
-	err := applications.AppRegister(id, config)
+	app, err := applications.AppRegister(id, config)
 	if err != nil {
 		return s.Error(err.Error())
+	}
+	app.MonitorReport = func(monitor *applications.Monitor) {
+		client.AppMonitorReport(app, monitor)
+	}
+	app.ArchiveReport = func(command *applications.Command) {
+		client.AppArchiveReport(app, command)
 	}
 	ok = applications.AppStartByID(id)
 	if !ok {

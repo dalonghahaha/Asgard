@@ -15,6 +15,12 @@ var ticker *time.Ticker
 
 var moniters = map[int]func(info *process.Process){}
 
+type Monitor struct {
+	CPUPercent    float64
+	MemoryPercent float32
+	NumThreads    int
+}
+
 func MoniterAdd(pid int, callback func(info *process.Process)) {
 	lock.Lock()
 	moniters[pid] = callback

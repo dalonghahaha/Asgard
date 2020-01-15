@@ -16,9 +16,12 @@ require (
 	github.com/logrusorgru/aurora v0.0.0-20191116043053-66b7ad493a23 // indirect
 	github.com/rifflock/lfshook v0.0.0-20180920164130-b9218ef580f5 // indirect
 	github.com/robfig/cron/v3 v3.0.0
+	github.com/rs/xid v1.2.1 // indirect
+	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/shirou/gopsutil v2.19.11+incompatible
 	github.com/shirou/w32 v0.0.0-20160930032740-bb4de0191aa4 // indirect
 	github.com/sirupsen/logrus v1.4.2
+	github.com/sony/sonyflake v1.0.0 // indirect
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.3.2
 	github.com/tidwall/gjson v1.3.5 // indirect

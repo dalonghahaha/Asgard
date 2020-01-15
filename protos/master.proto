@@ -12,15 +12,19 @@ message Agent {
 }
 
 message Monitor {
+    string uuid = 1;
     int32 pid = 2;
     float cpu = 3;
     float memory = 4;
     int32 threads = 5;
 }
 
-message Exception {
-    string type = 1;
-    string message = 2;
+message Archive {
+    string uuid = 1;
+    int32 pid = 2;
+    int64 begin_time = 3;
+    int64 end_time = 4;
+    int32 status = 5;
 }
 
 message AppMonitor {
@@ -33,14 +37,14 @@ message JobMonior {
     Monitor monitor = 2;
 }
 
-message AppException {
+message AppArchive {
     App app = 1;
-    Exception exception = 2;
+    Archive archive = 2;
 }
 
-message JobException {
+message JobArchive {
     Job job = 1;
-    Exception exception = 2;
+    Archive archive = 2;
 }
 
 service Master {
@@ -49,6 +53,6 @@ service Master {
     rpc JobList(Agent) returns (JobListResponse) {}
     rpc AppMonitorReport(AppMonitor) returns (Response) {}
     rpc JobMoniorReport(JobMonior) returns (Response) {}
-    rpc AppExceptionReport(AppException) returns (Response) {}
-    rpc JobExceptionReport(JobException) returns (Response) {}
+    rpc AppArchiveReport(AppArchive) returns (Response) {}
+    rpc JobArchiveReport(JobArchive) returns (Response) {}
 }

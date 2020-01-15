@@ -4,7 +4,12 @@ import (
 	"time"
 )
 
-const DB_NAME = "asgard"
+const (
+	DB_NAME     = "asgard"
+	TYPE_MASTER = int64(1)
+	TYPE_APP    = int64(2)
+	TYPE_JOB    = int64(3)
+)
 
 //Model基类，定义通用属性
 type BaseModel struct {

@@ -83,11 +83,10 @@ func JobStopByID(id int64) bool {
 
 type Job struct {
 	Command
-	ID        int64
-	Spec      string
-	TimeOut   time.Duration
-	IsMonitor bool
-	CronID    cron.EntryID
+	ID      int64
+	Spec    string
+	TimeOut time.Duration
+	CronID  cron.EntryID
 }
 
 func (j *Job) Run() {
@@ -141,34 +140,30 @@ func NewJob(config map[string]interface{}) (*Job, error) {
 		return nil, fmt.Errorf("config spec type wrong")
 	}
 	job.Spec = spec
-	timeout, ok := config["timeout"].(int)
+	timeout, ok := config["timeout"].(int64)
 	if !ok {
 		return nil, fmt.Errorf("config timeout type wrong")
 	}
 	job.TimeOut = time.Duration(timeout)
-	isMonitor, ok := config["is_monitor"].(bool)
-	if !ok {
-		return nil, fmt.Errorf("config is_monitor type wrong")
-	}
-	job.IsMonitor = isMonitor
 	return job, nil
 }
 
-func JobAppend(id int64, config map[string]interface{}) error {
+func JobAppend(id int64, config map[string]interface{}) (*Job, error) {
 	job, err := NewJob(config)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	Jobs[id] = job
 	JobAdd(job)
-	return nil
+	return job, nil
 }
 
-func JobRegister(id int64, config map[string]interface{}) error {
+func JobRegister(id int64, config map[string]interface{}) (*Job, error) {
 	job, err := NewJob(config)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	job.ID = id
 	Jobs[id] = job
-	return nil
+	return job, nil
 }

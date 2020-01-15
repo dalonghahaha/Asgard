@@ -43,7 +43,7 @@ func (c *AppController) formatApp(info *models.App) map[string]interface{} {
 		data["GroupName"] = ""
 	}
 	agent := c.agentService.GetAgentByID(info.AgentID)
-	if group != nil {
+	if agent != nil {
 		data["AgentName"] = agent.IP + ":" + agent.Port
 	} else {
 		data["AgentName"] = ""

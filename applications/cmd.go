@@ -10,26 +10,30 @@ import (
 
 	"github.com/dalonghahaha/avenger/components/logger"
 	"github.com/dalonghahaha/avenger/tools/file"
+	"github.com/dalonghahaha/avenger/tools/uuid"
 	"github.com/shirou/gopsutil/process"
 )
 
 var processExit = false
 
 type Command struct {
-	Name          string
-	Dir           string
-	Program       string
-	Args          string
-	Stdout        string
-	Stderr        string
-	Pid           int
-	Begin         time.Time
-	End           time.Time
-	Finished      bool
-	Cmd           *exec.Cmd
-	CPUPercent    float32
-	MemoryPercent float32
-	NumThreads    int
+	Name            string
+	Dir             string
+	Program         string
+	Args            string
+	Stdout          string
+	Stderr          string
+	IsMonitor       bool
+	Pid             int
+	UUID            string
+	Begin           time.Time
+	End             time.Time
+	Finished        bool
+	Status          int
+	Cmd             *exec.Cmd
+	ExceptionReport func(message string)
+	MonitorReport   func(monitor *Monitor)
+	ArchiveReport   func(command *Command)
 }
 
 func (c *Command) configure(config map[string]interface{}) error {
@@ -63,6 +67,11 @@ func (c *Command) configure(config map[string]interface{}) error {
 		return fmt.Errorf("config stderr type wrong")
 	}
 	c.Stderr = stderr
+	isMonitor, ok := config["is_monitor"].(bool)
+	if !ok {
+		return fmt.Errorf("config is_monitor type wrong")
+	}
+	c.IsMonitor = isMonitor
 	return nil
 }
 
@@ -118,15 +127,20 @@ func (c *Command) start() error {
 	}
 	c.Begin = time.Now()
 	c.Finished = false
+	c.UUID = uuid.GenerateV1()
 	c.Pid = c.Cmd.Process.Pid
 	logger.Info(c.Name+" started at ", c.Pid)
-	MoniterAdd(c.Pid, c.moniter)
+	if c.IsMonitor {
+		MoniterAdd(c.Pid, c.monitor)
+	}
 	return nil
 }
 
 func (c *Command) wait(callback func()) {
 	_ = c.Cmd.Wait()
-	MoniterRemove(c.Pid)
+	if c.IsMonitor {
+		MoniterRemove(c.Pid)
+	}
 	status := c.Cmd.ProcessState.Sys().(syscall.WaitStatus)
 	signaled := status.Signaled()
 	signal := status.Signal()
@@ -139,6 +153,10 @@ func (c *Command) wait(callback func()) {
 		logger.Error(c.Name+" exit with status ", c.Cmd.ProcessState.ExitCode())
 	} else {
 		logger.Info(c.Name + " finished")
+	}
+	c.Status = c.Cmd.ProcessState.ExitCode()
+	if c.ArchiveReport != nil {
+		c.ArchiveReport(c)
 	}
 	callback()
 }
@@ -156,26 +174,28 @@ func (c *Command) stop() {
 			logger.Error(c.Name+" kill fail:", err)
 		}
 		logger.Info(c.Name + " killed!")
+		c.Status = -2
+		if c.ArchiveReport != nil {
+			c.ArchiveReport(c)
+		}
 	}
 }
 
-func (c *Command) moniter(info *process.Process) {
+func (c *Command) monitor(info *process.Process) {
+	monitor := new(Monitor)
 	memoryPercent, err := info.MemoryPercent()
 	if err == nil {
-		c.MemoryPercent = memoryPercent
+		monitor.MemoryPercent = memoryPercent
 	}
-	cpuPercent, err := info.MemoryPercent()
+	cpuPercent, err := info.CPUPercent()
 	if err == nil {
-		c.CPUPercent = cpuPercent
+		monitor.CPUPercent = cpuPercent
 	}
 	threads, err := info.NumThreads()
 	if err == nil {
-		c.NumThreads = int(threads)
+		monitor.NumThreads = int(threads)
 	}
-	message := fmt.Sprintf("%s process info: cpu[%.2f%%],memory[%.2f%%],threads[%d]",
-		c.Name,
-		c.CPUPercent,
-		c.MemoryPercent,
-		c.NumThreads)
-	logger.Debug(message)
+	if c.MonitorReport != nil {
+		c.MonitorReport(monitor)
+	}
 }

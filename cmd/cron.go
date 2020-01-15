@@ -52,7 +52,7 @@ func StartCron() {
 			}
 			config[_k] = v
 		}
-		err := applications.JobRegister(int64(index), config)
+		_, err := applications.JobRegister(int64(index), config)
 		if err != nil {
 			fmt.Println(err)
 			return

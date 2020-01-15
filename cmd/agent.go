@@ -1,18 +1,15 @@
 package cmd
 
 import (
-	"context"
-	"fmt"
 	"net"
-	"time"
 
 	"github.com/dalonghahaha/avenger/components/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
 	"Asgard/applications"
+	"Asgard/client"
 	"Asgard/rpc"
 	"Asgard/server"
 )
@@ -33,6 +30,7 @@ var agentCommonCmd = &cobra.Command{
 	Short:  "run as agent",
 	PreRun: PreRun,
 	Run: func(cmd *cobra.Command, args []string) {
+		client.InitMasterClient()
 		go StartAgent()
 		go StartAgentRpcServer()
 		NotityKill(StopAgent)
@@ -45,12 +43,20 @@ func StartAgent() {
 	if agentIP == "" && agentPort == "" {
 		panic("agent config error")
 	}
-	InitMasterClient()
-	AgentRegister()
-	AppsRegister()
-	JobsRegister()
-	applications.AppStartAll(true)
-	applications.JobStartAll(true)
+	err := client.AgentRegister(agentIP, agentPort)
+	if err != nil {
+		panic(err)
+	}
+	err = AppsRegister()
+	if err != nil {
+		panic(err)
+	}
+	err = JobsRegister()
+	if err != nil {
+		panic(err)
+	}
+	applications.AppStartAll(false)
+	applications.JobStartAll(false)
 	applications.MoniterStart()
 }
 
@@ -78,91 +84,67 @@ func StartAgentRpcServer() {
 	}
 }
 
-func InitMasterClient() {
-	masterIP := viper.GetString("agent.master.ip")
-	masterPort := viper.GetString("agent.master.port")
-	addr := fmt.Sprintf("%s:%s", masterIP, masterPort)
-	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+func AppsRegister() error {
+	apps, err := client.GetAppList(agentIP, agentPort)
 	if err != nil {
-		panic("Can't connect: " + addr)
+		return err
 	}
-	masterClient = rpc.NewMasterClient(conn)
-}
-
-func AgentRegister() {
-	timeout := time.Second * 30
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-	response, err := masterClient.Register(ctx, &rpc.Agent{Ip: agentIP, Port: agentPort})
-	if err != nil {
-		panic("agent register fail: " + err.Error())
-	}
-	if response.GetCode() != 200 {
-		panic("agent register fail: " + response.GetMessage())
-	}
-}
-
-func AppsRegister() {
-	timeout := time.Second * 30
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-	response, err := masterClient.AppList(ctx, &rpc.Agent{Ip: agentIP, Port: agentPort})
-	if err != nil {
-		panic("get app list error: " + err.Error())
-	}
-	if response.GetCode() == 404 {
-		panic("get app list error: agent error")
-	}
-	apps := response.GetApps()
-	for _, app := range apps {
+	for _, info := range apps {
+		logger.Debug("app register: ", info.GetName())
 		config := map[string]interface{}{
-			"id":           app.GetId(),
-			"name":         app.GetName(),
-			"dir":          app.GetDir(),
-			"program":      app.GetProgram(),
-			"args":         app.GetArgs(),
-			"stdout":       app.GetStdOut(),
-			"stderr":       app.GetStdErr(),
-			"auto_restart": app.GetAutoRestart(),
-			"is_monitor":   app.GetIsMonitor(),
+			"id":           info.GetId(),
+			"name":         info.GetName(),
+			"dir":          info.GetDir(),
+			"program":      info.GetProgram(),
+			"args":         info.GetArgs(),
+			"stdout":       info.GetStdOut(),
+			"stderr":       info.GetStdErr(),
+			"auto_restart": info.GetAutoRestart(),
+			"is_monitor":   info.GetIsMonitor(),
 		}
-		err := applications.AppRegister(app.GetId(), config)
+		app, err := applications.AppRegister(info.GetId(), config)
 		if err != nil {
-			logger.Error("app register failed:"+err.Error(), config)
-			return
+			return err
+		}
+		app.MonitorReport = func(monitor *applications.Monitor) {
+			client.AppMonitorReport(app, monitor)
+		}
+		app.ArchiveReport = func(command *applications.Command) {
+			client.AppArchiveReport(app, command)
 		}
 	}
+	return nil
 }
 
-func JobsRegister() {
-	timeout := time.Second * 30
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-	response, err := masterClient.JobList(ctx, &rpc.Agent{Ip: agentIP, Port: agentPort})
+func JobsRegister() error {
+	jobs, err := client.GetJobList(agentIP, agentPort)
 	if err != nil {
-		panic("get app list error: " + err.Error())
+		return err
 	}
-	if response.GetCode() == 404 {
-		panic("get app list error: agent error")
-	}
-	jobs := response.GetJobs()
-	for _, job := range jobs {
+	for _, info := range jobs {
+		logger.Debug("app register: ", info.GetName())
 		config := map[string]interface{}{
-			"id":         job.GetId(),
-			"name":       job.GetName(),
-			"dir":        job.GetDir(),
-			"program":    job.GetProgram(),
-			"args":       job.GetArgs(),
-			"stdout":     job.GetStdOut(),
-			"stderr":     job.GetStdErr(),
-			"spec":       job.GetSpec(),
-			"timeout":    job.GetTimeout(),
-			"is_monitor": job.GetIsMonitor(),
+			"id":         info.GetId(),
+			"name":       info.GetName(),
+			"dir":        info.GetDir(),
+			"program":    info.GetProgram(),
+			"args":       info.GetArgs(),
+			"stdout":     info.GetStdOut(),
+			"stderr":     info.GetStdErr(),
+			"spec":       info.GetSpec(),
+			"timeout":    info.GetTimeout(),
+			"is_monitor": info.GetIsMonitor(),
 		}
-		err := applications.JobRegister(job.GetId(), config)
+		job, err := applications.JobRegister(info.GetId(), config)
 		if err != nil {
-			logger.Error("job register failed:"+err.Error(), config)
-			return
+			return err
+		}
+		job.MonitorReport = func(monitor *applications.Monitor) {
+			client.JobMonitorReport(job, monitor)
+		}
+		job.ArchiveReport = func(command *applications.Command) {
+			client.JobArchiveReport(job, command)
 		}
 	}
+	return nil
 }

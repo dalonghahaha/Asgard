@@ -52,7 +52,7 @@ func StartGuard() {
 			}
 			config[_k] = v
 		}
-		err := applications.AppRegister(int64(index), config)
+		_, err := applications.AppRegister(int64(index), config)
 		if err != nil {
 			fmt.Println(err)
 			return

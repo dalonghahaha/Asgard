@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"Asgard/applications"
+	"Asgard/client"
 	"Asgard/rpc"
 )
 
@@ -18,6 +19,7 @@ func (s *CronServer) List(ctx context.Context, request *rpc.Empty) (*rpc.JobList
 	list := []*rpc.Job{}
 	for _, job := range jobs {
 		_job := new(rpc.Job)
+		_job.Id = job.ID
 		_job.Name = job.Name
 		_job.Dir = job.Dir
 		_job.Program = job.Program
@@ -68,9 +70,15 @@ func (s *CronServer) Add(ctx context.Context, request *rpc.Job) (*rpc.Response, 
 		"spec":    request.GetSpec(),
 		"timeout": request.GetTimeout(),
 	}
-	err := applications.JobRegister(id, config)
+	job, err := applications.JobRegister(id, config)
 	if err != nil {
 		return s.Error(err.Error())
+	}
+	job.MonitorReport = func(monitor *applications.Monitor) {
+		client.JobMonitorReport(job, monitor)
+	}
+	job.ArchiveReport = func(command *applications.Command) {
+		client.JobArchiveReport(job, command)
 	}
 	ok = applications.JobStartByID(id)
 	if !ok {
