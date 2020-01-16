@@ -6,6 +6,14 @@ message Empty {
     
 }
 
+message ID {
+    int64 id = 1;
+}
+
+message Name {
+    string name = 1;
+}
+
 // Response 响应结构
 message Response {
 	int32 code = 1;

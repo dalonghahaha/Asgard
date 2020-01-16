@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 	"regexp"
@@ -22,6 +23,10 @@ var (
 	CookieSalt       = "sdswqeqx"
 	Domain           = "localhost"
 )
+
+func FormatFloat(info float64) string {
+	return fmt.Sprintf("%.4f", info)
+}
 
 func FormatTime(info time.Time) string {
 	return info.Format("2006-01-02 15:04:05")

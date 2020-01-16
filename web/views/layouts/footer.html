@@ -6,14 +6,24 @@
 <script type="text/javascript" src="/assets/js/selectize.min.js"></script>
 <script type="text/javascript" src="/assets/js/apexcharts.min.js"></script>
 <script>
-    $(document).ready(function(){
+    $(document).ready(function () {
         var path = window.location.pathname;
-        $(".sidebar-nav li a").each(function(){
+        $(".sidebar-nav li a").each(function () {
             var href = $(this).attr("href");
             if (href == path) {
                 $(this).addClass("active")
                 return false;
             }
         });
+        $(document).ready(function () {
+            $.getJSON("/user/info", function (data) {
+                if (data.code == 200) {
+                    var html = data.data.nickname + "<span class=\"text-muted d-block mt-1 text-h6\">" + data.data.role + "</span>"
+                    $("#user_info").html(html)
+                } else {
+                    alert(data.message);
+                }
+            })
+        })
     });
 </script>

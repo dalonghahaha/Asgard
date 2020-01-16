@@ -60,8 +60,12 @@ func (c *JobController) formatJob(info *models.Job) map[string]interface{} {
 }
 
 func (c *JobController) List(ctx *gin.Context) {
+	agent := DefaultInt(ctx, "agent", 0)
 	page := DefaultInt(ctx, "page", 1)
 	where := map[string]interface{}{}
+	if agent != 0 {
+		where["agent_id"] = agent
+	}
 	jobList, total := c.jobService.GetJobPageList(where, page, PageSize)
 	if jobList == nil {
 		APIError(ctx, "获取计划任务列表失败")
@@ -71,6 +75,9 @@ func (c *JobController) List(ctx *gin.Context) {
 		list = append(list, c.formatJob(&job))
 	}
 	mpurl := "/job/list"
+	if agent != 0 {
+		mpurl = "/job/list?agent=" + strconv.Itoa(agent)
+	}
 	ctx.HTML(StatusOK, "job/list", gin.H{
 		"Subtitle":   "计划任务列表",
 		"List":       list,
@@ -97,12 +104,10 @@ func (c *JobController) Show(ctx *gin.Context) {
 }
 
 func (c *JobController) Add(ctx *gin.Context) {
-	groups := c.groupService.GetAllGroup()
-	agents := c.agentService.GetAllAgent()
 	ctx.HTML(StatusOK, "job/add", gin.H{
 		"Subtitle":  "添加计划任务",
-		"GroupList": groups,
-		"AgentList": agents,
+		"GroupList": c.groupService.GetUsageGroup(),
+		"AgentList": c.agentService.GetUsageAgent(),
 	})
 }
 
@@ -175,13 +180,11 @@ func (c *JobController) Edit(ctx *gin.Context) {
 		JumpError(ctx)
 		return
 	}
-	groups := c.groupService.GetAllGroup()
-	agents := c.agentService.GetAllAgent()
 	ctx.HTML(StatusOK, "job/edit", gin.H{
 		"Subtitle":  "编辑计划任务",
 		"Job":       c.formatJob(job),
-		"GroupList": groups,
-		"AgentList": agents,
+		"GroupList": c.groupService.GetUsageGroup(),
+		"AgentList": c.agentService.GetUsageAgent(),
 	})
 }
 
@@ -276,9 +279,9 @@ func (c *JobController) Monitor(ctx *gin.Context) {
 	times := []string{}
 	moniters := c.moniterService.GetJobMonitor(id, 100)
 	for _, moniter := range moniters {
-		cpus = append(cpus, strconv.FormatFloat(moniter.CPU, 'f', -1, 64))
-		memorys = append(memorys, strconv.FormatFloat(moniter.Memory, 'f', -1, 64))
-		times = append(times, moniter.CreatedAt.Format("2006-01-02 15:04:05"))
+		cpus = append(cpus, FormatFloat(moniter.CPU))
+		memorys = append(memorys, FormatFloat(moniter.Memory))
+		times = append(times, FormatTime(moniter.CreatedAt))
 	}
 	ctx.HTML(StatusOK, "app/monitor", gin.H{
 		"Subtitle": "监控信息",

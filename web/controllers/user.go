@@ -34,6 +34,107 @@ func (c *UserController) List(ctx *gin.Context) {
 	})
 }
 
+func (c *UserController) Info(ctx *gin.Context) {
+	userID := GetUserID(ctx)
+	if userID == 0 {
+		APIBadRequest(ctx, "用户ID错误")
+		return
+	}
+	user := c.useService.GetUserByID(userID)
+	if user == nil {
+		APIBadRequest(ctx, "用户不存在")
+		return
+	}
+	APIData(ctx, gin.H{
+		"id":       user.ID,
+		"nickname": user.NickName,
+		"avatar":   user.Avatar,
+		"role":     "Administrator",
+	})
+}
+
+func (c *UserController) Setting(ctx *gin.Context) {
+	userID := GetUserID(ctx)
+	if userID == 0 {
+		JumpError(ctx)
+		return
+	}
+	user := c.useService.GetUserByID(userID)
+	if user == nil {
+		JumpError(ctx)
+		return
+	}
+	ctx.HTML(StatusOK, "user/setting", gin.H{
+		"Subtitle": "用户信息设置",
+		"User":     user,
+	})
+}
+
+func (c *UserController) Update(ctx *gin.Context) {
+	nickname := ctx.PostForm("nickname")
+	email := ctx.PostForm("email")
+	mobile := ctx.PostForm("mobile")
+	userID := GetUserID(ctx)
+	if userID == 0 {
+		APIBadRequest(ctx, "用户ID错误")
+		return
+	}
+	user := c.useService.GetUserByID(userID)
+	if user == nil {
+		APIBadRequest(ctx, "用户不存在")
+		return
+	}
+	user.NickName = nickname
+	user.Email = email
+	user.Mobile = mobile
+	APIOK(ctx)
+}
+
+func (c *UserController) ChangePassword(ctx *gin.Context) {
+	userID := GetUserID(ctx)
+	if userID == 0 {
+		JumpError(ctx)
+		return
+	}
+	user := c.useService.GetUserByID(userID)
+	if user == nil {
+		JumpError(ctx)
+		return
+	}
+	ctx.HTML(StatusOK, "user/change_password", gin.H{
+		"Subtitle": "修改密码",
+	})
+}
+
+func (c *UserController) DoChangePassword(ctx *gin.Context) {
+	password := ctx.PostForm("password")
+	userID := GetUserID(ctx)
+	if userID == 0 {
+		APIBadRequest(ctx, "用户ID错误")
+		return
+	}
+	user := c.useService.GetUserByID(userID)
+	if user == nil {
+		APIBadRequest(ctx, "用户不存在")
+		return
+	}
+	salt := random.Letters(8)
+	password, err := coding.MD5(password + "|" + salt)
+	if err != nil {
+		APIError(ctx, "生产密码失败")
+		return
+	}
+	user.Salt = salt
+	user.Password = password
+	ok := c.useService.UpdateUser(user)
+	if !ok {
+		APIError(ctx, "修改密码失败")
+		return
+	}
+	ctx.SetCookie("token", "", 0, "/", Domain, false, true)
+	APIOK(ctx)
+}
+
 func (c *UserController) Register(ctx *gin.Context) {
 	ctx.HTML(StatusOK, "user/register.html", gin.H{
 		"Subtitle": "用户注册",

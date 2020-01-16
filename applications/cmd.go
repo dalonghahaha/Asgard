@@ -185,19 +185,7 @@ func (c *Command) stop() {
 }
 
 func (c *Command) monitor(info *process.Process) {
-	monitor := new(Monitor)
-	memoryPercent, err := info.MemoryPercent()
-	if err == nil {
-		monitor.MemoryPercent = memoryPercent
-	}
-	cpuPercent, err := info.CPUPercent()
-	if err == nil {
-		monitor.CPUPercent = cpuPercent
-	}
-	threads, err := info.NumThreads()
-	if err == nil {
-		monitor.NumThreads = int(threads)
-	}
+	monitor := BuildMonitor(info)
 	if c.MonitorReport != nil {
 		c.MonitorReport(monitor)
 	}

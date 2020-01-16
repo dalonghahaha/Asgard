@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/dalonghahaha/avenger/components/logger"
 	"google.golang.org/grpc"
@@ -12,6 +13,7 @@ import (
 )
 
 var (
+	DialTimeOut = time.Second * 5
 	CronClients = map[int64]rpc.CronClient{}
 )
 
@@ -21,7 +23,9 @@ func GetCronClient(agent *models.Agent) (rpc.CronClient, error) {
 		return _client, nil
 	}
 	addr := fmt.Sprintf("%s:%s", agent.IP, agent.Port)
-	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+	ctx, cancel := context.WithTimeout(context.Background(), DialTimeOut)
+	defer cancel()
+	conn, err := grpc.DialContext(ctx, addr, grpc.WithInsecure())
 	if err != nil {
 		logger.Error(fmt.Sprintf("%s is offline:%v", addr, err))
 		return nil, err

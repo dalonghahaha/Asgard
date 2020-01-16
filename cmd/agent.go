@@ -2,8 +2,12 @@ package cmd
 
 import (
 	"net"
+	"os"
+	"time"
 
 	"github.com/dalonghahaha/avenger/components/logger"
+	"github.com/dalonghahaha/avenger/tools/uuid"
+	"github.com/shirou/gopsutil/process"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc/reflection"
@@ -15,9 +19,10 @@ import (
 )
 
 var (
-	masterClient rpc.MasterClient
-	agentIP      string
-	agentPort    string
+	agentIP            string
+	agentPort          string
+	agentMoniterTicker *time.Ticker
+	agentUUID          string
 )
 
 func init() {
@@ -30,9 +35,11 @@ var agentCommonCmd = &cobra.Command{
 	Short:  "run as agent",
 	PreRun: PreRun,
 	Run: func(cmd *cobra.Command, args []string) {
+		agentUUID = uuid.GenerateV1()
 		client.InitMasterClient()
 		go StartAgent()
 		go StartAgentRpcServer()
+		go MoniterAgent()
 		NotityKill(StopAgent)
 	},
 }
@@ -61,6 +68,7 @@ func StartAgent() {
 }
 
 func StopAgent() {
+	agentMoniterTicker.Stop()
 	applications.AppStopAll()
 	applications.JobStopAll()
 }
@@ -73,15 +81,36 @@ func StartAgentRpcServer() {
 		panic(err)
 	}
 	s := server.DefaultServer()
-	rpc.RegisterGuardServer(s, &server.GuardServer{})
-	rpc.RegisterCronServer(s, &server.CronServer{})
+	rpc.RegisterAgentServer(s, &server.AgentServer{})
 	reflection.Register(s)
-	logger.Info("agent rpc started at ", port)
+	logger.Info("agent rpc server started at ", port)
 	err = s.Serve(listen)
 	if err != nil {
 		logger.Error("failed to serve:", err)
 		panic(err)
 	}
+}
+
+func MoniterAgent() {
+	duration := viper.GetInt("system.moniter")
+	if duration == 0 {
+		duration = 10
+	}
+	agentMoniterTicker = time.NewTicker(time.Second * time.Duration(duration))
+	for range agentMoniterTicker.C {
+		AgentMonitorReport()
+	}
+}
+
+func AgentMonitorReport() {
+	pid := os.Getpid()
+	info, err := process.NewProcess(int32(pid))
+	if err != nil {
+		logger.Error("get process failed:", err)
+		return
+	}
+	monitor := applications.BuildMonitor(info)
+	client.AgentMonitorReport(agentIP, agentPort, pid, agentUUID, monitor)
 }
 
 func AppsRegister() error {

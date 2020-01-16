@@ -24,53 +24,6 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
-type Agent struct {
-	Ip                   string   `protobuf:"bytes,1,opt,name=ip,proto3" json:"ip,omitempty"`
-	Port                 string   `protobuf:"bytes,2,opt,name=port,proto3" json:"port,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *Agent) Reset()         { *m = Agent{} }
-func (m *Agent) String() string { return proto.CompactTextString(m) }
-func (*Agent) ProtoMessage()    {}
-func (*Agent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f9c348dec43a6705, []int{0}
-}
-
-func (m *Agent) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_Agent.Unmarshal(m, b)
-}
-func (m *Agent) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_Agent.Marshal(b, m, deterministic)
-}
-func (m *Agent) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Agent.Merge(m, src)
-}
-func (m *Agent) XXX_Size() int {
-	return xxx_messageInfo_Agent.Size(m)
-}
-func (m *Agent) XXX_DiscardUnknown() {
-	xxx_messageInfo_Agent.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_Agent proto.InternalMessageInfo
-
-func (m *Agent) GetIp() string {
-	if m != nil {
-		return m.Ip
-	}
-	return ""
-}
-
-func (m *Agent) GetPort() string {
-	if m != nil {
-		return m.Port
-	}
-	return ""
-}
-
 type Monitor struct {
 	Uuid                 string   `protobuf:"bytes,1,opt,name=uuid,proto3" json:"uuid,omitempty"`
 	Pid                  int32    `protobuf:"varint,2,opt,name=pid,proto3" json:"pid,omitempty"`
@@ -86,7 +39,7 @@ func (m *Monitor) Reset()         { *m = Monitor{} }
 func (m *Monitor) String() string { return proto.CompactTextString(m) }
 func (*Monitor) ProtoMessage()    {}
 func (*Monitor) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f9c348dec43a6705, []int{1}
+	return fileDescriptor_f9c348dec43a6705, []int{0}
 }
 
 func (m *Monitor) XXX_Unmarshal(b []byte) error {
@@ -158,7 +111,7 @@ func (m *Archive) Reset()         { *m = Archive{} }
 func (m *Archive) String() string { return proto.CompactTextString(m) }
 func (*Archive) ProtoMessage()    {}
 func (*Archive) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f9c348dec43a6705, []int{2}
+	return fileDescriptor_f9c348dec43a6705, []int{1}
 }
 
 func (m *Archive) XXX_Unmarshal(b []byte) error {
@@ -219,6 +172,53 @@ func (m *Archive) GetSignal() string {
 		return m.Signal
 	}
 	return ""
+}
+
+type AgentMonitor struct {
+	Agent                *AgentInfo `protobuf:"bytes,1,opt,name=agent,proto3" json:"agent,omitempty"`
+	Monitor              *Monitor   `protobuf:"bytes,2,opt,name=monitor,proto3" json:"monitor,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
+	XXX_unrecognized     []byte     `json:"-"`
+	XXX_sizecache        int32      `json:"-"`
+}
+
+func (m *AgentMonitor) Reset()         { *m = AgentMonitor{} }
+func (m *AgentMonitor) String() string { return proto.CompactTextString(m) }
+func (*AgentMonitor) ProtoMessage()    {}
+func (*AgentMonitor) Descriptor() ([]byte, []int) {
+	return fileDescriptor_f9c348dec43a6705, []int{2}
+}
+
+func (m *AgentMonitor) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AgentMonitor.Unmarshal(m, b)
+}
+func (m *AgentMonitor) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AgentMonitor.Marshal(b, m, deterministic)
+}
+func (m *AgentMonitor) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AgentMonitor.Merge(m, src)
+}
+func (m *AgentMonitor) XXX_Size() int {
+	return xxx_messageInfo_AgentMonitor.Size(m)
+}
+func (m *AgentMonitor) XXX_DiscardUnknown() {
+	xxx_messageInfo_AgentMonitor.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AgentMonitor proto.InternalMessageInfo
+
+func (m *AgentMonitor) GetAgent() *AgentInfo {
+	if m != nil {
+		return m.Agent
+	}
+	return nil
+}
+
+func (m *AgentMonitor) GetMonitor() *Monitor {
+	if m != nil {
+		return m.Monitor
+	}
+	return nil
 }
 
 type AppMonitor struct {
@@ -410,9 +410,9 @@ func (m *JobArchive) GetArchive() *Archive {
 }
 
 func init() {
-	proto.RegisterType((*Agent)(nil), "Agent")
 	proto.RegisterType((*Monitor)(nil), "Monitor")
 	proto.RegisterType((*Archive)(nil), "Archive")
+	proto.RegisterType((*AgentMonitor)(nil), "AgentMonitor")
 	proto.RegisterType((*AppMonitor)(nil), "AppMonitor")
 	proto.RegisterType((*JobMonior)(nil), "JobMonior")
 	proto.RegisterType((*AppArchive)(nil), "AppArchive")
@@ -422,35 +422,36 @@ func init() {
 func init() { proto.RegisterFile("master.proto", fileDescriptor_f9c348dec43a6705) }
 
 var fileDescriptor_f9c348dec43a6705 = []byte{
-	// 436 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x53, 0xc1, 0x8e, 0xd3, 0x30,
-	0x10, 0xa5, 0x49, 0x9b, 0x34, 0x53, 0x04, 0x95, 0x0f, 0x55, 0x58, 0x09, 0xb1, 0x8a, 0x84, 0xb4,
-	0x02, 0x94, 0x43, 0xf9, 0x82, 0x70, 0x01, 0x55, 0xec, 0xc5, 0xe2, 0xc4, 0x05, 0xc5, 0x8d, 0xd5,
-	0xf5, 0x8a, 0xc4, 0xa3, 0xd8, 0x45, 0xe2, 0x53, 0xf8, 0x08, 0xfe, 0x11, 0x79, 0x6c, 0xa7, 0x2d,
-	0x08, 0xd8, 0xdb, 0x9b, 0xf7, 0xde, 0xbc, 0x99, 0x4e, 0x5c, 0x78, 0xdc, 0xb7, 0xc6, 0xca, 0xb1,
-	0xc6, 0x51, 0x5b, 0x7d, 0x05, 0xa2, 0x35, 0x32, 0xe0, 0xa2, 0x45, 0x8c, 0xf0, 0x5e, 0x0b, 0x0f,
-	0xab, 0xd7, 0xb0, 0x68, 0x0e, 0x72, 0xb0, 0xec, 0x09, 0x24, 0x0a, 0xcb, 0xd9, 0xf5, 0xec, 0xa6,
-	0xe0, 0x89, 0x42, 0xc6, 0x60, 0x8e, 0x7a, 0xb4, 0x65, 0x42, 0x0c, 0xe1, 0xca, 0x40, 0x7e, 0xab,
-	0x07, 0x65, 0xf5, 0xe8, 0xe4, 0xe3, 0x51, 0x75, 0xa1, 0x81, 0x30, 0x5b, 0x43, 0x8a, 0xaa, 0xa3,
-	0x8e, 0x05, 0x77, 0xd0, 0x31, 0x7b, 0x3c, 0x96, 0xe9, 0xf5, 0xec, 0x26, 0xe1, 0x0e, 0xb2, 0x0d,
-	0x64, 0xbd, 0xec, 0xf5, 0xf8, 0xbd, 0x9c, 0x13, 0x19, 0x2a, 0x56, 0x42, 0x6e, 0xef, 0x46, 0xd9,
-	0x76, 0xa6, 0x5c, 0x50, 0x7f, 0x2c, 0xab, 0x1f, 0x33, 0xc8, 0x9b, 0x71, 0x7f, 0xa7, 0xbe, 0xc9,
-	0x07, 0x4e, 0x7d, 0x0e, 0x20, 0xe4, 0x41, 0x0d, 0x5f, 0xac, 0xea, 0x25, 0x0d, 0x4f, 0x79, 0x41,
-	0xcc, 0x27, 0xd5, 0x4b, 0xf6, 0x0c, 0x96, 0x72, 0xe8, 0xbc, 0x38, 0x27, 0x31, 0x97, 0x43, 0x47,
-	0xd2, 0x06, 0x32, 0x63, 0x5b, 0x7b, 0x8c, 0x4b, 0x84, 0x8a, 0x78, 0x75, 0x18, 0xda, 0xaf, 0x65,
-	0x46, 0x93, 0x43, 0x55, 0x7d, 0x00, 0x68, 0x10, 0xe3, 0x4d, 0x36, 0x90, 0xb6, 0xe8, 0x6f, 0xb8,
-	0xda, 0xce, 0xeb, 0x06, 0x91, 0x3b, 0x82, 0x55, 0x90, 0xf7, 0xde, 0x42, 0x5b, 0xae, 0xb6, 0xcb,
-	0x3a, 0xb4, 0xf0, 0x28, 0x54, 0xef, 0xa1, 0xd8, 0x69, 0xe1, 0x68, 0x1f, 0x74, 0xaf, 0xc5, 0x14,
-	0xb4, 0xd3, 0x82, 0x3b, 0xe2, 0x41, 0x41, 0x7e, 0xa5, 0x78, 0xb0, 0x7f, 0xac, 0xd4, 0x7a, 0xcb,
-	0x94, 0x14, 0x5a, 0x78, 0x14, 0x5c, 0xd2, 0x4e, 0x8b, 0xb3, 0xa4, 0xbf, 0xed, 0xf4, 0xbf, 0xa4,
-	0xed, 0xcf, 0x04, 0xb2, 0x5b, 0x7a, 0x97, 0xec, 0x05, 0x2c, 0xb9, 0x3c, 0x28, 0xc2, 0x59, 0x4d,
-	0x4f, 0xef, 0xaa, 0xa8, 0xb9, 0x34, 0xa8, 0x07, 0x23, 0xab, 0x47, 0xec, 0x25, 0xe4, 0x0d, 0xe2,
-	0x47, 0x65, 0xec, 0xa4, 0xaf, 0xeb, 0xc0, 0x5c, 0xda, 0x76, 0x5a, 0xfc, 0x66, 0x0b, 0xcc, 0x99,
-	0xed, 0x0d, 0xac, 0x4f, 0x1f, 0x88, 0x4b, 0xf7, 0x8a, 0xd9, 0xaa, 0x3e, 0x51, 0x97, 0xb3, 0x5f,
-	0xc1, 0xd3, 0xe9, 0x23, 0x04, 0x33, 0xd4, 0x13, 0x73, 0xe9, 0xf5, 0xc9, 0xf1, 0xa7, 0x9e, 0x25,
-	0x07, 0xea, 0x0f, 0xf7, 0xe9, 0x96, 0x93, 0xfb, 0x44, 0x5d, 0xb8, 0xdf, 0x2d, 0x3e, 0xa7, 0x23,
-	0xee, 0x45, 0x46, 0x7f, 0xd1, 0xb7, 0xbf, 0x02, 0x00, 0x00, 0xff, 0xff, 0xaf, 0x2f, 0xb9, 0x8a,
-	0xd4, 0x03, 0x00, 0x00,
+	// 455 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x94, 0xcf, 0x8e, 0xd3, 0x30,
+	0x10, 0xc6, 0x49, 0xd3, 0x26, 0xcd, 0x74, 0x11, 0x95, 0x0f, 0x55, 0x58, 0x09, 0xa9, 0x0a, 0x97,
+	0x82, 0x90, 0x85, 0xca, 0x13, 0x84, 0x0b, 0x50, 0xb1, 0x17, 0x6b, 0x4f, 0x5c, 0x90, 0xdd, 0x98,
+	0xae, 0x57, 0x24, 0xb6, 0x12, 0x17, 0x89, 0x47, 0xe1, 0x19, 0x79, 0x09, 0x94, 0x89, 0x9d, 0x3f,
+	0x62, 0x81, 0x72, 0x9b, 0xf9, 0xcd, 0xe7, 0xcf, 0x9f, 0xc6, 0x51, 0xe0, 0xaa, 0xe4, 0x8d, 0x95,
+	0x35, 0x35, 0xb5, 0xb6, 0xfa, 0x1a, 0x04, 0x6f, 0xa4, 0xab, 0x13, 0x6e, 0x8c, 0x2f, 0xef, 0xb5,
+	0x70, 0xe5, 0x8a, 0x9f, 0x64, 0x65, 0xbb, 0x26, 0x6b, 0x20, 0xbe, 0xd1, 0x95, 0xb2, 0xba, 0x26,
+	0x04, 0xe6, 0xe7, 0xb3, 0x2a, 0xd2, 0x60, 0x1b, 0xec, 0x12, 0x86, 0x35, 0x59, 0x43, 0x68, 0x54,
+	0x91, 0xce, 0xb6, 0xc1, 0x6e, 0xc1, 0xda, 0xb2, 0x25, 0x47, 0x73, 0x4e, 0xc3, 0x6d, 0xb0, 0x9b,
+	0xb1, 0xb6, 0x24, 0x1b, 0x88, 0x4a, 0x59, 0xea, 0xfa, 0x7b, 0x3a, 0x47, 0xe8, 0x3a, 0x92, 0x42,
+	0x6c, 0xef, 0x6a, 0xc9, 0x8b, 0x26, 0x5d, 0xe0, 0x79, 0xdf, 0x66, 0x3f, 0x02, 0x88, 0xf3, 0xfa,
+	0x78, 0xa7, 0xbe, 0xc9, 0x0b, 0x6f, 0x7d, 0x06, 0x20, 0xe4, 0x49, 0x55, 0x9f, 0xad, 0x2a, 0x25,
+	0x5e, 0x1e, 0xb2, 0x04, 0xc9, 0xad, 0x2a, 0x25, 0x79, 0x0a, 0x4b, 0x59, 0x15, 0xdd, 0x70, 0x8e,
+	0xc3, 0x58, 0x56, 0x05, 0x8e, 0x36, 0x10, 0x35, 0x96, 0xdb, 0xb3, 0x0f, 0xe1, 0x3a, 0xe4, 0xea,
+	0x54, 0xf1, 0xaf, 0x69, 0x84, 0x37, 0xbb, 0x2e, 0xbb, 0x85, 0xab, 0xbc, 0xdd, 0x8f, 0xdf, 0xca,
+	0x16, 0x16, 0xb8, 0x2f, 0x0c, 0xb8, 0xda, 0x03, 0xc5, 0xe9, 0x87, 0xea, 0x8b, 0x66, 0xdd, 0x80,
+	0x64, 0x10, 0x97, 0x9d, 0x18, 0x13, 0xaf, 0xf6, 0x4b, 0xea, 0x0e, 0x33, 0x3f, 0xc8, 0xde, 0x03,
+	0xe4, 0xc6, 0x78, 0xcf, 0x0d, 0x84, 0xdc, 0x18, 0xe7, 0x38, 0xa7, 0xb9, 0x31, 0xac, 0x05, 0x17,
+	0x39, 0xbd, 0x83, 0xe4, 0xa0, 0x45, 0x8b, 0x3b, 0xa3, 0x7b, 0x2d, 0x7a, 0xa3, 0x83, 0x16, 0xac,
+	0x05, 0xff, 0x11, 0xc9, 0x3f, 0xc3, 0x5f, 0x22, 0xf1, 0x4e, 0xd2, 0x3b, 0xb9, 0x23, 0xcc, 0x0f,
+	0x5a, 0xa7, 0x83, 0x16, 0x23, 0xa7, 0x3f, 0x65, 0xfa, 0x97, 0xd3, 0xfe, 0xe7, 0x0c, 0xa2, 0x1b,
+	0xfc, 0x9a, 0xc9, 0x73, 0x58, 0x32, 0x79, 0x52, 0x58, 0x8f, 0x96, 0x7e, 0x9d, 0x50, 0x26, 0x1b,
+	0xa3, 0xab, 0x46, 0x66, 0x8f, 0xc8, 0x0b, 0x88, 0x73, 0x63, 0x3e, 0xaa, 0xc6, 0x4e, 0x34, 0x6b,
+	0xea, 0xe8, 0x54, 0x7a, 0xd0, 0xe2, 0x01, 0xa9, 0xa3, 0x23, 0xe9, 0x6b, 0x20, 0xe3, 0x4f, 0x80,
+	0x49, 0xa3, 0x6b, 0x4b, 0x1e, 0xd3, 0x31, 0x9c, 0xe6, 0x78, 0x05, 0xeb, 0xe1, 0x79, 0x9d, 0x7e,
+	0x45, 0x07, 0x34, 0x55, 0xbf, 0x84, 0x27, 0xfd, 0x13, 0x3a, 0x31, 0xd0, 0x9e, 0x3c, 0xe4, 0xec,
+	0x17, 0x35, 0x72, 0x76, 0xe8, 0x37, 0xf5, 0xf0, 0x12, 0xbd, 0x7a, 0x40, 0x13, 0xf5, 0xdb, 0xc5,
+	0xa7, 0xb0, 0x36, 0x47, 0x11, 0xe1, 0x9f, 0xe0, 0xcd, 0xaf, 0x00, 0x00, 0x00, 0xff, 0xff, 0x91,
+	0x2a, 0x11, 0x56, 0x48, 0x04, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -465,9 +466,10 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MasterClient interface {
-	Register(ctx context.Context, in *Agent, opts ...grpc.CallOption) (*Response, error)
-	AppList(ctx context.Context, in *Agent, opts ...grpc.CallOption) (*AppListResponse, error)
-	JobList(ctx context.Context, in *Agent, opts ...grpc.CallOption) (*JobListResponse, error)
+	Register(ctx context.Context, in *AgentInfo, opts ...grpc.CallOption) (*Response, error)
+	AppList(ctx context.Context, in *AgentInfo, opts ...grpc.CallOption) (*AppListResponse, error)
+	JobList(ctx context.Context, in *AgentInfo, opts ...grpc.CallOption) (*JobListResponse, error)
+	AgentMonitorReport(ctx context.Context, in *AgentMonitor, opts ...grpc.CallOption) (*Response, error)
 	AppMonitorReport(ctx context.Context, in *AppMonitor, opts ...grpc.CallOption) (*Response, error)
 	JobMoniorReport(ctx context.Context, in *JobMonior, opts ...grpc.CallOption) (*Response, error)
 	AppArchiveReport(ctx context.Context, in *AppArchive, opts ...grpc.CallOption) (*Response, error)
@@ -482,7 +484,7 @@ func NewMasterClient(cc *grpc.ClientConn) MasterClient {
 	return &masterClient{cc}
 }
 
-func (c *masterClient) Register(ctx context.Context, in *Agent, opts ...grpc.CallOption) (*Response, error) {
+func (c *masterClient) Register(ctx context.Context, in *AgentInfo, opts ...grpc.CallOption) (*Response, error) {
 	out := new(Response)
 	err := c.cc.Invoke(ctx, "/Master/Register", in, out, opts...)
 	if err != nil {
@@ -491,7 +493,7 @@ func (c *masterClient) Register(ctx context.Context, in *Agent, opts ...grpc.Cal
 	return out, nil
 }
 
-func (c *masterClient) AppList(ctx context.Context, in *Agent, opts ...grpc.CallOption) (*AppListResponse, error) {
+func (c *masterClient) AppList(ctx context.Context, in *AgentInfo, opts ...grpc.CallOption) (*AppListResponse, error) {
 	out := new(AppListResponse)
 	err := c.cc.Invoke(ctx, "/Master/AppList", in, out, opts...)
 	if err != nil {
@@ -500,9 +502,18 @@ func (c *masterClient) AppList(ctx context.Context, in *Agent, opts ...grpc.Call
 	return out, nil
 }
 
-func (c *masterClient) JobList(ctx context.Context, in *Agent, opts ...grpc.CallOption) (*JobListResponse, error) {
+func (c *masterClient) JobList(ctx context.Context, in *AgentInfo, opts ...grpc.CallOption) (*JobListResponse, error) {
 	out := new(JobListResponse)
 	err := c.cc.Invoke(ctx, "/Master/JobList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterClient) AgentMonitorReport(ctx context.Context, in *AgentMonitor, opts ...grpc.CallOption) (*Response, error) {
+	out := new(Response)
+	err := c.cc.Invoke(ctx, "/Master/AgentMonitorReport", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -547,9 +558,10 @@ func (c *masterClient) JobArchiveReport(ctx context.Context, in *JobArchive, opt
 
 // MasterServer is the server API for Master service.
 type MasterServer interface {
-	Register(context.Context, *Agent) (*Response, error)
-	AppList(context.Context, *Agent) (*AppListResponse, error)
-	JobList(context.Context, *Agent) (*JobListResponse, error)
+	Register(context.Context, *AgentInfo) (*Response, error)
+	AppList(context.Context, *AgentInfo) (*AppListResponse, error)
+	JobList(context.Context, *AgentInfo) (*JobListResponse, error)
+	AgentMonitorReport(context.Context, *AgentMonitor) (*Response, error)
 	AppMonitorReport(context.Context, *AppMonitor) (*Response, error)
 	JobMoniorReport(context.Context, *JobMonior) (*Response, error)
 	AppArchiveReport(context.Context, *AppArchive) (*Response, error)
@@ -560,14 +572,17 @@ type MasterServer interface {
 type UnimplementedMasterServer struct {
 }
 
-func (*UnimplementedMasterServer) Register(ctx context.Context, req *Agent) (*Response, error) {
+func (*UnimplementedMasterServer) Register(ctx context.Context, req *AgentInfo) (*Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
 }
-func (*UnimplementedMasterServer) AppList(ctx context.Context, req *Agent) (*AppListResponse, error) {
+func (*UnimplementedMasterServer) AppList(ctx context.Context, req *AgentInfo) (*AppListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AppList not implemented")
 }
-func (*UnimplementedMasterServer) JobList(ctx context.Context, req *Agent) (*JobListResponse, error) {
+func (*UnimplementedMasterServer) JobList(ctx context.Context, req *AgentInfo) (*JobListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method JobList not implemented")
+}
+func (*UnimplementedMasterServer) AgentMonitorReport(ctx context.Context, req *AgentMonitor) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AgentMonitorReport not implemented")
 }
 func (*UnimplementedMasterServer) AppMonitorReport(ctx context.Context, req *AppMonitor) (*Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AppMonitorReport not implemented")
@@ -587,7 +602,7 @@ func RegisterMasterServer(s *grpc.Server, srv MasterServer) {
 }
 
 func _Master_Register_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Agent)
+	in := new(AgentInfo)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -599,13 +614,13 @@ func _Master_Register_Handler(srv interface{}, ctx context.Context, dec func(int
 		FullMethod: "/Master/Register",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MasterServer).Register(ctx, req.(*Agent))
+		return srv.(MasterServer).Register(ctx, req.(*AgentInfo))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Master_AppList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Agent)
+	in := new(AgentInfo)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -617,13 +632,13 @@ func _Master_AppList_Handler(srv interface{}, ctx context.Context, dec func(inte
 		FullMethod: "/Master/AppList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MasterServer).AppList(ctx, req.(*Agent))
+		return srv.(MasterServer).AppList(ctx, req.(*AgentInfo))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Master_JobList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Agent)
+	in := new(AgentInfo)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -635,7 +650,25 @@ func _Master_JobList_Handler(srv interface{}, ctx context.Context, dec func(inte
 		FullMethod: "/Master/JobList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MasterServer).JobList(ctx, req.(*Agent))
+		return srv.(MasterServer).JobList(ctx, req.(*AgentInfo))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Master_AgentMonitorReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AgentMonitor)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterServer).AgentMonitorReport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Master/AgentMonitorReport",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterServer).AgentMonitorReport(ctx, req.(*AgentMonitor))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -727,6 +760,10 @@ var _Master_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "JobList",
 			Handler:    _Master_JobList_Handler,
+		},
+		{
+			MethodName: "AgentMonitorReport",
+			Handler:    _Master_AgentMonitorReport_Handler,
 		},
 		{
 			MethodName: "AppMonitorReport",

@@ -41,9 +41,12 @@
                         <tr>
                             <td>{{.Name}}</td>
                             <td>
-                                <label class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" {{if eq .Status 1}}checked{{end}}>
-                                </label>
+                                {{if eq .Status 0}}
+                                <span class="badge bg-gray">Unusage</span>
+                                {{end}}
+                                {{if eq .Status 1}}
+                                <span class="badge bg-green">Usage</span>
+                                {{end}}
                             </td>
                             <td class="text-right">
                                 <span class="dropdown">

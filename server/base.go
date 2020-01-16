@@ -13,18 +13,17 @@ import (
 )
 
 var (
-	grpcLogger   *logrus.Logger
-	accessLogger *logrus.Logger
+	grpcLogger *logrus.Logger
 )
 
 type baseServer struct{}
 
 func (s *baseServer) OK() (*rpc.Response, error) {
-	return &rpc.Response{Code: 200, Message: "ok"}, nil
+	return &rpc.Response{Code: rpc.OK, Message: "ok"}, nil
 }
 
 func (s *baseServer) Error(msg string) (*rpc.Response, error) {
-	return &rpc.Response{Code: 200, Message: msg}, nil
+	return &rpc.Response{Code: rpc.Error, Message: msg}, nil
 }
 
 func recoverInterceptor() grpc.UnaryServerInterceptor {

@@ -18,10 +18,10 @@ import (
 )
 
 var (
-	agentService *services.AgentService
-	appService   *services.AppService
-	jobService   *services.JobService
-	ticker       *time.Ticker
+	agentService        *services.AgentService
+	appService          *services.AppService
+	jobService          *services.JobService
+	masterMoniterTicker *time.Ticker
 )
 
 func init() {
@@ -63,7 +63,7 @@ func StartMasterRpcServer() {
 	s := server.DefaultServer()
 	rpc.RegisterMasterServer(s, &server.MasterServer{})
 	reflection.Register(s)
-	logger.Info("master rpc started at ", port)
+	logger.Info("master rpc server started at ", port)
 	err = s.Serve(listen)
 	if err != nil {
 		logger.Error("failed to serve:", err)
@@ -72,7 +72,7 @@ func StartMasterRpcServer() {
 }
 
 func StopMaster() {
-	ticker.Stop()
+	masterMoniterTicker.Stop()
 }
 
 func MoniterMaster() {
@@ -80,8 +80,8 @@ func MoniterMaster() {
 	if duration == 0 {
 		duration = 10
 	}
-	ticker = time.NewTicker(time.Second * time.Duration(duration))
-	for range ticker.C {
+	masterMoniterTicker = time.NewTicker(time.Second * time.Duration(duration))
+	for range masterMoniterTicker.C {
 		CheckOnlineAgent()
 		CheckOfflineAgent()
 	}
@@ -89,9 +89,8 @@ func MoniterMaster() {
 
 func CheckOnlineAgent() {
 	agentList := agentService.GetOnlineAgent()
-	logger.Debug("online agent: ", len(agentList))
 	for _, agent := range agentList {
-		apps, err := client.GetGuardList(&agent)
+		apps, err := client.GetAgentAppList(&agent)
 		if err != nil {
 			agent.Status = 0
 			agentService.UpdateAgent(&agent)
@@ -104,7 +103,7 @@ func CheckOnlineAgent() {
 				}
 			}
 		}
-		jobs, err := client.GetCronList(&agent)
+		jobs, err := client.GetAgentJobList(&agent)
 		if err != nil {
 			agent.Status = 0
 			agentService.UpdateAgent(&agent)
@@ -122,12 +121,22 @@ func CheckOnlineAgent() {
 
 func CheckOfflineAgent() {
 	agentList := agentService.GetOfflineAgent()
-	logger.Debug("offline agent: ", len(agentList))
 	for _, agent := range agentList {
-		_, err := client.GetCronClient(&agent)
-		if err != nil {
+		_, err := client.GetAgentStat(&agent)
+		if err == nil {
 			agent.Status = 1
 			agentService.UpdateAgent(&agent)
+		} else {
+			apps := appService.GetAppByAgentID(agent.ID)
+			for _, app := range apps {
+				app.Status = 0
+				appService.UpdateApp(&app)
+			}
+			jobs := jobService.GetJobByAgentID(agent.ID)
+			for _, job := range jobs {
+				job.Status = 0
+				jobService.UpdateJob(&job)
+			}
 		}
 	}
 }

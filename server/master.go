@@ -2,10 +2,7 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"time"
-
-	"github.com/dalonghahaha/avenger/components/logger"
 
 	"Asgard/models"
 	"Asgard/rpc"
@@ -16,8 +13,7 @@ type MasterServer struct {
 	baseServer
 }
 
-func (s *MasterServer) Register(ctx context.Context, request *rpc.Agent) (*rpc.Response, error) {
-	logger.Debug(fmt.Sprintf("agent %s:%s joined!", request.GetIp(), request.GetPort()))
+func (s *MasterServer) Register(ctx context.Context, request *rpc.AgentInfo) (*rpc.Response, error) {
 	agentService := services.NewAgentService()
 	agent := agentService.GetAgentByIPAndPort(request.GetIp(), request.GetPort())
 	if agent != nil {
@@ -36,8 +32,7 @@ func (s *MasterServer) Register(ctx context.Context, request *rpc.Agent) (*rpc.R
 	return s.OK()
 }
 
-func (s *MasterServer) AppList(ctx context.Context, request *rpc.Agent) (*rpc.AppListResponse, error) {
-	logger.Debug(fmt.Sprintf("agent request app list: %s:%s", request.GetIp(), request.GetPort()))
+func (s *MasterServer) AppList(ctx context.Context, request *rpc.AgentInfo) (*rpc.AppListResponse, error) {
 	agentService := services.NewAgentService()
 	appService := services.NewAppService()
 	agent := agentService.GetAgentByIPAndPort(request.GetIp(), request.GetPort())
@@ -70,8 +65,7 @@ func (s *MasterServer) AppList(ctx context.Context, request *rpc.Agent) (*rpc.Ap
 	return &rpc.AppListResponse{Code: 200, Apps: list}, nil
 }
 
-func (s *MasterServer) JobList(ctx context.Context, request *rpc.Agent) (*rpc.JobListResponse, error) {
-	logger.Debug(fmt.Sprintf("agent request job list: %s:%s", request.GetIp(), request.GetPort()))
+func (s *MasterServer) JobList(ctx context.Context, request *rpc.AgentInfo) (*rpc.JobListResponse, error) {
 	agentService := services.NewAgentService()
 	jobService := services.NewJobService()
 	agent := agentService.GetAgentByIPAndPort(request.GetIp(), request.GetPort())
@@ -101,8 +95,30 @@ func (s *MasterServer) JobList(ctx context.Context, request *rpc.Agent) (*rpc.Jo
 	return &rpc.JobListResponse{Code: 200, Jobs: list}, nil
 }
 
+func (s *MasterServer) AgentMonitorReport(ctx context.Context, request *rpc.AgentMonitor) (*rpc.Response, error) {
+	agentService := services.NewAgentService()
+	agent := agentService.GetAgentByIPAndPort(request.GetAgent().GetIp(), request.GetAgent().GetPort())
+	if agent == nil {
+		return s.Error("no such agent!")
+	}
+	monitorService := services.NewMonitorService()
+	monitor := &models.Monitor{
+		Type:      models.TYPE_AGENT,
+		RelatedID: agent.ID,
+		UUID:      request.GetMonitor().GetUuid(),
+		PID:       int64(request.GetMonitor().GetPid()),
+		CPU:       float64(request.GetMonitor().GetCpu()),
+		Memory:    float64(request.GetMonitor().GetMemory()),
+		CreatedAt: time.Now(),
+	}
+	ok := monitorService.CreateMonitor(monitor)
+	if !ok {
+		return s.Error("add agent monitor failed")
+	}
+	return s.OK()
+}
+
 func (s *MasterServer) AppMonitorReport(ctx context.Context, request *rpc.AppMonitor) (*rpc.Response, error) {
-	logger.Debug(fmt.Sprintf("app monitor: %v", request.GetApp().GetId()))
 	monitorService := services.NewMonitorService()
 	monitor := &models.Monitor{
 		Type:      models.TYPE_APP,
@@ -121,7 +137,6 @@ func (s *MasterServer) AppMonitorReport(ctx context.Context, request *rpc.AppMon
 }
 
 func (s *MasterServer) JobMoniorReport(ctx context.Context, request *rpc.JobMonior) (*rpc.Response, error) {
-	logger.Debug(fmt.Sprintf("job monitor: %v", request.GetJob().GetId()))
 	monitorService := services.NewMonitorService()
 	monitor := &models.Monitor{
 		Type:      models.TYPE_JOB,
@@ -140,7 +155,6 @@ func (s *MasterServer) JobMoniorReport(ctx context.Context, request *rpc.JobMoni
 }
 
 func (s *MasterServer) AppArchiveReport(ctx context.Context, request *rpc.AppArchive) (*rpc.Response, error) {
-	logger.Debug(fmt.Sprintf("app archive: %v", request.GetApp().GetId()))
 	archiveService := services.NewArchiveService()
 	archive := &models.Archive{
 		Type:      models.TYPE_APP,
@@ -161,7 +175,6 @@ func (s *MasterServer) AppArchiveReport(ctx context.Context, request *rpc.AppArc
 }
 
 func (s *MasterServer) JobArchiveReport(ctx context.Context, request *rpc.JobArchive) (*rpc.Response, error) {
-	logger.Debug(fmt.Sprintf("add archive: %v", request.GetJob().GetId()))
 	archiveService := services.NewArchiveService()
 	archive := &models.Archive{
 		Type:      models.TYPE_JOB,

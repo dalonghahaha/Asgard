@@ -1,0 +1,82 @@
+{{define "content"}}
+<div class="page-title-box">
+    <div class="row align-items-center">
+        <div class="col-auto">
+            <h2 class="page-title">用户设置</h2>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <form id="user" class="card" method="post">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="mb-2">
+                            <label class="form-label">昵称</label>
+                            <input name="name" type="text" class="form-control" placeholder="请输入昵称"
+                                value="{{.User.NickName}}" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="mb-2">
+                            <label class="form-label">邮箱</label>
+                            <input name="dir" type="text" class="form-control" placeholder="请输入邮箱"
+                                value="{{.User.Email}}" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="mb-2">
+                            <label class="form-label">手机号</label>
+                            <input name="program" type="text" class="form-control" placeholder="请输入手机号"
+                                value="{{.User.Mobile}}" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="mb-2">
+                            <label class="form-label">头像</label>
+                            <div class="form-file">
+                                <input type="file" class="form-file-input" id="customFile">
+                                <label class="form-file-label" for="customFile">
+                                    <span class="form-file-text">请选择文件...</span>
+                                    <span class="form-file-button">预览</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer text-right">
+                <button type="submit" class="btn btn-primary">提交</button>
+            </div>
+        </form>
+    </div>
+</div>
+{{end}}
+{{define "script"}}
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#user").on("submit", function (event) {
+            $('#user').ajaxSubmit({
+                url: "/user/setting",
+                dataType: "json",
+                timeout: 60000,
+                success: function (data) {
+                    if (data.code == 200) {
+                        window.location.href = "/";
+                    } else {
+                        alert(data.message);
+                    }
+                }
+            })
+            return false;
+        });
+    });
+</script>
+{{end}}

@@ -3,13 +3,9 @@ syntax = "proto3";
 import "base.proto";
 import "app.proto";
 import "job.proto";
+import "agent.proto";
 
 option go_package = "rpc";
-
-message Agent {
-    string ip = 1;
-    string port = 2;
-}
 
 message Monitor {
     string uuid = 1;
@@ -26,6 +22,11 @@ message Archive {
     int64 end_time = 4;
     int32 status = 5;
     string signal = 6;
+}
+
+message AgentMonitor {
+    AgentInfo agent = 1;
+    Monitor monitor =2;
 }
 
 message AppMonitor {
@@ -49,9 +50,10 @@ message JobArchive {
 }
 
 service Master {
-    rpc Register(Agent) returns (Response) {}
-    rpc AppList(Agent) returns (AppListResponse) {}
-    rpc JobList(Agent) returns (JobListResponse) {}
+    rpc Register(AgentInfo) returns (Response) {}
+    rpc AppList(AgentInfo) returns (AppListResponse) {}
+    rpc JobList(AgentInfo) returns (JobListResponse) {}
+    rpc AgentMonitorReport(AgentMonitor) returns (Response) {}
     rpc AppMonitorReport(AppMonitor) returns (Response) {}
     rpc JobMoniorReport(JobMonior) returns (Response) {}
     rpc AppArchiveReport(AppArchive) returns (Response) {}

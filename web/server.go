@@ -80,7 +80,12 @@ func setupRouter() {
 	user := server.Group("/user")
 	user.Use(middlewares.Login)
 	{
+		user.GET("/info", useController.Info)
 		user.GET("/list", useController.List)
+		user.GET("/setting", useController.Setting)
+		user.POST("/setting", useController.Update)
+		user.GET("/change_password", useController.ChangePassword)
+		user.POST("/change_password", useController.DoChangePassword)
 	}
 	group := server.Group("/group")
 	group.Use(middlewares.Login)
@@ -102,6 +107,10 @@ func setupRouter() {
 		app.POST("/update", appController.Update)
 		app.GET("/monitor", appController.Monitor)
 		app.GET("/archive", appController.Archive)
+		app.GET("/delete", appController.Delete)
+		app.GET("/start", appController.Start)
+		app.GET("/restart", appController.ReStart)
+		app.GET("/stop", appController.Stop)
 	}
 	job := server.Group("/job")
 	job.Use(middlewares.Login)
@@ -119,6 +128,7 @@ func setupRouter() {
 	agent.Use(middlewares.Login)
 	{
 		agent.GET("/list", agentController.List)
+		agent.GET("/monitor", agentController.Monitor)
 	}
 }
 

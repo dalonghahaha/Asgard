@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+import "base.proto";
+import "app.proto";
+import "job.proto";
+
+option go_package = "rpc";
+
+message AgentInfo {
+    string ip = 1;
+    string port = 2;
+}
+
+message AgentStat {
+    int64 apps = 1;
+    int64 jobs = 2;
+}
+
+message AgentStatResponse {
+    int32 code = 1;
+    AgentStat agentStat = 2;
+}
+
+service Agent {
+    rpc Stat (Empty) returns (AgentStatResponse) {}
+    
+    rpc AppList (Empty) returns (AppListResponse) {}
+    rpc AppGet (ID) returns (AppResponse) {}
+    rpc AppAdd (App) returns (Response) {}
+    rpc AppUpdate (App) returns (Response) {}
+    rpc AppRemove (ID) returns (Response) {}
+
+    rpc JobList (Empty) returns (JobListResponse) {}
+    rpc JobGet (ID) returns (JobResponse) {}
+    rpc JobAdd (Job) returns (Response) {}
+    rpc JobUpdate (Job) returns (Response) {}
+    rpc JobRemove (ID) returns (Response) {}
+}

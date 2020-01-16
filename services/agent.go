@@ -14,10 +14,10 @@ func NewAgentService() *AgentService {
 	return &AgentService{}
 }
 
-func (s *AgentService) GetAllAgent() (list []models.Agent) {
+func (s *AgentService) GetUsageAgent() (list []models.Agent) {
 	err := models.Where(&list, "status != ?", "-1")
 	if err != nil {
-		logger.Error("GetAllAgent Error:", err)
+		logger.Error("GetUsageAgent Error:", err)
 		return nil
 	}
 	return list

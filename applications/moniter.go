@@ -21,6 +21,23 @@ type Monitor struct {
 	NumThreads    int
 }
 
+func BuildMonitor(info *process.Process) *Monitor {
+	monitor := new(Monitor)
+	memoryPercent, err := info.MemoryPercent()
+	if err == nil {
+		monitor.MemoryPercent = memoryPercent
+	}
+	cpuPercent, err := info.CPUPercent()
+	if err == nil {
+		monitor.CPUPercent = cpuPercent
+	}
+	threads, err := info.NumThreads()
+	if err == nil {
+		monitor.NumThreads = int(threads)
+	}
+	return monitor
+}
+
 func MoniterAdd(pid int, callback func(info *process.Process)) {
 	lock.Lock()
 	moniters[pid] = callback

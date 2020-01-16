@@ -8,7 +8,8 @@ import (
 )
 
 type AgentController struct {
-	agentService *services.AgentService
+	agentService   *services.AgentService
+	moniterService *services.MonitorService
 }
 
 func NewAgentController() *AgentController {
@@ -37,5 +38,28 @@ func (c *AgentController) List(ctx *gin.Context) {
 		"List":       agentList,
 		"Total":      total,
 		"Pagination": PagerHtml(total, page, mpurl),
+	})
+}
+
+func (c *AgentController) Monitor(ctx *gin.Context) {
+	id := DefaultInt(ctx, "id", 0)
+	if id == 0 {
+		JumpError(ctx)
+		return
+	}
+	cpus := []string{}
+	memorys := []string{}
+	times := []string{}
+	moniters := c.moniterService.GetAgentMonitor(id, 100)
+	for _, moniter := range moniters {
+		cpus = append(cpus, FormatFloat(moniter.CPU))
+		memorys = append(memorys, FormatFloat(moniter.Memory))
+		times = append(times, FormatTime(moniter.CreatedAt))
+	}
+	ctx.HTML(StatusOK, "agent/monitor", gin.H{
+		"Subtitle": "监控信息",
+		"CPU":      cpus,
+		"Memory":   memorys,
+		"Time":     times,
 	})
 }

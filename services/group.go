@@ -14,10 +14,10 @@ func NewGroupService() *GroupService {
 	return &GroupService{}
 }
 
-func (s *GroupService) GetAllGroup() (list []models.Group) {
-	err := models.All(&list)
+func (s *GroupService) GetUsageGroup() (list []models.Group) {
+	err := models.Where(&list, "status = ?", "1")
 	if err != nil {
-		logger.Error("GetAllGroup Error:", err)
+		logger.Error("GetUsageGroup Error:", err)
 		return nil
 	}
 	return

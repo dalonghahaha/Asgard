@@ -23,6 +23,19 @@ func (s *MonitorService) GetMonitorPageList(where map[string]interface{}, page i
 	return
 }
 
+func (s *MonitorService) GetAgentMonitor(id int, size int) (list []models.Monitor) {
+	where := map[string]interface{}{
+		"type":       models.TYPE_AGENT,
+		"related_id": id,
+	}
+	err := db.Get(models.DB_NAME).Where(where).Limit(size).Order("created_at desc").Find(&list).Error
+	if err != nil {
+		logger.Error("GetAppMonitor Error:", err)
+		return nil
+	}
+	return
+}
+
 func (s *MonitorService) GetAppMonitor(id int, size int) (list []models.Monitor) {
 	where := map[string]interface{}{
 		"type":       models.TYPE_APP,

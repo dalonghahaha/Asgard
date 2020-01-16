@@ -16,10 +16,6 @@ message App {
     bool is_monitor = 9;
 }
 
-message AppNameRequest {
-    string name = 1;
-}
-
 message AppResponse {
     int32 code = 1;
     App app = 2;
@@ -32,9 +28,9 @@ message AppListResponse {
 
 service Guard {
     rpc List (Empty) returns (AppListResponse) {}
-    rpc Get (AppNameRequest) returns (AppResponse) {}
+    rpc Get (Name) returns (AppResponse) {}
     rpc Add (App) returns (Response) {}
     rpc Update (App) returns (Response) {}
-    rpc Remove (AppNameRequest) returns (Response) {}
+    rpc Remove (Name) returns (Response) {}
 }
 
