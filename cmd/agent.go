@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"fmt"
 	"net"
 	"os"
+	"runtime/debug"
 	"time"
 
 	"github.com/dalonghahaha/avenger/components/logger"
@@ -35,6 +37,12 @@ var agentCommonCmd = &cobra.Command{
 	Short:  "run as agent",
 	PreRun: PreRun,
 	Run: func(cmd *cobra.Command, args []string) {
+		if err := recover(); err != nil {
+			NotityKill(StopAgent)
+			fmt.Println("panic:", err)
+			fmt.Println("stack:", string(debug.Stack()))
+			return
+		}
 		agentUUID = uuid.GenerateV1()
 		client.InitMasterClient()
 		go StartAgent()
@@ -151,7 +159,7 @@ func JobsRegister() error {
 		return err
 	}
 	for _, info := range jobs {
-		logger.Debug("app register: ", info.GetName())
+		logger.Debug("job register: ", info.GetName())
 		config := map[string]interface{}{
 			"id":         info.GetId(),
 			"name":       info.GetName(),

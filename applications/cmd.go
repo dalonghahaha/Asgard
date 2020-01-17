@@ -142,21 +142,30 @@ func (c *Command) wait(callback func()) {
 	if c.IsMonitor {
 		MoniterRemove(c.Pid)
 	}
-	status := c.Cmd.ProcessState.Sys().(syscall.WaitStatus)
-	signaled := status.Signaled()
-	signal := status.Signal()
-	if signaled {
-		logger.Info(c.Name+" signaled:", signal.String())
+	if c.Cmd == nil || c.Cmd.ProcessState == nil {
+		c.Status = -2
+		c.Signal = ""
+		c.End = time.Now()
+		c.Finished = true
+		if c.ArchiveReport != nil {
+			c.ArchiveReport(c)
+		}
+		callback()
+		return
 	}
-	c.End = time.Now()
-	c.Finished = true
+	status := c.Cmd.ProcessState.Sys().(syscall.WaitStatus)
+	if status.Signaled() {
+		logger.Info(c.Name+" signaled:", status.Signal().String())
+	}
 	if c.Cmd.ProcessState.ExitCode() != 0 {
 		logger.Error(c.Name+" exit with status ", c.Cmd.ProcessState.ExitCode())
 	} else {
 		logger.Info(c.Name + " finished")
 	}
+	c.End = time.Now()
+	c.Finished = true
 	c.Status = c.Cmd.ProcessState.ExitCode()
-	c.Signal = signal.String()
+	c.Signal = status.Signal().String()
 	if c.ArchiveReport != nil {
 		c.ArchiveReport(c)
 	}

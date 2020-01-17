@@ -5,7 +5,6 @@ import (
 	"Asgard/client"
 	"Asgard/rpc"
 	"fmt"
-	"time"
 )
 
 func AddJob(id int64, request *rpc.Job) error {
@@ -19,30 +18,23 @@ func AddJob(id int64, request *rpc.Job) error {
 	job.ArchiveReport = func(command *applications.Command) {
 		client.JobArchiveReport(job, command)
 	}
-	ok := applications.JobStartByID(id)
-	if !ok {
-		return fmt.Errorf("job %d start failed", id)
-	}
+	applications.JobAdd(job)
 	return nil
 }
 
 func UpdateJob(id int64, job *applications.Job, request *rpc.Job) error {
-	ok := applications.AppStopByID(id)
-	if !ok {
-		return fmt.Errorf("job %d stop failed", id)
+	err := DeleteJob(id, job)
+	if err != nil {
+		return err
 	}
-	job.Name = request.GetName()
-	job.Dir = request.GetDir()
-	job.Program = request.GetProgram()
-	job.Args = request.GetArgs()
-	job.Stdout = request.GetStdOut()
-	job.Stderr = request.GetStdErr()
-	job.Spec = request.GetSpec()
-	job.TimeOut = time.Duration(request.GetTimeout())
-	job.IsMonitor = request.GetIsMonitor()
-	ok = applications.JobStartByID(id)
+	return AddJob(id, request)
+}
+
+func DeleteJob(id int64, job *applications.Job) error {
+	ok := applications.JobStopByID(id)
 	if !ok {
-		return fmt.Errorf("job %d start failed", id)
+		return fmt.Errorf("app %d stop failed", id)
 	}
+	delete(applications.Jobs, id)
 	return nil
 }

@@ -14,7 +14,6 @@ import (
 	common_middlewares "github.com/dalonghahaha/avenger/middlewares/gin"
 
 	"Asgard/web/controllers"
-	"Asgard/web/middlewares"
 )
 
 var (
@@ -40,14 +39,6 @@ func Init() error {
 	if viper.GetString("server.mode") == "release" {
 		gin.SetMode(gin.ReleaseMode)
 	}
-	cookieSalt := viper.GetString("server.cookie_salt")
-	if cookieSalt != "" {
-		controllers.CookieSalt = cookieSalt
-	}
-	domain := viper.GetString("server.domain")
-	if cookieSalt != "" {
-		controllers.Domain = domain
-	}
 	server = gin.New()
 	server.Use(common_middlewares.Logger)
 	server.Use(common_middlewares.Recover)
@@ -59,80 +50,27 @@ func Init() error {
 	}
 	server.HTMLRender = ginview.New(viewConfig)
 	server.Static("/assets", "web/assets")
+	return nil
+}
+
+func setupController() {
+	cookieSalt := viper.GetString("server.cookie_salt")
+	if cookieSalt != "" {
+		controllers.CookieSalt = cookieSalt
+	}
+	domain := viper.GetString("server.domain")
+	if cookieSalt != "" {
+		controllers.Domain = domain
+	}
 	appController = controllers.NewAppController()
 	agentController = controllers.NewAgentController()
 	useController = controllers.NewUserController()
 	groupController = controllers.NewGroupController()
 	jobController = controllers.NewJobController()
-	return nil
-}
-
-func setupRouter() {
-	server.GET("/ping", controllers.Ping)
-	server.GET("/UI", controllers.UI)
-	server.GET("/", middlewares.Login, controllers.Index)
-	server.GET("/nologin", controllers.Nologin)
-	server.GET("/error", controllers.Error)
-	server.GET("/register", useController.Register)
-	server.POST("/register", useController.DoRegister)
-	server.GET("/login", useController.Login)
-	server.POST("/login", useController.DoLogin)
-	user := server.Group("/user")
-	user.Use(middlewares.Login)
-	{
-		user.GET("/info", useController.Info)
-		user.GET("/list", useController.List)
-		user.GET("/setting", useController.Setting)
-		user.POST("/setting", useController.Update)
-		user.GET("/change_password", useController.ChangePassword)
-		user.POST("/change_password", useController.DoChangePassword)
-	}
-	group := server.Group("/group")
-	group.Use(middlewares.Login)
-	{
-		group.GET("/list", groupController.List)
-		group.GET("/add", groupController.Add)
-		group.POST("/create", groupController.Create)
-		group.GET("/edit", groupController.Edit)
-		group.POST("/update", groupController.Update)
-	}
-	app := server.Group("/app")
-	app.Use(middlewares.Login)
-	{
-		app.GET("/list", appController.List)
-		app.GET("/show", appController.Show)
-		app.GET("/add", appController.Add)
-		app.POST("/create", appController.Create)
-		app.GET("/edit", appController.Edit)
-		app.POST("/update", appController.Update)
-		app.GET("/monitor", appController.Monitor)
-		app.GET("/archive", appController.Archive)
-		app.GET("/delete", appController.Delete)
-		app.GET("/start", appController.Start)
-		app.GET("/restart", appController.ReStart)
-		app.GET("/stop", appController.Stop)
-	}
-	job := server.Group("/job")
-	job.Use(middlewares.Login)
-	{
-		job.GET("/list", jobController.List)
-		job.GET("/show", jobController.Show)
-		job.GET("/add", jobController.Add)
-		job.POST("/create", jobController.Create)
-		job.GET("/edit", jobController.Edit)
-		job.POST("/update", jobController.Update)
-		job.GET("/monitor", jobController.Monitor)
-		job.GET("/archive", jobController.Archive)
-	}
-	agent := server.Group("/agent")
-	agent.Use(middlewares.Login)
-	{
-		agent.GET("/list", agentController.List)
-		agent.GET("/monitor", agentController.Monitor)
-	}
 }
 
 func Run() {
+	setupController()
 	setupRouter()
 	addr := fmt.Sprintf(":%s", viper.GetString("master.web.port"))
 	err := server.Run(addr)

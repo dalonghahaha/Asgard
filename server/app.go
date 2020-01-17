@@ -27,11 +27,19 @@ func AddApp(id int64, request *rpc.App) error {
 }
 
 func UpdateApp(id int64, app *applications.App, request *rpc.App) error {
+	err := DeleteApp(id, app)
+	if err != nil {
+		return err
+	}
+	return AddApp(id, request)
+}
+
+func DeleteApp(id int64, app *applications.App) error {
 	app.AutoRestart = false
 	ok := applications.AppStopByID(id)
 	if !ok {
 		return fmt.Errorf("app %d stop failed", id)
 	}
 	delete(applications.APPs, id)
-	return AddApp(id, request)
+	return nil
 }

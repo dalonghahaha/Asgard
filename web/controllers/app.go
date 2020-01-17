@@ -335,6 +335,10 @@ func (c *AppController) Start(ctx *gin.Context) {
 		APIError(ctx, "应用不存在")
 		return
 	}
+	if app.Status == 1 {
+		APIError(ctx, "应用已经启动")
+		return
+	}
 	agent := c.agentService.GetAgentByID(app.AgentID)
 	if agent == nil {
 		APIError(ctx, "应用对应实例获取异常")
@@ -351,8 +355,13 @@ func (c *AppController) Start(ctx *gin.Context) {
 			APIError(ctx, fmt.Sprintf("添加应用异常:%s", err.Error()))
 			return
 		}
+		app.Status = 1
+		c.appService.UpdateApp(app)
 		APIOK(ctx)
+		return
 	}
+	app.Status = 1
+	c.appService.UpdateApp(app)
 	APIOK(ctx)
 }
 
@@ -384,6 +393,7 @@ func (c *AppController) ReStart(ctx *gin.Context) {
 			return
 		}
 		APIOK(ctx)
+		return
 	}
 	err = client.UpdateAgentApp(agent, app)
 	if err != nil {
@@ -393,7 +403,7 @@ func (c *AppController) ReStart(ctx *gin.Context) {
 	APIOK(ctx)
 }
 
-func (c *AppController) Stop(ctx *gin.Context) {
+func (c *AppController) Pause(ctx *gin.Context) {
 	id := DefaultInt(ctx, "id", 0)
 	if id == 0 {
 		APIBadRequest(ctx, "ID格式错误")
@@ -423,7 +433,7 @@ func (c *AppController) Stop(ctx *gin.Context) {
 		APIError(ctx, fmt.Sprintf("停止应用异常:%s", err.Error()))
 		return
 	}
-	app.Status = 0
+	app.Status = 2
 	app.Updator = GetUserID(ctx)
 	c.appService.UpdateApp(app)
 	APIOK(ctx)

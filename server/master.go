@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"time"
 
 	"Asgard/models"
 	"Asgard/rpc"
@@ -11,21 +10,35 @@ import (
 
 type MasterServer struct {
 	baseServer
+	agentService   *services.AgentService
+	appService     *services.AppService
+	jobService     *services.JobService
+	monitorService *services.MonitorService
+	archiveService *services.ArchiveService
+}
+
+func NewMasterServer() *MasterServer {
+	return &MasterServer{
+		agentService:   services.NewAgentService(),
+		appService:     services.NewAppService(),
+		jobService:     services.NewJobService(),
+		monitorService: services.NewMonitorService(),
+		archiveService: services.NewArchiveService(),
+	}
 }
 
 func (s *MasterServer) Register(ctx context.Context, request *rpc.AgentInfo) (*rpc.Response, error) {
-	agentService := services.NewAgentService()
-	agent := agentService.GetAgentByIPAndPort(request.GetIp(), request.GetPort())
+	agent := s.agentService.GetAgentByIPAndPort(request.GetIp(), request.GetPort())
 	if agent != nil {
 		agent.Status = 1
-		agentService.UpdateAgent(agent)
+		s.agentService.UpdateAgent(agent)
 		return s.OK()
 	}
 	agent = new(models.Agent)
 	agent.IP = request.GetIp()
 	agent.Port = request.GetPort()
 	agent.Status = 1
-	ok := agentService.CreateAgent(agent)
+	ok := s.agentService.CreateAgent(agent)
 	if !ok {
 		return s.Error("CreateAgent Failed")
 	}
@@ -33,85 +46,37 @@ func (s *MasterServer) Register(ctx context.Context, request *rpc.AgentInfo) (*r
 }
 
 func (s *MasterServer) AppList(ctx context.Context, request *rpc.AgentInfo) (*rpc.AppListResponse, error) {
-	agentService := services.NewAgentService()
-	appService := services.NewAppService()
-	agent := agentService.GetAgentByIPAndPort(request.GetIp(), request.GetPort())
+	agent := s.agentService.GetAgentByIPAndPort(request.GetIp(), request.GetPort())
 	if agent == nil {
-		return &rpc.AppListResponse{Code: 404, Apps: nil}, nil
+		return &rpc.AppListResponse{Code: rpc.Nofound, Apps: nil}, nil
 	}
-	apps := appService.GetAppByAgentID(agent.ID)
+	apps := s.appService.GetAppByAgentID(agent.ID)
 	list := []*rpc.App{}
 	for _, app := range apps {
-		_app := new(rpc.App)
-		_app.Id = app.ID
-		_app.Name = app.Name
-		_app.Dir = app.Dir
-		_app.Program = app.Program
-		_app.Args = app.Args
-		_app.StdOut = app.StdOut
-		_app.StdErr = app.StdErr
-		if app.AutoRestart == 1 {
-			_app.AutoRestart = true
-		} else {
-			_app.AutoRestart = false
-		}
-		if app.IsMonitor == 1 {
-			_app.IsMonitor = true
-		} else {
-			_app.IsMonitor = false
-		}
-		list = append(list, _app)
+		list = append(list, rpc.FormatApp(&app))
 	}
-	return &rpc.AppListResponse{Code: 200, Apps: list}, nil
+	return &rpc.AppListResponse{Code: rpc.OK, Apps: list}, nil
 }
 
 func (s *MasterServer) JobList(ctx context.Context, request *rpc.AgentInfo) (*rpc.JobListResponse, error) {
-	agentService := services.NewAgentService()
-	jobService := services.NewJobService()
-	agent := agentService.GetAgentByIPAndPort(request.GetIp(), request.GetPort())
+	agent := s.agentService.GetAgentByIPAndPort(request.GetIp(), request.GetPort())
 	if agent == nil {
-		return &rpc.JobListResponse{Code: 404, Jobs: nil}, nil
+		return &rpc.JobListResponse{Code: rpc.Nofound, Jobs: nil}, nil
 	}
-	jobs := jobService.GetJobByAgentID(agent.ID)
+	jobs := s.jobService.GetJobByAgentID(agent.ID)
 	list := []*rpc.Job{}
 	for _, job := range jobs {
-		_job := new(rpc.Job)
-		_job.Id = job.ID
-		_job.Name = job.Name
-		_job.Dir = job.Dir
-		_job.Program = job.Program
-		_job.Args = job.Args
-		_job.StdOut = job.StdOut
-		_job.StdErr = job.StdErr
-		_job.Spec = job.Spec
-		_job.Timeout = job.Timeout
-		if job.IsMonitor == 1 {
-			_job.IsMonitor = true
-		} else {
-			_job.IsMonitor = false
-		}
-		list = append(list, _job)
+		list = append(list, rpc.FormatJob(&job))
 	}
-	return &rpc.JobListResponse{Code: 200, Jobs: list}, nil
+	return &rpc.JobListResponse{Code: rpc.OK, Jobs: list}, nil
 }
 
 func (s *MasterServer) AgentMonitorReport(ctx context.Context, request *rpc.AgentMonitor) (*rpc.Response, error) {
-	agentService := services.NewAgentService()
-	agent := agentService.GetAgentByIPAndPort(request.GetAgent().GetIp(), request.GetAgent().GetPort())
+	agent := s.agentService.GetAgentByIPAndPort(request.GetAgent().GetIp(), request.GetAgent().GetPort())
 	if agent == nil {
 		return s.Error("no such agent!")
 	}
-	monitorService := services.NewMonitorService()
-	monitor := &models.Monitor{
-		Type:      models.TYPE_AGENT,
-		RelatedID: agent.ID,
-		UUID:      request.GetMonitor().GetUuid(),
-		PID:       int64(request.GetMonitor().GetPid()),
-		CPU:       float64(request.GetMonitor().GetCpu()),
-		Memory:    float64(request.GetMonitor().GetMemory()),
-		CreatedAt: time.Now(),
-	}
-	ok := monitorService.CreateMonitor(monitor)
+	ok := s.monitorService.CreateMonitor(rpc.ParseMonitor(models.TYPE_AGENT, agent.ID, request.GetMonitor()))
 	if !ok {
 		return s.Error("add agent monitor failed")
 	}
@@ -119,17 +84,7 @@ func (s *MasterServer) AgentMonitorReport(ctx context.Context, request *rpc.Agen
 }
 
 func (s *MasterServer) AppMonitorReport(ctx context.Context, request *rpc.AppMonitor) (*rpc.Response, error) {
-	monitorService := services.NewMonitorService()
-	monitor := &models.Monitor{
-		Type:      models.TYPE_APP,
-		RelatedID: request.GetApp().GetId(),
-		UUID:      request.GetMonitor().GetUuid(),
-		PID:       int64(request.GetMonitor().GetPid()),
-		CPU:       float64(request.GetMonitor().GetCpu()),
-		Memory:    float64(request.GetMonitor().GetMemory()),
-		CreatedAt: time.Now(),
-	}
-	ok := monitorService.CreateMonitor(monitor)
+	ok := s.monitorService.CreateMonitor(rpc.ParseMonitor(models.TYPE_APP, request.GetApp().GetId(), request.GetMonitor()))
 	if !ok {
 		return s.Error("add app monitor failed")
 	}
@@ -137,17 +92,7 @@ func (s *MasterServer) AppMonitorReport(ctx context.Context, request *rpc.AppMon
 }
 
 func (s *MasterServer) JobMoniorReport(ctx context.Context, request *rpc.JobMonior) (*rpc.Response, error) {
-	monitorService := services.NewMonitorService()
-	monitor := &models.Monitor{
-		Type:      models.TYPE_JOB,
-		RelatedID: request.GetJob().GetId(),
-		UUID:      request.GetMonitor().GetUuid(),
-		PID:       int64(request.GetMonitor().GetPid()),
-		CPU:       float64(request.GetMonitor().GetCpu()),
-		Memory:    float64(request.GetMonitor().GetMemory()),
-		CreatedAt: time.Now(),
-	}
-	ok := monitorService.CreateMonitor(monitor)
+	ok := s.monitorService.CreateMonitor(rpc.ParseMonitor(models.TYPE_JOB, request.GetJob().GetId(), request.GetMonitor()))
 	if !ok {
 		return s.Error("add job monitor failed")
 	}
@@ -155,19 +100,7 @@ func (s *MasterServer) JobMoniorReport(ctx context.Context, request *rpc.JobMoni
 }
 
 func (s *MasterServer) AppArchiveReport(ctx context.Context, request *rpc.AppArchive) (*rpc.Response, error) {
-	archiveService := services.NewArchiveService()
-	archive := &models.Archive{
-		Type:      models.TYPE_APP,
-		RelatedID: request.GetApp().GetId(),
-		UUID:      request.GetArchive().GetUuid(),
-		PID:       int64(request.GetArchive().GetPid()),
-		BeginTime: time.Unix(request.GetArchive().GetBeginTime(), 0),
-		EndTime:   time.Unix(request.GetArchive().GetEndTime(), 0),
-		Status:    int64(request.GetArchive().GetStatus()),
-		Signal:    request.GetArchive().GetSignal(),
-		CreatedAt: time.Now(),
-	}
-	ok := archiveService.CreateArchive(archive)
+	ok := s.archiveService.CreateArchive(rpc.ParseArchive(models.TYPE_APP, request.GetApp().GetId(), request.GetArchive()))
 	if !ok {
 		return s.Error("add app archive failed")
 	}
@@ -176,18 +109,7 @@ func (s *MasterServer) AppArchiveReport(ctx context.Context, request *rpc.AppArc
 
 func (s *MasterServer) JobArchiveReport(ctx context.Context, request *rpc.JobArchive) (*rpc.Response, error) {
 	archiveService := services.NewArchiveService()
-	archive := &models.Archive{
-		Type:      models.TYPE_JOB,
-		RelatedID: request.GetJob().GetId(),
-		UUID:      request.GetArchive().GetUuid(),
-		PID:       int64(request.GetArchive().GetPid()),
-		BeginTime: time.Unix(request.GetArchive().GetBeginTime(), 0),
-		EndTime:   time.Unix(request.GetArchive().GetEndTime(), 0),
-		Status:    int64(request.GetArchive().GetStatus()),
-		Signal:    request.GetArchive().GetSignal(),
-		CreatedAt: time.Now(),
-	}
-	ok := archiveService.CreateArchive(archive)
+	ok := archiveService.CreateArchive(rpc.ParseArchive(models.TYPE_JOB, request.GetJob().GetId(), request.GetArchive()))
 	if !ok {
 		return s.Error("add job archive failed")
 	}

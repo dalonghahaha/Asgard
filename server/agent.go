@@ -68,9 +68,13 @@ func (s *AgentServer) AppUpdate(ctx context.Context, request *rpc.App) (*rpc.Res
 
 func (s *AgentServer) AppRemove(ctx context.Context, request *rpc.ID) (*rpc.Response, error) {
 	id := request.GetId()
-	ok := applications.AppStopByID(id)
+	app, ok := applications.APPs[id]
 	if !ok {
-		return s.Error(fmt.Sprintf("app %d stop failed", id))
+		return s.OK()
+	}
+	err := DeleteApp(id, app)
+	if err != nil {
+		return s.Error(err.Error())
 	}
 	return s.OK()
 }
@@ -120,9 +124,13 @@ func (s *AgentServer) JobUpdate(ctx context.Context, request *rpc.Job) (*rpc.Res
 
 func (s *AgentServer) JobRemove(ctx context.Context, request *rpc.ID) (*rpc.Response, error) {
 	id := request.GetId()
-	ok := applications.JobStopByID(id)
+	job, ok := applications.Jobs[id]
 	if !ok {
-		return s.Error(fmt.Sprintf("job %d stop failed", id))
+		return s.OK()
+	}
+	err := DeleteJob(id, job)
+	if err != nil {
+		return s.Error(err.Error())
 	}
 	return s.OK()
 }

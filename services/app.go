@@ -36,10 +36,7 @@ func (s *AppService) GetAppByID(id int64) *models.App {
 }
 
 func (s *AppService) GetAppByAgentID(id int64) (list []models.App) {
-	where := map[string]interface{}{
-		"agent_id": id,
-	}
-	err := models.Search(&list, where)
+	err := models.Where(&list, "agent_id = ? and status != ?", id, 2)
 	if err != nil {
 		logger.Error("GetAppByAgentID Error:", err)
 		return nil

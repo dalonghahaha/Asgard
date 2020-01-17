@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"fmt"
 	"net"
 	"os"
+	"runtime/debug"
 	"time"
 
 	"github.com/dalonghahaha/avenger/components/logger"
@@ -34,6 +36,12 @@ var masterCmd = &cobra.Command{
 	Short:  "run as master",
 	PreRun: PreRun,
 	Run: func(cmd *cobra.Command, args []string) {
+		if err := recover(); err != nil {
+			NotityKill(StopMaster)
+			fmt.Println("panic:", err)
+			fmt.Println("stack:", string(debug.Stack()))
+			return
+		}
 		agentService = services.NewAgentService()
 		appService = services.NewAppService()
 		jobService = services.NewJobService()
@@ -129,13 +137,17 @@ func CheckOfflineAgent() {
 		} else {
 			apps := appService.GetAppByAgentID(agent.ID)
 			for _, app := range apps {
-				app.Status = 0
-				appService.UpdateApp(&app)
+				if app.Status != 2 {
+					app.Status = 0
+					appService.UpdateApp(&app)
+				}
 			}
 			jobs := jobService.GetJobByAgentID(agent.ID)
 			for _, job := range jobs {
-				job.Status = 0
-				jobService.UpdateJob(&job)
+				if job.Status != 2 {
+					job.Status = 0
+					jobService.UpdateJob(&job)
+				}
 			}
 		}
 	}

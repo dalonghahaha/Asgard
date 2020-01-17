@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"Asgard/client"
 	"Asgard/models"
 	"Asgard/services"
 )
@@ -100,6 +101,57 @@ func (c *JobController) Show(ctx *gin.Context) {
 	ctx.HTML(StatusOK, "job/show", gin.H{
 		"Subtitle": "查看计划任务",
 		"Job":      c.formatJob(job),
+	})
+}
+
+func (c *JobController) Monitor(ctx *gin.Context) {
+	id := DefaultInt(ctx, "id", 0)
+	if id == 0 {
+		JumpError(ctx)
+		return
+	}
+	cpus := []string{}
+	memorys := []string{}
+	times := []string{}
+	moniters := c.moniterService.GetJobMonitor(id, 100)
+	for _, moniter := range moniters {
+		cpus = append(cpus, FormatFloat(moniter.CPU))
+		memorys = append(memorys, FormatFloat(moniter.Memory))
+		times = append(times, FormatTime(moniter.CreatedAt))
+	}
+	ctx.HTML(StatusOK, "app/monitor", gin.H{
+		"Subtitle": "监控信息",
+		"CPU":      cpus,
+		"Memory":   memorys,
+		"Time":     times,
+	})
+}
+
+func (c *JobController) Archive(ctx *gin.Context) {
+	id := DefaultInt(ctx, "id", 0)
+	page := DefaultInt(ctx, "page", 1)
+	where := map[string]interface{}{
+		"type":       models.TYPE_JOB,
+		"related_id": id,
+	}
+	if id == 0 {
+		JumpError(ctx)
+		return
+	}
+	archiveList, total := c.archiveService.GetArchivePageList(where, page, PageSize)
+	if archiveList == nil {
+		APIError(ctx, "获取归档列表失败")
+	}
+	list := []map[string]interface{}{}
+	for _, archive := range archiveList {
+		list = append(list, formatArchive(&archive))
+	}
+	mpurl := fmt.Sprintf("/job/archive?id=%d", id)
+	ctx.HTML(StatusOK, "job/archive", gin.H{
+		"Subtitle":   "归档列表",
+		"List":       list,
+		"Total":      total,
+		"Pagination": PagerHtml(total, page, mpurl),
 	})
 }
 
@@ -260,61 +312,135 @@ func (c *JobController) Delete(ctx *gin.Context) {
 		APIBadRequest(ctx, "ID格式错误")
 		return
 	}
-	ok := c.jobService.DeleteJobByID(int64(id))
+	job := c.jobService.GetJobByID(int64(id))
+	if job == nil {
+		APIError(ctx, "计划任务不存在")
+		return
+	}
+	if job.Status == 1 {
+		APIError(ctx, "计划任务正在运行不能删除")
+		return
+	}
+	job.Status = -1
+	job.Updator = GetUserID(ctx)
+	ok := c.jobService.UpdateJob(job)
 	if !ok {
-		APIError(ctx, "删除计划任务失败")
+		APIError(ctx, "删除应用失败")
 		return
 	}
 	APIOK(ctx)
 }
 
-func (c *JobController) Monitor(ctx *gin.Context) {
+func (c *JobController) Start(ctx *gin.Context) {
 	id := DefaultInt(ctx, "id", 0)
 	if id == 0 {
-		JumpError(ctx)
+		APIBadRequest(ctx, "ID格式错误")
 		return
 	}
-	cpus := []string{}
-	memorys := []string{}
-	times := []string{}
-	moniters := c.moniterService.GetJobMonitor(id, 100)
-	for _, moniter := range moniters {
-		cpus = append(cpus, FormatFloat(moniter.CPU))
-		memorys = append(memorys, FormatFloat(moniter.Memory))
-		times = append(times, FormatTime(moniter.CreatedAt))
+	job := c.jobService.GetJobByID(int64(id))
+	if job == nil {
+		APIError(ctx, "计划任务不存在")
+		return
 	}
-	ctx.HTML(StatusOK, "app/monitor", gin.H{
-		"Subtitle": "监控信息",
-		"CPU":      cpus,
-		"Memory":   memorys,
-		"Time":     times,
-	})
+	if job.Status == 1 {
+		APIError(ctx, "计划任务已经启动")
+		return
+	}
+	agent := c.agentService.GetAgentByID(job.AgentID)
+	if agent == nil {
+		APIError(ctx, "计划任务对应实例获取异常")
+		return
+	}
+	_job, err := client.GetAgentJob(agent, int64(id))
+	if err != nil {
+		APIError(ctx, fmt.Sprintf("获取计划任务情况异常:%s", err.Error()))
+		return
+	}
+	if _job == nil {
+		err = client.AddAgentJob(agent, job)
+		if err != nil {
+			APIError(ctx, fmt.Sprintf("添加计划任务异常:%s", err.Error()))
+			return
+		}
+		job.Status = 1
+		c.jobService.UpdateJob(job)
+		APIOK(ctx)
+		return
+	}
+	job.Status = 1
+	c.jobService.UpdateJob(job)
+	APIOK(ctx)
 }
 
-func (c *JobController) Archive(ctx *gin.Context) {
+func (c *JobController) ReStart(ctx *gin.Context) {
 	id := DefaultInt(ctx, "id", 0)
-	page := DefaultInt(ctx, "page", 1)
-	where := map[string]interface{}{
-		"type":       models.TYPE_JOB,
-		"related_id": id,
-	}
 	if id == 0 {
-		JumpError(ctx)
+		APIBadRequest(ctx, "ID格式错误")
 		return
 	}
-	archiveList, total := c.archiveService.GetArchivePageList(where, page, PageSize)
-	if archiveList == nil {
-		APIError(ctx, "获取归档列表失败")
+	job := c.jobService.GetJobByID(int64(id))
+	if job == nil {
+		APIError(ctx, "计划任务不存在")
+		return
 	}
-	list := []map[string]interface{}{}
-	for _, archive := range archiveList {
-		list = append(list, formatArchive(&archive))
+	agent := c.agentService.GetAgentByID(job.AgentID)
+	if agent == nil {
+		APIError(ctx, "计划任务对应实例获取异常")
+		return
 	}
-	mpurl := fmt.Sprintf("/job/archive?id=%d", id)
-	ctx.HTML(StatusOK, "job/archive", gin.H{
-		"Subtitle":   "归档列表",
-		"List":       list,
-		"Total":      total,
-		"Pagination": PagerHtml(total, page, mpurl),
-	})
+	_job, err := client.GetAgentJob(agent, int64(id))
+	if err != nil {
+		APIError(ctx, fmt.Sprintf("获取计划任务情况异常:%s", err.Error()))
+		return
+	}
+	if _job == nil {
+		err = client.AddAgentJob(agent, job)
+		if err != nil {
+			APIError(ctx, fmt.Sprintf("重启异常:%s", err.Error()))
+			return
+		}
+		APIOK(ctx)
+	}
+	err = client.UpdateAgentJob(agent, job)
+	if err != nil {
+		APIError(ctx, fmt.Sprintf("重启异常:%s", err.Error()))
+		return
+	}
+	APIOK(ctx)
+}
+
+func (c *JobController) Pause(ctx *gin.Context) {
+	id := DefaultInt(ctx, "id", 0)
+	if id == 0 {
+		APIBadRequest(ctx, "ID格式错误")
+		return
+	}
+	job := c.jobService.GetJobByID(int64(id))
+	if job == nil {
+		APIError(ctx, "计划任务不存在")
+		return
+	}
+	agent := c.agentService.GetAgentByID(job.AgentID)
+	if agent == nil {
+		APIError(ctx, "计划任务对应实例获取异常")
+		return
+	}
+	_job, err := client.GetAgentJob(agent, int64(id))
+	if err != nil {
+		APIError(ctx, fmt.Sprintf("获取计划任务情况异常:%s", err.Error()))
+		return
+	}
+	if _job == nil {
+		APIOK(ctx)
+		return
+	}
+	err = client.RemoveAgentJob(agent, int64(id))
+	if err != nil {
+		APIError(ctx, fmt.Sprintf("停止计划任务异常:%s", err.Error()))
+		return
+	}
+	job.Status = 2
+	job.Updator = GetUserID(ctx)
+	c.jobService.UpdateJob(job)
+	APIOK(ctx)
 }

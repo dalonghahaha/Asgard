@@ -58,10 +58,11 @@ func (s *CronServer) Update(ctx context.Context, request *rpc.Job) (*rpc.Respons
 func (s *CronServer) Remove(ctx context.Context, request *rpc.Name) (*rpc.Response, error) {
 	for _, job := range applications.Jobs {
 		if request.GetName() == job.Name {
-			ok := applications.JobStopByID(job.ID)
-			if !ok {
-				return s.Error(fmt.Sprintf("job %s stop failed", request.GetName()))
+			err := DeleteJob(job.ID, job)
+			if err != nil {
+				return s.Error(err.Error())
 			}
+			return s.OK()
 		}
 	}
 	return s.OK()

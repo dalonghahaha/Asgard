@@ -4,7 +4,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dalonghahaha/avenger/components/logger"
 	"github.com/shirou/gopsutil/process"
 	"github.com/spf13/viper"
 )
@@ -54,7 +53,6 @@ func MoniterStart() {
 	duration := viper.GetInt("system.moniter")
 	ticker = time.NewTicker(time.Second * time.Duration(duration))
 	for range ticker.C {
-		logger.Debug("moniter pids: ", len(moniters))
 		for pid, function := range moniters {
 			info, err := process.NewProcess(int32(pid))
 			if err != nil {

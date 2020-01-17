@@ -58,10 +58,11 @@ func (s *GuardServer) Update(ctx context.Context, request *rpc.App) (*rpc.Respon
 func (s *GuardServer) Remove(ctx context.Context, request *rpc.Name) (*rpc.Response, error) {
 	for _, app := range applications.APPs {
 		if request.GetName() == app.Name {
-			ok := applications.AppStopByID(app.ID)
-			if !ok {
-				return s.Error(fmt.Sprintf("job %s stop failed", request.GetName()))
+			err := DeleteApp(app.ID, app)
+			if err != nil {
+				return s.Error(err.Error())
 			}
+			return s.OK()
 		}
 	}
 	return s.OK()

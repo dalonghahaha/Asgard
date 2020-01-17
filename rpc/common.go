@@ -3,6 +3,7 @@ package rpc
 import (
 	"Asgard/applications"
 	"Asgard/models"
+	"time"
 )
 
 var (
@@ -120,6 +121,32 @@ func BuildJobArchive(job *applications.Job, command *applications.Command) *JobA
 	}
 }
 
+func ParseArchive(tp int64, relatedID int64, archive *Archive) *models.Archive {
+	return &models.Archive{
+		Type:      tp,
+		RelatedID: relatedID,
+		UUID:      archive.GetUuid(),
+		PID:       int64(archive.GetPid()),
+		BeginTime: time.Unix(archive.GetBeginTime(), 0),
+		EndTime:   time.Unix(archive.GetEndTime(), 0),
+		Status:    int64(archive.GetStatus()),
+		Signal:    archive.GetSignal(),
+		CreatedAt: time.Now(),
+	}
+}
+
+func ParseMonitor(tp int64, relatedID int64, moniter *Monitor) *models.Monitor {
+	return &models.Monitor{
+		Type:      tp,
+		RelatedID: relatedID,
+		UUID:      moniter.GetUuid(),
+		PID:       int64(moniter.GetPid()),
+		CPU:       float64(moniter.GetCpu()),
+		Memory:    float64(moniter.GetMemory()),
+		CreatedAt: time.Now(),
+	}
+}
+
 func BuildAppConfig(app *App) map[string]interface{} {
 	return map[string]interface{}{
 		"id":           app.GetId(),
@@ -136,14 +163,15 @@ func BuildAppConfig(app *App) map[string]interface{} {
 
 func BuildJobConfig(job *Job) map[string]interface{} {
 	return map[string]interface{}{
-		"id":      job.GetId(),
-		"name":    job.GetName(),
-		"dir":     job.GetDir(),
-		"program": job.GetProgram(),
-		"args":    job.GetArgs(),
-		"stdout":  job.GetStdOut(),
-		"stderr":  job.GetStdErr(),
-		"spec":    job.GetSpec(),
-		"timeout": job.GetTimeout(),
+		"id":         job.GetId(),
+		"name":       job.GetName(),
+		"dir":        job.GetDir(),
+		"program":    job.GetProgram(),
+		"args":       job.GetArgs(),
+		"stdout":     job.GetStdOut(),
+		"stderr":     job.GetStdErr(),
+		"spec":       job.GetSpec(),
+		"timeout":    job.GetTimeout(),
+		"is_monitor": job.GetIsMonitor(),
 	}
 }
