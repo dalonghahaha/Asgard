@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 
@@ -77,7 +78,8 @@ func (c *Command) configure(config map[string]interface{}) error {
 }
 
 func (c *Command) build() error {
-	c.Cmd = exec.Command(c.Program, c.Args)
+	args := strings.Split(c.Args, " ")
+	c.Cmd = exec.Command(c.Program, args...)
 	c.Cmd.Dir = c.Dir
 	if !file.Exists(c.Stdout) {
 		err := file.Mkdir(filepath.Dir(c.Stdout))
