@@ -9,8 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 
-	"github.com/dalonghahaha/avenger/components/db"
-	"github.com/dalonghahaha/avenger/components/logger"
 	common_middlewares "github.com/dalonghahaha/avenger/middlewares/gin"
 
 	"Asgard/web/controllers"
@@ -26,16 +24,6 @@ var (
 )
 
 func Init() error {
-	//初始化日志组件
-	err := logger.Register()
-	if err != nil {
-		return fmt.Errorf("日志组件初始化错误：%e", err)
-	}
-	//初始化数据库组件
-	err = db.Register()
-	if err != nil {
-		return fmt.Errorf("数据库组件初始化错误：%e", err)
-	}
 	if viper.GetString("server.mode") == "release" {
 		gin.SetMode(gin.ReleaseMode)
 	}

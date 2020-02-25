@@ -1,12 +1,11 @@
 package cmd
 
 import (
-	"fmt"
 	"net"
 	"os"
-	"runtime/debug"
 	"time"
 
+	"github.com/dalonghahaha/avenger/components/db"
 	"github.com/dalonghahaha/avenger/components/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -36,11 +35,9 @@ var masterCmd = &cobra.Command{
 	Short:  "run as master",
 	PreRun: PreRun,
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := recover(); err != nil {
-			NotityKill(StopMaster)
-			fmt.Println("panic:", err)
-			fmt.Println("stack:", string(debug.Stack()))
-			return
+		err := db.Register()
+		if err != nil {
+			panic(err)
 		}
 		agentService = services.NewAgentService()
 		appService = services.NewAppService()
