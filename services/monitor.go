@@ -62,6 +62,19 @@ func (s *MonitorService) GetJobMonitor(id int, size int) (list []models.Monitor)
 	return
 }
 
+func (s *MonitorService) GetTimingMonitor(id int, size int) (list []models.Monitor) {
+	where := map[string]interface{}{
+		"type":       models.TYPE_TIMING,
+		"related_id": id,
+	}
+	err := db.Get(models.DB_NAME).Where(where).Limit(size).Order("created_at desc").Find(&list).Error
+	if err != nil {
+		logger.Error("GetTimingMonitor Error:", err)
+		return nil
+	}
+	return
+}
+
 func (s *MonitorService) CreateMonitor(monitor *models.Monitor) bool {
 	err := models.Create(monitor)
 	if err != nil {

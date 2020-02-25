@@ -15,12 +15,13 @@ import (
 )
 
 var (
-	server          *gin.Engine
-	appController   *controllers.AppController
-	jobController   *controllers.JobController
-	agentController *controllers.AgentController
-	useController   *controllers.UserController
-	groupController *controllers.GroupController
+	server           *gin.Engine
+	appController    *controllers.AppController
+	jobController    *controllers.JobController
+	agentController  *controllers.AgentController
+	useController    *controllers.UserController
+	groupController  *controllers.GroupController
+	timingController *controllers.TimingController
 )
 
 func Init() error {
@@ -50,11 +51,12 @@ func setupController() {
 	if cookieSalt != "" {
 		controllers.Domain = domain
 	}
-	appController = controllers.NewAppController()
-	agentController = controllers.NewAgentController()
 	useController = controllers.NewUserController()
+	agentController = controllers.NewAgentController()
 	groupController = controllers.NewGroupController()
+	appController = controllers.NewAppController()
 	jobController = controllers.NewJobController()
+	timingController = controllers.NewTimingController()
 }
 
 func Run() {

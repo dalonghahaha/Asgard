@@ -14,6 +14,15 @@ func NewJobService() *JobService {
 	return &JobService{}
 }
 
+func (s *JobService) GetJobCount(where map[string]interface{}) (count int) {
+	err := models.Count(&models.Job{}, where, &count)
+	if err != nil {
+		logger.Error("GetJobCount Error:", err)
+		return 0
+	}
+	return
+}
+
 func (s *JobService) GetJobPageList(where map[string]interface{}, page int, pageSize int) (list []models.Job, count int) {
 	err := models.PageList(&models.Job{}, where, page, pageSize, "created_at desc", &list, &count)
 	if err != nil {

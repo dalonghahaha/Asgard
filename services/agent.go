@@ -41,6 +41,15 @@ func (s *AgentService) GetOfflineAgent() (list []models.Agent) {
 	return list
 }
 
+func (s *AgentService) GetAgentCount(where map[string]interface{}) (count int) {
+	err := models.Count(&models.Agent{}, where, &count)
+	if err != nil {
+		logger.Error("GetAgentCount Error:", err)
+		return 0
+	}
+	return
+}
+
 func (s *AgentService) GetAgentPageList(where map[string]interface{}, page int, pageSize int) (list []models.Agent, count int) {
 	err := models.PageList(&models.Agent{}, where, page, pageSize, "created_at desc", &list, &count)
 	if err != nil {

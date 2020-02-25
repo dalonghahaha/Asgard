@@ -1,0 +1,110 @@
+{{define "content"}}
+<div class="page-title-box">
+    <div class="row align-items-center">
+        <div class="col-auto">
+            <h2 class="page-title">查看定时任务</h2>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <form id="job" class="card" method="post">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-2">
+                            <label class="form-label">分组</label>
+                            <div class="form-control-plaintext">{{.Timing.GroupName}}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-2">
+                            <label class="form-label">运行实例</label>
+                            <div class="form-control-plaintext">{{.Timing.AgentName}}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="mb-2">
+                            <label class="form-label">名称</label>
+                            <div class="form-control-plaintext">{{.Timing.Name}}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="mb-2">
+                            <label class="form-label">执行目录</label>
+                            <div class="form-control-plaintext">{{.Timing.Dir}}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="mb-2">
+                            <label class="form-label">执行程序</label>
+                            <div class="form-control-plaintext">{{.Timing.Program}}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="mb-2">
+                            <label class="form-label">执行参数</label>
+                            <div class="form-control-plaintext">{{.Timing.Args}}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="mb-2">
+                            <label class="form-label">标准输出路径</label>
+                            <div class="form-control-plaintext">{{.Timing.StdOut}}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="mb-2">
+                            <label class="form-label">错误输出路径</label>
+                            <div class="form-control-plaintext">{{.Timing.StdErr}}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="mb-2">
+                            <label class="form-label">执行时间</label>
+                            <div class="form-control-plaintext">{{.Timing.Time}}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="mb-2">
+                            <label class="form-label">超时时间</label>
+                            <div class="form-control-plaintext">{{.Timing.Timeout}}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="mb-2">
+                            <label class="form-label">是否开启监控</label>
+                            <div class="form-control-plaintext">{{if eq .Job.IsMonitor 1}}是{{else}}否{{end}}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer text-right">
+                <a class="btn btn-primary" href="/timing/list">返回</a>
+            </div>
+        </form>
+    </div>
+</div>
+{{end}}
+{{define "script"}}
+{{end}}

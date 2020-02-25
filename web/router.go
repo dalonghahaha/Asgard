@@ -25,6 +25,12 @@ func setupRouter() {
 		user.GET("/change_password", useController.ChangePassword)
 		user.POST("/change_password", useController.DoChangePassword)
 	}
+	agent := server.Group("/agent")
+	agent.Use(middlewares.Login)
+	{
+		agent.GET("/list", agentController.List)
+		agent.GET("/monitor", agentController.Monitor)
+	}
 	group := server.Group("/group")
 	group.Use(middlewares.Login)
 	{
@@ -66,10 +72,17 @@ func setupRouter() {
 		job.GET("/restart", jobController.ReStart)
 		job.GET("/pause", jobController.Pause)
 	}
-	agent := server.Group("/agent")
-	agent.Use(middlewares.Login)
+	timing := server.Group("/timing")
+	timing.Use(middlewares.Login)
 	{
-		agent.GET("/list", agentController.List)
-		agent.GET("/monitor", agentController.Monitor)
+		timing.GET("/list", timingController.List)
+		timing.GET("/show", timingController.Show)
+		timing.GET("/add", timingController.Add)
+		timing.POST("/create", timingController.Create)
+		timing.GET("/edit", timingController.Edit)
+		timing.POST("/update", timingController.Update)
+		timing.GET("/monitor", timingController.Monitor)
+		timing.GET("/archive", timingController.Archive)
+		timing.GET("/delete", timingController.Delete)
 	}
 }
