@@ -70,8 +70,13 @@ func StartAgent() {
 	if err != nil {
 		panic(err)
 	}
+	err = TimingsRegister()
+	if err != nil {
+		panic(err)
+	}
 	applications.AppStartAll(false)
 	applications.JobStartAll(false)
+	applications.TimingStartAll(false)
 	applications.MoniterStart()
 }
 
@@ -79,6 +84,7 @@ func StopAgent() {
 	agentMoniterTicker.Stop()
 	applications.AppStopAll()
 	applications.JobStopAll()
+	applications.TimingStopAll()
 }
 
 func StartAgentRpcServer() {
@@ -181,6 +187,39 @@ func JobsRegister() error {
 		}
 		job.ArchiveReport = func(command *applications.Command) {
 			client.JobArchiveReport(job, command)
+		}
+	}
+	return nil
+}
+
+func TimingsRegister() error {
+	timings, err := client.GetTimingList(agentIP, agentPort)
+	if err != nil {
+		return err
+	}
+	for _, info := range timings {
+		logger.Debug("timing register: ", info.GetName())
+		config := map[string]interface{}{
+			"id":         info.GetId(),
+			"name":       info.GetName(),
+			"dir":        info.GetDir(),
+			"program":    info.GetProgram(),
+			"args":       info.GetArgs(),
+			"stdout":     info.GetStdOut(),
+			"stderr":     info.GetStdErr(),
+			"time":       info.GetTime(),
+			"timeout":    info.GetTimeout(),
+			"is_monitor": info.GetIsMonitor(),
+		}
+		timing, err := applications.TimingRegister(info.GetId(), config)
+		if err != nil {
+			return err
+		}
+		timing.MonitorReport = func(monitor *applications.Monitor) {
+			client.TimingMonitorReport(timing, monitor)
+		}
+		timing.ArchiveReport = func(command *applications.Command) {
+			client.TimingArchiveReport(timing, command)
 		}
 	}
 	return nil

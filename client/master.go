@@ -71,6 +71,19 @@ func GetJobList(agentIP, agentPort string) ([]*rpc.Job, error) {
 	return response.GetJobs(), nil
 }
 
+func GetTimingList(agentIP, agentPort string) ([]*rpc.Timing, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), TimeOut)
+	defer cancel()
+	response, err := MasterClient.TimingList(ctx, &rpc.AgentInfo{Ip: agentIP, Port: agentPort})
+	if err != nil {
+		return nil, fmt.Errorf("get job list error: %v", err.Error())
+	}
+	if response.GetCode() == 404 {
+		return nil, fmt.Errorf("get job list error: agent error")
+	}
+	return response.GetTimings(), nil
+}
+
 func AgentMonitorReport(agentIP string, agentPort string, Pid int, UUID string, monitor *applications.Monitor) {
 	agentMonitor := rpc.AgentMonitor{
 		Agent: &rpc.AgentInfo{
@@ -126,6 +139,20 @@ func JobMonitorReport(job *applications.Job, monitor *applications.Monitor) {
 	}
 }
 
+func TimingMonitorReport(timing *applications.Timing, monitor *applications.Monitor) {
+	ctx, cancel := context.WithTimeout(context.Background(), TimeOut)
+	defer cancel()
+	response, err := MasterClient.TimingMoniorReport(ctx, rpc.BuildTimingMonior(timing, monitor))
+	if err != nil {
+		logger.Error(fmt.Sprintf("timing moniter report failed：%s", err.Error()))
+		return
+	}
+	if response.GetCode() != 200 {
+		logger.Error(fmt.Sprintf("timing moniter report failed：%s", response.GetMessage()))
+		return
+	}
+}
+
 func AppArchiveReport(app *applications.App, command *applications.Command) {
 	ctx, cancel := context.WithTimeout(context.Background(), TimeOut)
 	defer cancel()
@@ -150,6 +177,20 @@ func JobArchiveReport(job *applications.Job, command *applications.Command) {
 	}
 	if response.GetCode() != 200 {
 		logger.Error(fmt.Sprintf("job archive report failed：%s", response.GetMessage()))
+		return
+	}
+}
+
+func TimingArchiveReport(job *applications.Timing, command *applications.Command) {
+	ctx, cancel := context.WithTimeout(context.Background(), TimeOut)
+	defer cancel()
+	response, err := MasterClient.TimingArchiveReport(ctx, rpc.BuildTimingArchive(job, command))
+	if err != nil {
+		logger.Error(fmt.Sprintf("timing archive report failed：%s", err.Error()))
+		return
+	}
+	if response.GetCode() != 200 {
+		logger.Error(fmt.Sprintf("timing archive report failed：%s", response.GetMessage()))
 		return
 	}
 }

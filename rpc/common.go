@@ -41,6 +41,21 @@ func FormatJob(job *models.Job) *Job {
 	}
 }
 
+func FormatTiming(job *models.Timing) *Timing {
+	return &Timing{
+		Id:        job.ID,
+		Name:      job.Name,
+		Dir:       job.Dir,
+		Program:   job.Program,
+		Args:      job.Args,
+		StdOut:    job.StdOut,
+		StdErr:    job.StdErr,
+		Time:      job.Time.Unix(),
+		Timeout:   job.Timeout,
+		IsMonitor: job.IsMonitor == 1,
+	}
+}
+
 func BuildApp(app *applications.App) *App {
 	return &App{
 		Id:          app.ID,
@@ -65,6 +80,21 @@ func BuildJob(job *applications.Job) *Job {
 		StdOut:    job.Stdout,
 		StdErr:    job.Stderr,
 		Spec:      job.Spec,
+		Timeout:   int64(job.TimeOut),
+		IsMonitor: job.IsMonitor,
+	}
+}
+
+func BuildTiming(job *applications.Timing) *Timing {
+	return &Timing{
+		Id:        job.ID,
+		Name:      job.Name,
+		Dir:       job.Dir,
+		Program:   job.Program,
+		Args:      job.Args,
+		StdOut:    job.Stdout,
+		StdErr:    job.Stderr,
+		Time:      job.Time.Unix(),
 		Timeout:   int64(job.TimeOut),
 		IsMonitor: job.IsMonitor,
 	}
@@ -107,6 +137,19 @@ func BuildJobMonior(job *applications.Job, monitor *applications.Monitor) *JobMo
 	}
 }
 
+func BuildTimingMonior(timing *applications.Timing, monitor *applications.Monitor) *TimingMonior {
+	return &TimingMonior{
+		Timing: BuildTiming(timing),
+		Monitor: &Monitor{
+			Uuid:    timing.UUID,
+			Pid:     int32(timing.Pid),
+			Cpu:     float32(monitor.CPUPercent),
+			Memory:  monitor.MemoryPercent,
+			Threads: int32(monitor.NumThreads),
+		},
+	}
+}
+
 func BuildAppArchive(app *applications.App, command *applications.Command) *AppArchive {
 	return &AppArchive{
 		App:     BuildApp(app),
@@ -117,6 +160,13 @@ func BuildAppArchive(app *applications.App, command *applications.Command) *AppA
 func BuildJobArchive(job *applications.Job, command *applications.Command) *JobArchive {
 	return &JobArchive{
 		Job:     BuildJob(job),
+		Archive: BuildArchive(command),
+	}
+}
+
+func BuildTimingArchive(timing *applications.Timing, command *applications.Command) *TimingArchive {
+	return &TimingArchive{
+		Timing:  BuildTiming(timing),
 		Archive: BuildArchive(command),
 	}
 }
@@ -173,5 +223,20 @@ func BuildJobConfig(job *Job) map[string]interface{} {
 		"spec":       job.GetSpec(),
 		"timeout":    job.GetTimeout(),
 		"is_monitor": job.GetIsMonitor(),
+	}
+}
+
+func BuildTimingConfig(timing *Timing) map[string]interface{} {
+	return map[string]interface{}{
+		"id":         timing.GetId(),
+		"name":       timing.GetName(),
+		"dir":        timing.GetDir(),
+		"program":    timing.GetProgram(),
+		"args":       timing.GetArgs(),
+		"stdout":     timing.GetStdOut(),
+		"stderr":     timing.GetStdErr(),
+		"time":       timing.GetTime(),
+		"timeout":    timing.GetTimeout(),
+		"is_monitor": timing.GetIsMonitor(),
 	}
 }

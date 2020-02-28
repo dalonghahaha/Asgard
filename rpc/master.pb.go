@@ -315,6 +315,53 @@ func (m *JobMonior) GetMonitor() *Monitor {
 	return nil
 }
 
+type TimingMonior struct {
+	Timing               *Timing  `protobuf:"bytes,1,opt,name=timing,proto3" json:"timing,omitempty"`
+	Monitor              *Monitor `protobuf:"bytes,2,opt,name=monitor,proto3" json:"monitor,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *TimingMonior) Reset()         { *m = TimingMonior{} }
+func (m *TimingMonior) String() string { return proto.CompactTextString(m) }
+func (*TimingMonior) ProtoMessage()    {}
+func (*TimingMonior) Descriptor() ([]byte, []int) {
+	return fileDescriptor_f9c348dec43a6705, []int{5}
+}
+
+func (m *TimingMonior) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_TimingMonior.Unmarshal(m, b)
+}
+func (m *TimingMonior) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_TimingMonior.Marshal(b, m, deterministic)
+}
+func (m *TimingMonior) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TimingMonior.Merge(m, src)
+}
+func (m *TimingMonior) XXX_Size() int {
+	return xxx_messageInfo_TimingMonior.Size(m)
+}
+func (m *TimingMonior) XXX_DiscardUnknown() {
+	xxx_messageInfo_TimingMonior.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TimingMonior proto.InternalMessageInfo
+
+func (m *TimingMonior) GetTiming() *Timing {
+	if m != nil {
+		return m.Timing
+	}
+	return nil
+}
+
+func (m *TimingMonior) GetMonitor() *Monitor {
+	if m != nil {
+		return m.Monitor
+	}
+	return nil
+}
+
 type AppArchive struct {
 	App                  *App     `protobuf:"bytes,1,opt,name=app,proto3" json:"app,omitempty"`
 	Archive              *Archive `protobuf:"bytes,2,opt,name=archive,proto3" json:"archive,omitempty"`
@@ -327,7 +374,7 @@ func (m *AppArchive) Reset()         { *m = AppArchive{} }
 func (m *AppArchive) String() string { return proto.CompactTextString(m) }
 func (*AppArchive) ProtoMessage()    {}
 func (*AppArchive) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f9c348dec43a6705, []int{5}
+	return fileDescriptor_f9c348dec43a6705, []int{6}
 }
 
 func (m *AppArchive) XXX_Unmarshal(b []byte) error {
@@ -374,7 +421,7 @@ func (m *JobArchive) Reset()         { *m = JobArchive{} }
 func (m *JobArchive) String() string { return proto.CompactTextString(m) }
 func (*JobArchive) ProtoMessage()    {}
 func (*JobArchive) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f9c348dec43a6705, []int{6}
+	return fileDescriptor_f9c348dec43a6705, []int{7}
 }
 
 func (m *JobArchive) XXX_Unmarshal(b []byte) error {
@@ -409,49 +456,102 @@ func (m *JobArchive) GetArchive() *Archive {
 	return nil
 }
 
+type TimingArchive struct {
+	Timing               *Timing  `protobuf:"bytes,1,opt,name=timing,proto3" json:"timing,omitempty"`
+	Archive              *Archive `protobuf:"bytes,2,opt,name=archive,proto3" json:"archive,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *TimingArchive) Reset()         { *m = TimingArchive{} }
+func (m *TimingArchive) String() string { return proto.CompactTextString(m) }
+func (*TimingArchive) ProtoMessage()    {}
+func (*TimingArchive) Descriptor() ([]byte, []int) {
+	return fileDescriptor_f9c348dec43a6705, []int{8}
+}
+
+func (m *TimingArchive) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_TimingArchive.Unmarshal(m, b)
+}
+func (m *TimingArchive) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_TimingArchive.Marshal(b, m, deterministic)
+}
+func (m *TimingArchive) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TimingArchive.Merge(m, src)
+}
+func (m *TimingArchive) XXX_Size() int {
+	return xxx_messageInfo_TimingArchive.Size(m)
+}
+func (m *TimingArchive) XXX_DiscardUnknown() {
+	xxx_messageInfo_TimingArchive.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TimingArchive proto.InternalMessageInfo
+
+func (m *TimingArchive) GetTiming() *Timing {
+	if m != nil {
+		return m.Timing
+	}
+	return nil
+}
+
+func (m *TimingArchive) GetArchive() *Archive {
+	if m != nil {
+		return m.Archive
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*Monitor)(nil), "Monitor")
 	proto.RegisterType((*Archive)(nil), "Archive")
 	proto.RegisterType((*AgentMonitor)(nil), "AgentMonitor")
 	proto.RegisterType((*AppMonitor)(nil), "AppMonitor")
 	proto.RegisterType((*JobMonior)(nil), "JobMonior")
+	proto.RegisterType((*TimingMonior)(nil), "TimingMonior")
 	proto.RegisterType((*AppArchive)(nil), "AppArchive")
 	proto.RegisterType((*JobArchive)(nil), "JobArchive")
+	proto.RegisterType((*TimingArchive)(nil), "TimingArchive")
 }
 
 func init() { proto.RegisterFile("master.proto", fileDescriptor_f9c348dec43a6705) }
 
 var fileDescriptor_f9c348dec43a6705 = []byte{
-	// 455 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x94, 0xcf, 0x8e, 0xd3, 0x30,
-	0x10, 0xc6, 0x49, 0xd3, 0x26, 0xcd, 0x74, 0x11, 0x95, 0x0f, 0x55, 0x58, 0x09, 0xa9, 0x0a, 0x97,
-	0x82, 0x90, 0x85, 0xca, 0x13, 0x84, 0x0b, 0x50, 0xb1, 0x17, 0x6b, 0x4f, 0x5c, 0x90, 0xdd, 0x98,
-	0xae, 0x57, 0x24, 0xb6, 0x12, 0x17, 0x89, 0x47, 0xe1, 0x19, 0x79, 0x09, 0x94, 0x89, 0x9d, 0x3f,
-	0x62, 0x81, 0x72, 0x9b, 0xf9, 0xcd, 0xe7, 0xcf, 0x9f, 0xc6, 0x51, 0xe0, 0xaa, 0xe4, 0x8d, 0x95,
-	0x35, 0x35, 0xb5, 0xb6, 0xfa, 0x1a, 0x04, 0x6f, 0xa4, 0xab, 0x13, 0x6e, 0x8c, 0x2f, 0xef, 0xb5,
-	0x70, 0xe5, 0x8a, 0x9f, 0x64, 0x65, 0xbb, 0x26, 0x6b, 0x20, 0xbe, 0xd1, 0x95, 0xb2, 0xba, 0x26,
-	0x04, 0xe6, 0xe7, 0xb3, 0x2a, 0xd2, 0x60, 0x1b, 0xec, 0x12, 0x86, 0x35, 0x59, 0x43, 0x68, 0x54,
-	0x91, 0xce, 0xb6, 0xc1, 0x6e, 0xc1, 0xda, 0xb2, 0x25, 0x47, 0x73, 0x4e, 0xc3, 0x6d, 0xb0, 0x9b,
-	0xb1, 0xb6, 0x24, 0x1b, 0x88, 0x4a, 0x59, 0xea, 0xfa, 0x7b, 0x3a, 0x47, 0xe8, 0x3a, 0x92, 0x42,
-	0x6c, 0xef, 0x6a, 0xc9, 0x8b, 0x26, 0x5d, 0xe0, 0x79, 0xdf, 0x66, 0x3f, 0x02, 0x88, 0xf3, 0xfa,
-	0x78, 0xa7, 0xbe, 0xc9, 0x0b, 0x6f, 0x7d, 0x06, 0x20, 0xe4, 0x49, 0x55, 0x9f, 0xad, 0x2a, 0x25,
-	0x5e, 0x1e, 0xb2, 0x04, 0xc9, 0xad, 0x2a, 0x25, 0x79, 0x0a, 0x4b, 0x59, 0x15, 0xdd, 0x70, 0x8e,
-	0xc3, 0x58, 0x56, 0x05, 0x8e, 0x36, 0x10, 0x35, 0x96, 0xdb, 0xb3, 0x0f, 0xe1, 0x3a, 0xe4, 0xea,
-	0x54, 0xf1, 0xaf, 0x69, 0x84, 0x37, 0xbb, 0x2e, 0xbb, 0x85, 0xab, 0xbc, 0xdd, 0x8f, 0xdf, 0xca,
-	0x16, 0x16, 0xb8, 0x2f, 0x0c, 0xb8, 0xda, 0x03, 0xc5, 0xe9, 0x87, 0xea, 0x8b, 0x66, 0xdd, 0x80,
-	0x64, 0x10, 0x97, 0x9d, 0x18, 0x13, 0xaf, 0xf6, 0x4b, 0xea, 0x0e, 0x33, 0x3f, 0xc8, 0xde, 0x03,
-	0xe4, 0xc6, 0x78, 0xcf, 0x0d, 0x84, 0xdc, 0x18, 0xe7, 0x38, 0xa7, 0xb9, 0x31, 0xac, 0x05, 0x17,
-	0x39, 0xbd, 0x83, 0xe4, 0xa0, 0x45, 0x8b, 0x3b, 0xa3, 0x7b, 0x2d, 0x7a, 0xa3, 0x83, 0x16, 0xac,
-	0x05, 0xff, 0x11, 0xc9, 0x3f, 0xc3, 0x5f, 0x22, 0xf1, 0x4e, 0xd2, 0x3b, 0xb9, 0x23, 0xcc, 0x0f,
-	0x5a, 0xa7, 0x83, 0x16, 0x23, 0xa7, 0x3f, 0x65, 0xfa, 0x97, 0xd3, 0xfe, 0xe7, 0x0c, 0xa2, 0x1b,
-	0xfc, 0x9a, 0xc9, 0x73, 0x58, 0x32, 0x79, 0x52, 0x58, 0x8f, 0x96, 0x7e, 0x9d, 0x50, 0x26, 0x1b,
-	0xa3, 0xab, 0x46, 0x66, 0x8f, 0xc8, 0x0b, 0x88, 0x73, 0x63, 0x3e, 0xaa, 0xc6, 0x4e, 0x34, 0x6b,
-	0xea, 0xe8, 0x54, 0x7a, 0xd0, 0xe2, 0x01, 0xa9, 0xa3, 0x23, 0xe9, 0x6b, 0x20, 0xe3, 0x4f, 0x80,
-	0x49, 0xa3, 0x6b, 0x4b, 0x1e, 0xd3, 0x31, 0x9c, 0xe6, 0x78, 0x05, 0xeb, 0xe1, 0x79, 0x9d, 0x7e,
-	0x45, 0x07, 0x34, 0x55, 0xbf, 0x84, 0x27, 0xfd, 0x13, 0x3a, 0x31, 0xd0, 0x9e, 0x3c, 0xe4, 0xec,
-	0x17, 0x35, 0x72, 0x76, 0xe8, 0x37, 0xf5, 0xf0, 0x12, 0xbd, 0x7a, 0x40, 0x13, 0xf5, 0xdb, 0xc5,
-	0xa7, 0xb0, 0x36, 0x47, 0x11, 0xe1, 0x9f, 0xe0, 0xcd, 0xaf, 0x00, 0x00, 0x00, 0xff, 0xff, 0x91,
-	0x2a, 0x11, 0x56, 0x48, 0x04, 0x00, 0x00,
+	// 527 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x54, 0x4d, 0x8f, 0xd3, 0x30,
+	0x10, 0xa5, 0x9b, 0x34, 0x69, 0xa6, 0x5d, 0xa8, 0xbc, 0x52, 0x15, 0x56, 0x42, 0x54, 0xe1, 0x52,
+	0x10, 0x32, 0xab, 0xf2, 0x0b, 0xc2, 0x05, 0xa8, 0xd8, 0x8b, 0xe9, 0x89, 0x0b, 0x4a, 0x1a, 0x93,
+	0xf5, 0x8a, 0xc4, 0x56, 0xe2, 0x22, 0x71, 0xe5, 0x5f, 0xf0, 0x6f, 0x51, 0xfc, 0x91, 0xc4, 0xda,
+	0x85, 0x2d, 0xb7, 0x99, 0xf7, 0xde, 0x3c, 0x8f, 0x9d, 0xd7, 0xc2, 0xa2, 0xca, 0x5a, 0x49, 0x1b,
+	0x2c, 0x1a, 0x2e, 0xf9, 0x25, 0xe4, 0x59, 0x4b, 0x4d, 0x1d, 0x65, 0x42, 0xd8, 0xf2, 0x96, 0xe7,
+	0xa6, 0x5c, 0x48, 0x56, 0xb1, 0xba, 0x34, 0xdd, 0x3c, 0x2b, 0x69, 0x2d, 0x75, 0x93, 0xb4, 0x10,
+	0x5e, 0xf3, 0x9a, 0x49, 0xde, 0x20, 0x04, 0xfe, 0xf1, 0xc8, 0x8a, 0x78, 0xb2, 0x9e, 0x6c, 0x22,
+	0xa2, 0x6a, 0xb4, 0x04, 0x4f, 0xb0, 0x22, 0x3e, 0x5b, 0x4f, 0x36, 0x53, 0xd2, 0x95, 0x1d, 0x72,
+	0x10, 0xc7, 0xd8, 0x5b, 0x4f, 0x36, 0x67, 0xa4, 0x2b, 0xd1, 0x0a, 0x82, 0x8a, 0x56, 0xbc, 0xf9,
+	0x19, 0xfb, 0x0a, 0x34, 0x1d, 0x8a, 0x21, 0x94, 0x37, 0x0d, 0xcd, 0x8a, 0x36, 0x9e, 0xaa, 0x79,
+	0xdb, 0x26, 0xbf, 0x27, 0x10, 0xa6, 0xcd, 0xe1, 0x86, 0xfd, 0xa0, 0x27, 0x9e, 0xfa, 0x0c, 0x20,
+	0xa7, 0x25, 0xab, 0xbf, 0x4a, 0x56, 0x51, 0x75, 0xb8, 0x47, 0x22, 0x85, 0xec, 0x59, 0x45, 0xd1,
+	0x53, 0x98, 0xd1, 0xba, 0xd0, 0xa4, 0xaf, 0xc8, 0x90, 0xd6, 0x85, 0xa2, 0x56, 0x10, 0xb4, 0x32,
+	0x93, 0x47, 0xbb, 0x84, 0xe9, 0x14, 0xce, 0xca, 0x3a, 0xfb, 0x1e, 0x07, 0xea, 0x64, 0xd3, 0x25,
+	0x7b, 0x58, 0xa4, 0xdd, 0xfb, 0xd8, 0x57, 0x59, 0xc3, 0x54, 0xbd, 0x97, 0x5a, 0x70, 0xbe, 0x05,
+	0xac, 0xd8, 0x8f, 0xf5, 0x37, 0x4e, 0x34, 0x81, 0x12, 0x08, 0x2b, 0x2d, 0x56, 0x1b, 0xcf, 0xb7,
+	0x33, 0x6c, 0x86, 0x89, 0x25, 0x92, 0x0f, 0x00, 0xa9, 0x10, 0xd6, 0x73, 0x05, 0x5e, 0x26, 0x84,
+	0x71, 0xf4, 0x71, 0x2a, 0x04, 0xe9, 0x80, 0x93, 0x9c, 0xde, 0x43, 0xb4, 0xe3, 0x79, 0x07, 0x6b,
+	0xa3, 0x5b, 0x9e, 0xf7, 0x46, 0x3b, 0x9e, 0x93, 0x0e, 0x38, 0xc9, 0xe8, 0x33, 0x2c, 0xf6, 0x2a,
+	0x16, 0xc6, 0xeb, 0x39, 0x04, 0x3a, 0x26, 0xc6, 0x2e, 0xc4, 0x9a, 0x26, 0x06, 0xfe, 0x8f, 0x7b,
+	0xda, 0x6f, 0xfb, 0x8f, 0x7b, 0x66, 0x5a, 0xd2, 0x3b, 0x99, 0x11, 0x62, 0x89, 0xce, 0x69, 0xc7,
+	0xf3, 0x91, 0xd3, 0xdf, 0x2e, 0xfa, 0xa0, 0xd3, 0x1e, 0xce, 0xf5, 0x4d, 0xac, 0xd9, 0x29, 0x37,
+	0x7d, 0xc8, 0x75, 0xfb, 0xcb, 0x87, 0xe0, 0x5a, 0xfd, 0x0c, 0xd1, 0x0b, 0x98, 0x11, 0x5a, 0x32,
+	0x55, 0x8f, 0xf2, 0x71, 0x19, 0x61, 0x42, 0x5b, 0xc1, 0xeb, 0x96, 0x26, 0x8f, 0xd0, 0x4b, 0x08,
+	0x53, 0x21, 0x3e, 0xb1, 0x56, 0x3a, 0x9a, 0x25, 0x36, 0xa8, 0x2b, 0xdd, 0xf1, 0xfc, 0x1e, 0xa9,
+	0x41, 0x47, 0xd2, 0x37, 0x00, 0x7a, 0xf7, 0x3b, 0xea, 0x0b, 0x3c, 0x10, 0xa3, 0x81, 0x2b, 0x40,
+	0xe3, 0x78, 0x13, 0x2a, 0x78, 0x23, 0xd1, 0x39, 0x1e, 0x83, 0xee, 0xe2, 0xaf, 0x61, 0x39, 0x44,
+	0xd7, 0xe8, 0xe7, 0x78, 0x80, 0x5c, 0xf5, 0x2b, 0x78, 0xd2, 0xc7, 0xd3, 0x88, 0x01, 0xf7, 0x88,
+	0xab, 0xbd, 0x02, 0x34, 0x4e, 0x60, 0xbf, 0xcb, 0x18, 0xbc, 0x6f, 0x17, 0xfb, 0x2d, 0x46, 0xbb,
+	0x18, 0xe8, 0x8e, 0x7a, 0x88, 0x50, 0xaf, 0x1e, 0x20, 0x57, 0xbd, 0x85, 0x0b, 0x27, 0x26, 0x66,
+	0xe0, 0x31, 0x76, 0x50, 0x67, 0xe6, 0xdd, 0xf4, 0x8b, 0xd7, 0x88, 0x43, 0x1e, 0xa8, 0xff, 0xd2,
+	0xb7, 0x7f, 0x02, 0x00, 0x00, 0xff, 0xff, 0x88, 0x2a, 0x38, 0x25, 0x98, 0x05, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -469,11 +569,14 @@ type MasterClient interface {
 	Register(ctx context.Context, in *AgentInfo, opts ...grpc.CallOption) (*Response, error)
 	AppList(ctx context.Context, in *AgentInfo, opts ...grpc.CallOption) (*AppListResponse, error)
 	JobList(ctx context.Context, in *AgentInfo, opts ...grpc.CallOption) (*JobListResponse, error)
+	TimingList(ctx context.Context, in *AgentInfo, opts ...grpc.CallOption) (*TimingListResponse, error)
 	AgentMonitorReport(ctx context.Context, in *AgentMonitor, opts ...grpc.CallOption) (*Response, error)
 	AppMonitorReport(ctx context.Context, in *AppMonitor, opts ...grpc.CallOption) (*Response, error)
 	JobMoniorReport(ctx context.Context, in *JobMonior, opts ...grpc.CallOption) (*Response, error)
+	TimingMoniorReport(ctx context.Context, in *TimingMonior, opts ...grpc.CallOption) (*Response, error)
 	AppArchiveReport(ctx context.Context, in *AppArchive, opts ...grpc.CallOption) (*Response, error)
 	JobArchiveReport(ctx context.Context, in *JobArchive, opts ...grpc.CallOption) (*Response, error)
+	TimingArchiveReport(ctx context.Context, in *TimingArchive, opts ...grpc.CallOption) (*Response, error)
 }
 
 type masterClient struct {
@@ -511,6 +614,15 @@ func (c *masterClient) JobList(ctx context.Context, in *AgentInfo, opts ...grpc.
 	return out, nil
 }
 
+func (c *masterClient) TimingList(ctx context.Context, in *AgentInfo, opts ...grpc.CallOption) (*TimingListResponse, error) {
+	out := new(TimingListResponse)
+	err := c.cc.Invoke(ctx, "/Master/TimingList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *masterClient) AgentMonitorReport(ctx context.Context, in *AgentMonitor, opts ...grpc.CallOption) (*Response, error) {
 	out := new(Response)
 	err := c.cc.Invoke(ctx, "/Master/AgentMonitorReport", in, out, opts...)
@@ -538,6 +650,15 @@ func (c *masterClient) JobMoniorReport(ctx context.Context, in *JobMonior, opts 
 	return out, nil
 }
 
+func (c *masterClient) TimingMoniorReport(ctx context.Context, in *TimingMonior, opts ...grpc.CallOption) (*Response, error) {
+	out := new(Response)
+	err := c.cc.Invoke(ctx, "/Master/TimingMoniorReport", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *masterClient) AppArchiveReport(ctx context.Context, in *AppArchive, opts ...grpc.CallOption) (*Response, error) {
 	out := new(Response)
 	err := c.cc.Invoke(ctx, "/Master/AppArchiveReport", in, out, opts...)
@@ -556,16 +677,28 @@ func (c *masterClient) JobArchiveReport(ctx context.Context, in *JobArchive, opt
 	return out, nil
 }
 
+func (c *masterClient) TimingArchiveReport(ctx context.Context, in *TimingArchive, opts ...grpc.CallOption) (*Response, error) {
+	out := new(Response)
+	err := c.cc.Invoke(ctx, "/Master/TimingArchiveReport", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MasterServer is the server API for Master service.
 type MasterServer interface {
 	Register(context.Context, *AgentInfo) (*Response, error)
 	AppList(context.Context, *AgentInfo) (*AppListResponse, error)
 	JobList(context.Context, *AgentInfo) (*JobListResponse, error)
+	TimingList(context.Context, *AgentInfo) (*TimingListResponse, error)
 	AgentMonitorReport(context.Context, *AgentMonitor) (*Response, error)
 	AppMonitorReport(context.Context, *AppMonitor) (*Response, error)
 	JobMoniorReport(context.Context, *JobMonior) (*Response, error)
+	TimingMoniorReport(context.Context, *TimingMonior) (*Response, error)
 	AppArchiveReport(context.Context, *AppArchive) (*Response, error)
 	JobArchiveReport(context.Context, *JobArchive) (*Response, error)
+	TimingArchiveReport(context.Context, *TimingArchive) (*Response, error)
 }
 
 // UnimplementedMasterServer can be embedded to have forward compatible implementations.
@@ -581,6 +714,9 @@ func (*UnimplementedMasterServer) AppList(ctx context.Context, req *AgentInfo) (
 func (*UnimplementedMasterServer) JobList(ctx context.Context, req *AgentInfo) (*JobListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method JobList not implemented")
 }
+func (*UnimplementedMasterServer) TimingList(ctx context.Context, req *AgentInfo) (*TimingListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TimingList not implemented")
+}
 func (*UnimplementedMasterServer) AgentMonitorReport(ctx context.Context, req *AgentMonitor) (*Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AgentMonitorReport not implemented")
 }
@@ -590,11 +726,17 @@ func (*UnimplementedMasterServer) AppMonitorReport(ctx context.Context, req *App
 func (*UnimplementedMasterServer) JobMoniorReport(ctx context.Context, req *JobMonior) (*Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method JobMoniorReport not implemented")
 }
+func (*UnimplementedMasterServer) TimingMoniorReport(ctx context.Context, req *TimingMonior) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TimingMoniorReport not implemented")
+}
 func (*UnimplementedMasterServer) AppArchiveReport(ctx context.Context, req *AppArchive) (*Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AppArchiveReport not implemented")
 }
 func (*UnimplementedMasterServer) JobArchiveReport(ctx context.Context, req *JobArchive) (*Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method JobArchiveReport not implemented")
+}
+func (*UnimplementedMasterServer) TimingArchiveReport(ctx context.Context, req *TimingArchive) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TimingArchiveReport not implemented")
 }
 
 func RegisterMasterServer(s *grpc.Server, srv MasterServer) {
@@ -655,6 +797,24 @@ func _Master_JobList_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Master_TimingList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AgentInfo)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterServer).TimingList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Master/TimingList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterServer).TimingList(ctx, req.(*AgentInfo))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Master_AgentMonitorReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AgentMonitor)
 	if err := dec(in); err != nil {
@@ -709,6 +869,24 @@ func _Master_JobMoniorReport_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Master_TimingMoniorReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TimingMonior)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterServer).TimingMoniorReport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Master/TimingMoniorReport",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterServer).TimingMoniorReport(ctx, req.(*TimingMonior))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Master_AppArchiveReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AppArchive)
 	if err := dec(in); err != nil {
@@ -745,6 +923,24 @@ func _Master_JobArchiveReport_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Master_TimingArchiveReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TimingArchive)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterServer).TimingArchiveReport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Master/TimingArchiveReport",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterServer).TimingArchiveReport(ctx, req.(*TimingArchive))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Master_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "Master",
 	HandlerType: (*MasterServer)(nil),
@@ -762,6 +958,10 @@ var _Master_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Master_JobList_Handler,
 		},
 		{
+			MethodName: "TimingList",
+			Handler:    _Master_TimingList_Handler,
+		},
+		{
 			MethodName: "AgentMonitorReport",
 			Handler:    _Master_AgentMonitorReport_Handler,
 		},
@@ -774,12 +974,20 @@ var _Master_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Master_JobMoniorReport_Handler,
 		},
 		{
+			MethodName: "TimingMoniorReport",
+			Handler:    _Master_TimingMoniorReport_Handler,
+		},
+		{
 			MethodName: "AppArchiveReport",
 			Handler:    _Master_AppArchiveReport_Handler,
 		},
 		{
 			MethodName: "JobArchiveReport",
 			Handler:    _Master_JobArchiveReport_Handler,
+		},
+		{
+			MethodName: "TimingArchiveReport",
+			Handler:    _Master_TimingArchiveReport_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

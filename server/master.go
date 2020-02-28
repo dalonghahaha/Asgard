@@ -13,6 +13,7 @@ type MasterServer struct {
 	agentService   *services.AgentService
 	appService     *services.AppService
 	jobService     *services.JobService
+	timingService  *services.TimingService
 	monitorService *services.MonitorService
 	archiveService *services.ArchiveService
 }
@@ -22,6 +23,7 @@ func NewMasterServer() *MasterServer {
 		agentService:   services.NewAgentService(),
 		appService:     services.NewAppService(),
 		jobService:     services.NewJobService(),
+		timingService:  services.NewTimingService(),
 		monitorService: services.NewMonitorService(),
 		archiveService: services.NewArchiveService(),
 	}
@@ -71,6 +73,19 @@ func (s *MasterServer) JobList(ctx context.Context, request *rpc.AgentInfo) (*rp
 	return &rpc.JobListResponse{Code: rpc.OK, Jobs: list}, nil
 }
 
+func (s *MasterServer) TimingList(ctx context.Context, request *rpc.AgentInfo) (*rpc.TimingListResponse, error) {
+	agent := s.agentService.GetAgentByIPAndPort(request.GetIp(), request.GetPort())
+	if agent == nil {
+		return &rpc.TimingListResponse{Code: rpc.Nofound, Timings: nil}, nil
+	}
+	timings := s.timingService.GetTimingByAgentID(agent.ID)
+	list := []*rpc.Timing{}
+	for _, timing := range timings {
+		list = append(list, rpc.FormatTiming(&timing))
+	}
+	return &rpc.TimingListResponse{Code: rpc.OK, Timings: list}, nil
+}
+
 func (s *MasterServer) AgentMonitorReport(ctx context.Context, request *rpc.AgentMonitor) (*rpc.Response, error) {
 	agent := s.agentService.GetAgentByIPAndPort(request.GetAgent().GetIp(), request.GetAgent().GetPort())
 	if agent == nil {
@@ -99,6 +114,14 @@ func (s *MasterServer) JobMoniorReport(ctx context.Context, request *rpc.JobMoni
 	return s.OK()
 }
 
+func (s *MasterServer) TimingMoniorReport(ctx context.Context, request *rpc.TimingMonior) (*rpc.Response, error) {
+	ok := s.monitorService.CreateMonitor(rpc.ParseMonitor(models.TYPE_TIMING, request.GetTiming().GetId(), request.GetMonitor()))
+	if !ok {
+		return s.Error("add timing monitor failed")
+	}
+	return s.OK()
+}
+
 func (s *MasterServer) AppArchiveReport(ctx context.Context, request *rpc.AppArchive) (*rpc.Response, error) {
 	ok := s.archiveService.CreateArchive(rpc.ParseArchive(models.TYPE_APP, request.GetApp().GetId(), request.GetArchive()))
 	if !ok {
@@ -112,6 +135,15 @@ func (s *MasterServer) JobArchiveReport(ctx context.Context, request *rpc.JobArc
 	ok := archiveService.CreateArchive(rpc.ParseArchive(models.TYPE_JOB, request.GetJob().GetId(), request.GetArchive()))
 	if !ok {
 		return s.Error("add job archive failed")
+	}
+	return s.OK()
+}
+
+func (s *MasterServer) TimingArchiveReport(ctx context.Context, request *rpc.TimingArchive) (*rpc.Response, error) {
+	archiveService := services.NewArchiveService()
+	ok := archiveService.CreateArchive(rpc.ParseArchive(models.TYPE_TIMING, request.GetTiming().GetId(), request.GetArchive()))
+	if !ok {
+		return s.Error("add timing archive failed")
 	}
 	return s.OK()
 }

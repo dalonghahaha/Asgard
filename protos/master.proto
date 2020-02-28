@@ -3,6 +3,7 @@ syntax = "proto3";
 import "base.proto";
 import "app.proto";
 import "job.proto";
+import "timing.proto";
 import "agent.proto";
 
 option go_package = "rpc";
@@ -39,6 +40,11 @@ message JobMonior {
     Monitor monitor = 2;
 }
 
+message TimingMonior {
+    Timing timing = 1;
+    Monitor monitor = 2;
+}
+
 message AppArchive {
     App app = 1;
     Archive archive = 2;
@@ -49,13 +55,24 @@ message JobArchive {
     Archive archive = 2;
 }
 
+message TimingArchive {
+    Timing timing = 1;
+    Archive archive = 2;
+}
+
 service Master {
     rpc Register(AgentInfo) returns (Response) {}
+    
     rpc AppList(AgentInfo) returns (AppListResponse) {}
     rpc JobList(AgentInfo) returns (JobListResponse) {}
+    rpc TimingList(AgentInfo) returns (TimingListResponse) {}
+
     rpc AgentMonitorReport(AgentMonitor) returns (Response) {}
     rpc AppMonitorReport(AppMonitor) returns (Response) {}
     rpc JobMoniorReport(JobMonior) returns (Response) {}
+    rpc TimingMoniorReport(TimingMonior) returns (Response) {}
+
     rpc AppArchiveReport(AppArchive) returns (Response) {}
     rpc JobArchiveReport(JobArchive) returns (Response) {}
+    rpc TimingArchiveReport(TimingArchive) returns (Response) {}
 }

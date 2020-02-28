@@ -134,3 +134,59 @@ func (s *AgentServer) JobRemove(ctx context.Context, request *rpc.ID) (*rpc.Resp
 	}
 	return s.OK()
 }
+
+func (s *AgentServer) TimingList(ctx context.Context, request *rpc.Empty) (*rpc.TimingListResponse, error) {
+	list := []*rpc.Timing{}
+	for _, timing := range applications.Timings {
+		list = append(list, rpc.BuildTiming(timing))
+	}
+	return &rpc.TimingListResponse{Code: rpc.OK, Timings: list}, nil
+}
+
+func (s *AgentServer) TimingGet(ctx context.Context, request *rpc.ID) (*rpc.TimingResponse, error) {
+	id := request.GetId()
+	timing, ok := applications.Timings[id]
+	if ok {
+		return &rpc.TimingResponse{Code: rpc.OK, Timing: rpc.BuildTiming(timing)}, nil
+	}
+	return &rpc.TimingResponse{Code: rpc.Nofound, Timing: nil}, nil
+}
+
+func (s *AgentServer) TimingAdd(ctx context.Context, request *rpc.Timing) (*rpc.Response, error) {
+	id := request.GetId()
+	_, ok := applications.Timings[id]
+	if ok {
+		return s.OK()
+	}
+	err := AddTiming(id, request)
+	if err != nil {
+		return s.Error(err.Error())
+	}
+	return s.OK()
+}
+
+func (s *AgentServer) TimingUpdate(ctx context.Context, request *rpc.Timing) (*rpc.Response, error) {
+	id := request.GetId()
+	timing, ok := applications.Timings[id]
+	if !ok {
+		return s.Error(fmt.Sprintf("no timing %d", id))
+	}
+	err := UpdateTiming(id, timing, request)
+	if err != nil {
+		return s.Error(err.Error())
+	}
+	return s.OK()
+}
+
+func (s *AgentServer) TimingRemove(ctx context.Context, request *rpc.ID) (*rpc.Response, error) {
+	id := request.GetId()
+	timing, ok := applications.Timings[id]
+	if !ok {
+		return s.OK()
+	}
+	err := DeleteTiming(id, timing)
+	if err != nil {
+		return s.Error(err.Error())
+	}
+	return s.OK()
+}

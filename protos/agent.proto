@@ -3,6 +3,7 @@ syntax = "proto3";
 import "base.proto";
 import "app.proto";
 import "job.proto";
+import "timing.proto";
 
 option go_package = "rpc";
 
@@ -14,6 +15,7 @@ message AgentInfo {
 message AgentStat {
     int64 apps = 1;
     int64 jobs = 2;
+    int64 timings = 3;
 }
 
 message AgentStatResponse {
@@ -35,4 +37,10 @@ service Agent {
     rpc JobAdd (Job) returns (Response) {}
     rpc JobUpdate (Job) returns (Response) {}
     rpc JobRemove (ID) returns (Response) {}
+
+    rpc TimingList (Empty) returns (TimingListResponse) {}
+    rpc TimingGet (ID) returns (TimingResponse) {}
+    rpc TimingAdd (Timing) returns (Response) {}
+    rpc TimingUpdate (Timing) returns (Response) {}
+    rpc TimingRemove (ID) returns (Response) {}
 }
