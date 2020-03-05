@@ -5,7 +5,6 @@ import (
 	"Asgard/services"
 	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -205,7 +204,7 @@ func (c *TimingController) Create(ctx *gin.Context) {
 	timing.Args = args
 	timing.StdOut = stdOut
 	timing.StdErr = stdErr
-	timing.Time, _ = time.Parse(TimeLayout, _time)
+	timing.Time, _ = parseTime(_time)
 	timing.Timeout = int64(timeout)
 	timing.Status = 0
 	timing.Creator = GetUserID(ctx)
@@ -291,7 +290,7 @@ func (c *TimingController) Update(ctx *gin.Context) {
 	timing.Args = args
 	timing.StdOut = stdOut
 	timing.StdErr = stdErr
-	timing.Time, _ = time.Parse(TimeLayout, _time)
+	timing.Time, _ = parseTime(_time)
 	timing.Timeout = int64(timeout)
 	timing.Updator = GetUserID(ctx)
 	if isMonitor != "" {

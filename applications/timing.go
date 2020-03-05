@@ -27,6 +27,7 @@ func TimingStartAll(moniter bool) {
 	duration := viper.GetInt("system.timer")
 	ticker = time.NewTicker(time.Second * time.Duration(duration))
 	for range ticker.C {
+		logger.Debug("timmer happen")
 		now := time.Now().Unix()
 		for _, timing := range Timings {
 			if timing.Time.Unix() < now {

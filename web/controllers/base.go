@@ -22,6 +22,7 @@ var (
 	PageSize         = 10
 	CookieSalt       = "sdswqeqx"
 	Domain           = "localhost"
+	TimeLocation     = "Asia/Beijing"
 	TimeLayout       = "2006-01-02 15:04"
 )
 
@@ -31,6 +32,16 @@ func FormatFloat(info float64) string {
 
 func FormatTime(info time.Time) string {
 	return info.Format("2006-01-02 15:04:05")
+}
+
+func parseTime(str string) (time.Time, error) {
+	locationName := TimeLocation
+	if l, err := time.LoadLocation(locationName); err != nil {
+		return time.Time{}, err
+	} else {
+		lt, _ := time.ParseInLocation(TimeLayout, str, l)
+		return lt, nil
+	}
 }
 
 func EmailFormat(email string) bool {

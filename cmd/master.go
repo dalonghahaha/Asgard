@@ -22,6 +22,7 @@ var (
 	agentService        *services.AgentService
 	appService          *services.AppService
 	jobService          *services.JobService
+	timingService       *services.TimingService
 	masterMoniterTicker *time.Ticker
 )
 
@@ -42,6 +43,7 @@ var masterCmd = &cobra.Command{
 		agentService = services.NewAgentService()
 		appService = services.NewAppService()
 		jobService = services.NewJobService()
+		timingService = services.NewTimingService()
 		go StartWebServer()
 		go StartMasterRpcServer()
 		go MoniterMaster()
@@ -121,6 +123,19 @@ func CheckOnlineAgent() {
 				}
 			}
 		}
+		timings, err := client.GetAgentTimingList(&agent)
+		if err != nil {
+			agent.Status = 0
+			agentService.UpdateAgent(&agent)
+		} else {
+			for _, timing := range timings {
+				_timing := timingService.GetTimingByID(timing.GetId())
+				if _timing != nil {
+					_timing.Status = 1
+					timingService.UpdateTiming(_timing)
+				}
+			}
+		}
 	}
 }
 
@@ -144,6 +159,13 @@ func CheckOfflineAgent() {
 				if job.Status != 2 {
 					job.Status = 0
 					jobService.UpdateJob(&job)
+				}
+			}
+			timings := timingService.GetTimingByAgentID(agent.ID)
+			for _, timing := range timings {
+				if timing.Status != 2 {
+					timing.Status = 0
+					timingService.UpdateTiming(&timing)
 				}
 			}
 		}

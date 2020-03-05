@@ -208,3 +208,85 @@ func RemoveAgentJob(agent *models.Agent, id int64) error {
 	}
 	return fmt.Errorf(response.GetMessage())
 }
+
+func GetAgentTimingList(agent *models.Agent) ([]*rpc.Timing, error) {
+	agentClient, err := GetAgent(agent)
+	if err != nil {
+		return nil, err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), RPCTimeOut)
+	defer cancel()
+	response, err := agentClient.TimingList(ctx, &rpc.Empty{})
+	if err != nil {
+		return nil, err
+	}
+	return response.GetTimings(), nil
+}
+
+func GetAgentTiming(agent *models.Agent, id int64) (*rpc.Timing, error) {
+	agentClient, err := GetAgent(agent)
+	if err != nil {
+		return nil, err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), RPCTimeOut)
+	defer cancel()
+	response, err := agentClient.TimingGet(ctx, &rpc.ID{Id: id})
+	if err != nil {
+		return nil, err
+	}
+	if response.GetCode() == rpc.Nofound {
+		return nil, nil
+	}
+	return response.GetTiming(), nil
+}
+
+func AddAgentTiming(agent *models.Agent, timing *models.Timing) error {
+	agentClient, err := GetAgent(agent)
+	if err != nil {
+		return err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), RPCTimeOut)
+	defer cancel()
+	response, err := agentClient.TimingAdd(ctx, rpc.FormatTiming(timing))
+	if err != nil {
+		return err
+	}
+	if response.GetCode() == rpc.OK {
+		return nil
+	}
+	return fmt.Errorf(response.GetMessage())
+}
+
+func UpdateAgentTiming(agent *models.Agent, timing *models.Timing) error {
+	agentClient, err := GetAgent(agent)
+	if err != nil {
+		return err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), RPCTimeOut)
+	defer cancel()
+	response, err := agentClient.TimingUpdate(ctx, rpc.FormatTiming(timing))
+	if err != nil {
+		return err
+	}
+	if response.GetCode() == rpc.OK {
+		return nil
+	}
+	return fmt.Errorf(response.GetMessage())
+}
+
+func RemoveAgentTiming(agent *models.Agent, id int64) error {
+	agentClient, err := GetAgent(agent)
+	if err != nil {
+		return err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), RPCTimeOut)
+	defer cancel()
+	response, err := agentClient.TimingRemove(ctx, &rpc.ID{Id: id})
+	if err != nil {
+		return err
+	}
+	if response.GetCode() == rpc.OK {
+		return nil
+	}
+	return fmt.Errorf(response.GetMessage())
+}
