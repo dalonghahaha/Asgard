@@ -198,7 +198,7 @@ func TimingsRegister() error {
 		return err
 	}
 	for _, info := range timings {
-		logger.Debug("timing register: %s %v", info.GetName(), time.Unix(info.GetTime(), 0).Format("2006-01-02 15:04:05"))
+		logger.Debug(fmt.Sprintf("timing register: %s %v", info.GetName(), time.Unix(info.GetTime(), 0).Format("2006-01-02 15:04:05")))
 		config := map[string]interface{}{
 			"id":         info.GetId(),
 			"name":       info.GetName(),

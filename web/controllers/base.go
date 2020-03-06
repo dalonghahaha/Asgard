@@ -22,7 +22,7 @@ var (
 	PageSize         = 10
 	CookieSalt       = "sdswqeqx"
 	Domain           = "localhost"
-	TimeLocation     = "Asia/Beijing"
+	TimeLocation     = "Asia/Shanghai"
 	TimeLayout       = "2006-01-02 15:04"
 )
 
