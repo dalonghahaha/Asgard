@@ -15,6 +15,9 @@ type TimerServer struct {
 func (s *TimerServer) List(ctx context.Context, request *rpc.Empty) (*rpc.TimingListResponse, error) {
 	list := []*rpc.Timing{}
 	for _, timing := range applications.Timings {
+		if timing.Executed {
+			continue
+		}
 		list = append(list, rpc.BuildTiming(timing))
 	}
 	return &rpc.TimingListResponse{Code: rpc.OK, Timings: list}, nil

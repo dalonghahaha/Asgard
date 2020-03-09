@@ -131,8 +131,7 @@ func (s *MasterServer) AppArchiveReport(ctx context.Context, request *rpc.AppArc
 }
 
 func (s *MasterServer) JobArchiveReport(ctx context.Context, request *rpc.JobArchive) (*rpc.Response, error) {
-	archiveService := services.NewArchiveService()
-	ok := archiveService.CreateArchive(rpc.ParseArchive(models.TYPE_JOB, request.GetJob().GetId(), request.GetArchive()))
+	ok := s.archiveService.CreateArchive(rpc.ParseArchive(models.TYPE_JOB, request.GetJob().GetId(), request.GetArchive()))
 	if !ok {
 		return s.Error("add job archive failed")
 	}
@@ -140,10 +139,14 @@ func (s *MasterServer) JobArchiveReport(ctx context.Context, request *rpc.JobArc
 }
 
 func (s *MasterServer) TimingArchiveReport(ctx context.Context, request *rpc.TimingArchive) (*rpc.Response, error) {
-	archiveService := services.NewArchiveService()
-	ok := archiveService.CreateArchive(rpc.ParseArchive(models.TYPE_TIMING, request.GetTiming().GetId(), request.GetArchive()))
+	ok := s.archiveService.CreateArchive(rpc.ParseArchive(models.TYPE_TIMING, request.GetTiming().GetId(), request.GetArchive()))
 	if !ok {
 		return s.Error("add timing archive failed")
+	}
+	timing := s.timingService.GetTimingByID(request.GetTiming().GetId())
+	if timing != nil {
+		timing.Status = models.STATUS_FINISHED
+		s.timingService.UpdateTiming(timing)
 	}
 	return s.OK()
 }

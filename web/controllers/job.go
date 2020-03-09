@@ -208,7 +208,7 @@ func (c *JobController) Create(ctx *gin.Context) {
 	job.StdErr = stdErr
 	job.Spec = spec
 	job.Timeout = int64(timeout)
-	job.Status = 0
+	job.Status = models.STATUS_STOP
 	job.Creator = GetUserID(ctx)
 	if isMonitor != "" {
 		job.IsMonitor = 1
@@ -342,7 +342,7 @@ func (c *JobController) Start(ctx *gin.Context) {
 		APIError(ctx, "计划任务不存在")
 		return
 	}
-	if job.Status == 1 {
+	if job.Status == models.STATUS_RUNNING {
 		APIError(ctx, "计划任务已经启动")
 		return
 	}
@@ -362,12 +362,13 @@ func (c *JobController) Start(ctx *gin.Context) {
 			APIError(ctx, fmt.Sprintf("添加计划任务异常:%s", err.Error()))
 			return
 		}
-		job.Status = 1
+		job.Status = models.STATUS_RUNNING
 		c.jobService.UpdateJob(job)
 		APIOK(ctx)
 		return
 	}
-	job.Status = 1
+	job.Status = models.STATUS_RUNNING
+	job.Updator = GetUserID(ctx)
 	c.jobService.UpdateJob(job)
 	APIOK(ctx)
 }
@@ -439,7 +440,7 @@ func (c *JobController) Pause(ctx *gin.Context) {
 		APIError(ctx, fmt.Sprintf("停止计划任务异常:%s", err.Error()))
 		return
 	}
-	job.Status = 2
+	job.Status = models.STATUS_PAUSE
 	job.Updator = GetUserID(ctx)
 	c.jobService.UpdateJob(job)
 	APIOK(ctx)

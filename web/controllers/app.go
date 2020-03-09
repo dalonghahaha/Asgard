@@ -201,7 +201,7 @@ func (c *AppController) Create(ctx *gin.Context) {
 	app.Args = args
 	app.StdOut = stdOut
 	app.StdErr = stdErr
-	app.Status = 0
+	app.Status = models.STATUS_STOP
 	app.Creator = GetUserID(ctx)
 	if autoRestart != "" {
 		app.AutoRestart = 1
@@ -335,7 +335,7 @@ func (c *AppController) Start(ctx *gin.Context) {
 		APIError(ctx, "应用不存在")
 		return
 	}
-	if app.Status == 1 {
+	if app.Status == models.STATUS_RUNNING {
 		APIError(ctx, "应用已经启动")
 		return
 	}
@@ -355,12 +355,13 @@ func (c *AppController) Start(ctx *gin.Context) {
 			APIError(ctx, fmt.Sprintf("添加应用异常:%s", err.Error()))
 			return
 		}
-		app.Status = 1
+		app.Status = models.STATUS_RUNNING
 		c.appService.UpdateApp(app)
 		APIOK(ctx)
 		return
 	}
-	app.Status = 1
+	app.Status = models.STATUS_RUNNING
+	app.Updator = GetUserID(ctx)
 	c.appService.UpdateApp(app)
 	APIOK(ctx)
 }
@@ -433,7 +434,7 @@ func (c *AppController) Pause(ctx *gin.Context) {
 		APIError(ctx, fmt.Sprintf("停止应用异常:%s", err.Error()))
 		return
 	}
-	app.Status = 2
+	app.Status = models.STATUS_PAUSE
 	app.Updator = GetUserID(ctx)
 	c.appService.UpdateApp(app)
 	APIOK(ctx)

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"Asgard/client"
 	"Asgard/models"
 	"Asgard/services"
 	"fmt"
@@ -206,7 +207,7 @@ func (c *TimingController) Create(ctx *gin.Context) {
 	timing.StdErr = stdErr
 	timing.Time, _ = parseTime(_time)
 	timing.Timeout = int64(timeout)
-	timing.Status = 0
+	timing.Status = models.STATUS_STOP
 	timing.Creator = GetUserID(ctx)
 	if isMonitor != "" {
 		timing.IsMonitor = 1
@@ -326,5 +327,120 @@ func (c *TimingController) Delete(ctx *gin.Context) {
 		APIError(ctx, "删除定时任务失败")
 		return
 	}
+	APIOK(ctx)
+}
+
+func (c *TimingController) Start(ctx *gin.Context) {
+	id := DefaultInt(ctx, "id", 0)
+	if id == 0 {
+		APIBadRequest(ctx, "ID格式错误")
+		return
+	}
+	timing := c.timingService.GetTimingByID(int64(id))
+	if timing == nil {
+		APIError(ctx, "定时任务不存在")
+		return
+	}
+	if timing.Status == models.STATUS_RUNNING {
+		APIError(ctx, "定时任务已经启动")
+		return
+	}
+	agent := c.agentService.GetAgentByID(timing.AgentID)
+	if agent == nil {
+		APIError(ctx, "定时任务对应实例获取异常")
+		return
+	}
+	_timing, err := client.GetAgentTiming(agent, int64(id))
+	if err != nil {
+		APIError(ctx, fmt.Sprintf("获取定时任务情况异常:%s", err.Error()))
+		return
+	}
+	if _timing == nil {
+		err = client.AddAgentTiming(agent, timing)
+		if err != nil {
+			APIError(ctx, fmt.Sprintf("添加计划任务异常:%s", err.Error()))
+			return
+		}
+		timing.Status = models.STATUS_RUNNING
+		c.timingService.UpdateTiming(timing)
+		APIOK(ctx)
+		return
+	}
+	timing.Status = models.STATUS_RUNNING
+	timing.Updator = GetUserID(ctx)
+	c.timingService.UpdateTiming(timing)
+	APIOK(ctx)
+}
+
+func (c *TimingController) ReStart(ctx *gin.Context) {
+	id := DefaultInt(ctx, "id", 0)
+	if id == 0 {
+		APIBadRequest(ctx, "ID格式错误")
+		return
+	}
+	timing := c.timingService.GetTimingByID(int64(id))
+	if timing == nil {
+		APIError(ctx, "定时任务不存在")
+		return
+	}
+	agent := c.agentService.GetAgentByID(timing.AgentID)
+	if agent == nil {
+		APIError(ctx, "定时任务对应实例获取异常")
+		return
+	}
+	_timing, err := client.GetAgentTiming(agent, int64(id))
+	if err != nil {
+		APIError(ctx, fmt.Sprintf("获取定时任务情况异常:%s", err.Error()))
+		return
+	}
+	if _timing == nil {
+		err = client.AddAgentTiming(agent, timing)
+		if err != nil {
+			APIError(ctx, fmt.Sprintf("重启定时任务异常:%s", err.Error()))
+			return
+		}
+		APIOK(ctx)
+	}
+	err = client.UpdateAgentTiming(agent, timing)
+	if err != nil {
+		APIError(ctx, fmt.Sprintf("重启定时任务异常:%s", err.Error()))
+		return
+	}
+	APIOK(ctx)
+}
+
+func (c *TimingController) Pause(ctx *gin.Context) {
+	id := DefaultInt(ctx, "id", 0)
+	if id == 0 {
+		APIBadRequest(ctx, "ID格式错误")
+		return
+	}
+	timing := c.timingService.GetTimingByID(int64(id))
+	if timing == nil {
+		APIError(ctx, "定时任务不存在")
+		return
+	}
+	agent := c.agentService.GetAgentByID(timing.AgentID)
+	if agent == nil {
+		APIError(ctx, "定时任务对应实例获取异常")
+		return
+	}
+	_timing, err := client.GetAgentTiming(agent, int64(id))
+	if err != nil {
+		APIError(ctx, fmt.Sprintf("获取定时任务情况异常:%s", err.Error()))
+		return
+	}
+	if _timing == nil {
+		APIOK(ctx)
+		return
+	}
+	err = client.RemoveAgentTiming(agent, int64(id))
+	if err != nil {
+		APIError(ctx, fmt.Sprintf("停止定时任务异常:%s", err.Error()))
+		return
+	}
+	timing.Status = models.STATUS_PAUSE
+	timing.Updator = GetUserID(ctx)
+	c.timingService.UpdateTiming(timing)
 	APIOK(ctx)
 }

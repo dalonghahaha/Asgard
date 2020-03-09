@@ -45,7 +45,7 @@ func (s *JobService) GetJobByID(id int64) *models.Job {
 }
 
 func (s *JobService) GetJobByAgentID(id int64) (list []models.Job) {
-	err := models.Where(&list, "agent_id = ? and status != ?", id, 2)
+	err := models.Where(&list, "agent_id = ? and status != ?", id, models.STATUS_PAUSE)
 	if err != nil {
 		logger.Error("GetJobByAgentID Error:", err)
 		return nil

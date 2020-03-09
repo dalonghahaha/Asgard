@@ -8,8 +8,36 @@ import (
 	"Asgard/rpc"
 )
 
-func AddApp(id int64, request *rpc.App) error {
-	app, err := applications.AppRegister(id, rpc.BuildAppConfig(request))
+func GetAppList() []*rpc.App {
+	list := []*rpc.App{}
+	for _, app := range applications.APPs {
+		list = append(list, rpc.BuildApp(app))
+	}
+	return list
+}
+
+func GetApp(id int64) *rpc.App {
+	if app, ok := applications.APPs[id]; ok {
+		return rpc.BuildApp(app)
+	}
+	return nil
+}
+
+func GetAppByName(name string) *rpc.App {
+	for _, app := range applications.APPs {
+		if name == app.Name {
+			return rpc.BuildApp(app)
+		}
+	}
+	return nil
+}
+
+func AddApp(id int64, appRequest *rpc.App) error {
+	_, ok := applications.APPs[id]
+	if ok {
+		return nil
+	}
+	app, err := applications.AppRegister(id, rpc.BuildAppConfig(appRequest))
 	if err != nil {
 		return err
 	}
@@ -19,27 +47,44 @@ func AddApp(id int64, request *rpc.App) error {
 	app.ArchiveReport = func(command *applications.Command) {
 		client.AppArchiveReport(rpc.BuildAppArchive(app, command))
 	}
-	ok := applications.AppStartByID(id)
+	ok = applications.AppStartByID(id)
 	if !ok {
 		return fmt.Errorf("app %d start failed", id)
 	}
 	return nil
 }
 
-func UpdateApp(id int64, app *applications.App, request *rpc.App) error {
-	err := DeleteApp(id, app)
-	if err != nil {
-		return err
+func UpdateApp(id int64, appRequest *rpc.App) error {
+	if _, ok := applications.APPs[id]; ok {
+		if err := DeleteApp(id); err != nil {
+			return err
+		}
+		return AddApp(id, appRequest)
+	} else {
+		return fmt.Errorf("no app %d", id)
 	}
-	return AddApp(id, request)
+
 }
 
-func DeleteApp(id int64, app *applications.App) error {
-	app.AutoRestart = false
-	ok := applications.AppStopByID(id)
-	if !ok {
-		return fmt.Errorf("app %d stop failed", id)
+func DeleteApp(id int64) error {
+	if app, ok := applications.APPs[id]; ok {
+		app.AutoRestart = false
+		if ok := applications.AppStopByID(id); !ok {
+			return fmt.Errorf("app %d stop failed", id)
+		} else {
+			delete(applications.APPs, id)
+			return nil
+		}
+	} else {
+		return nil
 	}
-	delete(applications.APPs, id)
+}
+
+func DeleteAppByName(name string) error {
+	for _, app := range applications.APPs {
+		if name == app.Name {
+			return DeleteApp(app.ID)
+		}
+	}
 	return nil
 }

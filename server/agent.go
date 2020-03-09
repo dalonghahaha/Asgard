@@ -24,56 +24,33 @@ func (s *AgentServer) Stat(ctx context.Context, request *rpc.Empty) (*rpc.AgentS
 }
 
 func (s *AgentServer) AppList(ctx context.Context, request *rpc.Empty) (*rpc.AppListResponse, error) {
-	list := []*rpc.App{}
-	for _, app := range applications.APPs {
-		list = append(list, rpc.BuildApp(app))
-	}
-	return &rpc.AppListResponse{Code: rpc.OK, Apps: list}, nil
+	return &rpc.AppListResponse{Code: rpc.OK, Apps: GetAppList()}, nil
 }
 
 func (s *AgentServer) AppGet(ctx context.Context, request *rpc.ID) (*rpc.AppResponse, error) {
-	id := request.GetId()
-	app, ok := applications.APPs[id]
-	if ok {
-		return &rpc.AppResponse{Code: rpc.OK, App: rpc.BuildApp(app)}, nil
+	app := GetApp(request.GetId())
+	if app != nil {
+		return &rpc.AppResponse{Code: rpc.OK, App: app}, nil
 	}
-	return &rpc.AppResponse{Code: rpc.Nofound, App: nil}, nil
+	return &rpc.AppResponse{Code: rpc.Nofound, App: app}, nil
 }
 
 func (s *AgentServer) AppAdd(ctx context.Context, request *rpc.App) (*rpc.Response, error) {
-	id := request.GetId()
-	_, ok := applications.APPs[id]
-	if ok {
-		return s.OK()
-	}
-	err := AddApp(id, request)
-	if err != nil {
+	if err := AddApp(request.GetId(), request); err != nil {
 		return s.Error(err.Error())
 	}
 	return s.OK()
 }
 
 func (s *AgentServer) AppUpdate(ctx context.Context, request *rpc.App) (*rpc.Response, error) {
-	id := request.GetId()
-	app, ok := applications.APPs[id]
-	if !ok {
-		return s.Error(fmt.Sprintf("no app %d", id))
-	}
-	err := UpdateApp(id, app, request)
-	if err != nil {
+	if err := UpdateApp(request.GetId(), request); err != nil {
 		return s.Error(err.Error())
 	}
 	return s.OK()
 }
 
 func (s *AgentServer) AppRemove(ctx context.Context, request *rpc.ID) (*rpc.Response, error) {
-	id := request.GetId()
-	app, ok := applications.APPs[id]
-	if !ok {
-		return s.OK()
-	}
-	err := DeleteApp(id, app)
-	if err != nil {
+	if err := DeleteApp(request.GetId()); err != nil {
 		return s.Error(err.Error())
 	}
 	return s.OK()
@@ -138,6 +115,9 @@ func (s *AgentServer) JobRemove(ctx context.Context, request *rpc.ID) (*rpc.Resp
 func (s *AgentServer) TimingList(ctx context.Context, request *rpc.Empty) (*rpc.TimingListResponse, error) {
 	list := []*rpc.Timing{}
 	for _, timing := range applications.Timings {
+		if timing.Executed {
+			continue
+		}
 		list = append(list, rpc.BuildTiming(timing))
 	}
 	return &rpc.TimingListResponse{Code: rpc.OK, Timings: list}, nil

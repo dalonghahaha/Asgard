@@ -95,6 +95,7 @@ func (t *Timing) Run() {
 	if t.TimeOut > 0 {
 		go t.timer(stop)
 	}
+	t.Executed = true
 	err = t.start()
 	if err != nil {
 		stop <- true
@@ -122,9 +123,9 @@ func (j *Timing) timer(ch chan bool) {
 }
 
 func (t *Timing) record() {
-	t.Executed = true
 	info := fmt.Sprintf("%s executed with %.2f seconds", t.Name, t.End.Sub(t.Begin).Seconds())
 	logger.Info(info)
+	delete(Timings, t.ID)
 }
 
 func NewTiming(config map[string]interface{}) (*Timing, error) {

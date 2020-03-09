@@ -164,7 +164,7 @@ func CheckOfflineAgent() {
 			}
 			timings := timingService.GetTimingByAgentID(agent.ID)
 			for _, timing := range timings {
-				if timing.Status != models.STATUS_PAUSE {
+				if timing.Status != models.STATUS_PAUSE && timing.Status != models.STATUS_FINISHED {
 					timing.Status = models.STATUS_STOP
 					timingService.UpdateTiming(&timing)
 				}
