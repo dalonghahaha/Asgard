@@ -13,10 +13,10 @@ func AddJob(id int64, request *rpc.Job) error {
 		return err
 	}
 	job.MonitorReport = func(monitor *applications.Monitor) {
-		client.JobMonitorReport(job, monitor)
+		client.JobMonitorReport(rpc.BuildJobMonior(job, monitor))
 	}
 	job.ArchiveReport = func(command *applications.Command) {
-		client.JobArchiveReport(job, command)
+		client.JobArchiveReport(rpc.BuildJobArchive(job, command))
 	}
 	applications.JobAdd(job)
 	return nil

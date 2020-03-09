@@ -14,10 +14,10 @@ func AddApp(id int64, request *rpc.App) error {
 		return err
 	}
 	app.MonitorReport = func(monitor *applications.Monitor) {
-		client.AppMonitorReport(app, monitor)
+		client.AppMonitorReport(rpc.BuildAppMonitor(app, monitor))
 	}
 	app.ArchiveReport = func(command *applications.Command) {
-		client.AppArchiveReport(app, command)
+		client.AppArchiveReport(rpc.BuildAppArchive(app, command))
 	}
 	ok := applications.AppStartByID(id)
 	if !ok {

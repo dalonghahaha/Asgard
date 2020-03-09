@@ -9,7 +9,6 @@ import (
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 
-	"Asgard/applications"
 	"Asgard/rpc"
 )
 
@@ -84,23 +83,10 @@ func GetTimingList(agentIP, agentPort string) ([]*rpc.Timing, error) {
 	return response.GetTimings(), nil
 }
 
-func AgentMonitorReport(agentIP string, agentPort string, Pid int, UUID string, monitor *applications.Monitor) {
-	agentMonitor := rpc.AgentMonitor{
-		Agent: &rpc.AgentInfo{
-			Ip:   agentIP,
-			Port: agentPort,
-		},
-		Monitor: &rpc.Monitor{
-			Uuid:    UUID,
-			Pid:     int32(Pid),
-			Cpu:     float32(monitor.CPUPercent),
-			Memory:  monitor.MemoryPercent,
-			Threads: int32(monitor.NumThreads),
-		},
-	}
+func AgentMonitorReport(agentMonitor *rpc.AgentMonitor) {
 	ctx, cancel := context.WithTimeout(context.Background(), TimeOut)
 	defer cancel()
-	response, err := MasterClient.AgentMonitorReport(ctx, &agentMonitor)
+	response, err := MasterClient.AgentMonitorReport(ctx, agentMonitor)
 	if err != nil {
 		logger.Error(fmt.Sprintf("agent moniter report failed：%s", err.Error()))
 		return
@@ -111,10 +97,10 @@ func AgentMonitorReport(agentIP string, agentPort string, Pid int, UUID string, 
 	}
 }
 
-func AppMonitorReport(app *applications.App, monitor *applications.Monitor) {
+func AppMonitorReport(appMonitor *rpc.AppMonitor) {
 	ctx, cancel := context.WithTimeout(context.Background(), TimeOut)
 	defer cancel()
-	response, err := MasterClient.AppMonitorReport(ctx, rpc.BuildAppMonitor(app, monitor))
+	response, err := MasterClient.AppMonitorReport(ctx, appMonitor)
 	if err != nil {
 		logger.Error(fmt.Sprintf("app moniter report failed：%s", err.Error()))
 		return
@@ -125,10 +111,10 @@ func AppMonitorReport(app *applications.App, monitor *applications.Monitor) {
 	}
 }
 
-func JobMonitorReport(job *applications.Job, monitor *applications.Monitor) {
+func JobMonitorReport(jobMonitor *rpc.JobMonior) {
 	ctx, cancel := context.WithTimeout(context.Background(), TimeOut)
 	defer cancel()
-	response, err := MasterClient.JobMoniorReport(ctx, rpc.BuildJobMonior(job, monitor))
+	response, err := MasterClient.JobMoniorReport(ctx, jobMonitor)
 	if err != nil {
 		logger.Error(fmt.Sprintf("job moniter report failed：%s", err.Error()))
 		return
@@ -139,10 +125,10 @@ func JobMonitorReport(job *applications.Job, monitor *applications.Monitor) {
 	}
 }
 
-func TimingMonitorReport(timing *applications.Timing, monitor *applications.Monitor) {
+func TimingMonitorReport(timingMonitor *rpc.TimingMonior) {
 	ctx, cancel := context.WithTimeout(context.Background(), TimeOut)
 	defer cancel()
-	response, err := MasterClient.TimingMoniorReport(ctx, rpc.BuildTimingMonior(timing, monitor))
+	response, err := MasterClient.TimingMoniorReport(ctx, timingMonitor)
 	if err != nil {
 		logger.Error(fmt.Sprintf("timing moniter report failed：%s", err.Error()))
 		return
@@ -153,10 +139,10 @@ func TimingMonitorReport(timing *applications.Timing, monitor *applications.Moni
 	}
 }
 
-func AppArchiveReport(app *applications.App, command *applications.Command) {
+func AppArchiveReport(appArchive *rpc.AppArchive) {
 	ctx, cancel := context.WithTimeout(context.Background(), TimeOut)
 	defer cancel()
-	response, err := MasterClient.AppArchiveReport(ctx, rpc.BuildAppArchive(app, command))
+	response, err := MasterClient.AppArchiveReport(ctx, appArchive)
 	if err != nil {
 		logger.Error(fmt.Sprintf("app archive report failed：%s", err.Error()))
 		return
@@ -167,10 +153,10 @@ func AppArchiveReport(app *applications.App, command *applications.Command) {
 	}
 }
 
-func JobArchiveReport(job *applications.Job, command *applications.Command) {
+func JobArchiveReport(jobArchive *rpc.JobArchive) {
 	ctx, cancel := context.WithTimeout(context.Background(), TimeOut)
 	defer cancel()
-	response, err := MasterClient.JobArchiveReport(ctx, rpc.BuildJobArchive(job, command))
+	response, err := MasterClient.JobArchiveReport(ctx, jobArchive)
 	if err != nil {
 		logger.Error(fmt.Sprintf("job archive report failed：%s", err.Error()))
 		return
@@ -181,10 +167,10 @@ func JobArchiveReport(job *applications.Job, command *applications.Command) {
 	}
 }
 
-func TimingArchiveReport(job *applications.Timing, command *applications.Command) {
+func TimingArchiveReport(timingArchive *rpc.TimingArchive) {
 	ctx, cancel := context.WithTimeout(context.Background(), TimeOut)
 	defer cancel()
-	response, err := MasterClient.TimingArchiveReport(ctx, rpc.BuildTimingArchive(job, command))
+	response, err := MasterClient.TimingArchiveReport(ctx, timingArchive)
 	if err != nil {
 		logger.Error(fmt.Sprintf("timing archive report failed：%s", err.Error()))
 		return

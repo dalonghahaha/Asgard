@@ -27,10 +27,9 @@ func TimingStartAll(moniter bool) {
 	duration := viper.GetInt("system.timer")
 	ticker = time.NewTicker(time.Second * time.Duration(duration))
 	for range ticker.C {
-		logger.Debug("timmer happen")
 		now := time.Now().Unix()
 		for _, timing := range Timings {
-			if timing.Time.Unix() < now {
+			if timing.Time.Unix() < now && !timing.Executed {
 				go timing.Run()
 			}
 		}
@@ -81,9 +80,10 @@ func TimingStopByID(id int64) bool {
 
 type Timing struct {
 	Command
-	ID      int64
-	Time    time.Time
-	TimeOut time.Duration
+	ID       int64
+	Time     time.Time
+	TimeOut  time.Duration
+	Executed bool
 }
 
 func (t *Timing) Run() {
@@ -122,7 +122,8 @@ func (j *Timing) timer(ch chan bool) {
 }
 
 func (t *Timing) record() {
-	info := fmt.Sprintf("%s finished with %.2f seconds", t.Name, t.End.Sub(t.Begin).Seconds())
+	t.Executed = true
+	info := fmt.Sprintf("%s executed with %.2f seconds", t.Name, t.End.Sub(t.Begin).Seconds())
 	logger.Info(info)
 }
 

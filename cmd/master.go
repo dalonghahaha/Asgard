@@ -12,6 +12,7 @@ import (
 	"google.golang.org/grpc/reflection"
 
 	"Asgard/client"
+	"Asgard/models"
 	"Asgard/rpc"
 	"Asgard/server"
 	"Asgard/services"
@@ -99,39 +100,39 @@ func CheckOnlineAgent() {
 	for _, agent := range agentList {
 		apps, err := client.GetAgentAppList(&agent)
 		if err != nil {
-			agent.Status = 0
+			agent.Status = models.AGENT_OFFLINE
 			agentService.UpdateAgent(&agent)
 		} else {
 			for _, app := range apps {
 				_app := appService.GetAppByID(app.GetId())
 				if _app != nil {
-					_app.Status = 1
+					_app.Status = models.STATUS_RUNNING
 					appService.UpdateApp(_app)
 				}
 			}
 		}
 		jobs, err := client.GetAgentJobList(&agent)
 		if err != nil {
-			agent.Status = 0
+			agent.Status = models.AGENT_OFFLINE
 			agentService.UpdateAgent(&agent)
 		} else {
 			for _, job := range jobs {
 				_job := jobService.GetJobByID(job.GetId())
 				if _job != nil {
-					_job.Status = 1
+					_job.Status = models.STATUS_RUNNING
 					jobService.UpdateJob(_job)
 				}
 			}
 		}
 		timings, err := client.GetAgentTimingList(&agent)
 		if err != nil {
-			agent.Status = 0
+			agent.Status = models.AGENT_OFFLINE
 			agentService.UpdateAgent(&agent)
 		} else {
 			for _, timing := range timings {
 				_timing := timingService.GetTimingByID(timing.GetId())
 				if _timing != nil {
-					_timing.Status = 1
+					_timing.Status = models.STATUS_RUNNING
 					timingService.UpdateTiming(_timing)
 				}
 			}
@@ -144,27 +145,27 @@ func CheckOfflineAgent() {
 	for _, agent := range agentList {
 		_, err := client.GetAgentStat(&agent)
 		if err == nil {
-			agent.Status = 1
+			agent.Status = models.AGENT_ONLINE
 			agentService.UpdateAgent(&agent)
 		} else {
 			apps := appService.GetAppByAgentID(agent.ID)
 			for _, app := range apps {
-				if app.Status != 2 {
-					app.Status = 0
+				if app.Status != models.STATUS_PAUSE {
+					app.Status = models.STATUS_STOP
 					appService.UpdateApp(&app)
 				}
 			}
 			jobs := jobService.GetJobByAgentID(agent.ID)
 			for _, job := range jobs {
-				if job.Status != 2 {
-					job.Status = 0
+				if job.Status != models.STATUS_PAUSE {
+					job.Status = models.STATUS_STOP
 					jobService.UpdateJob(&job)
 				}
 			}
 			timings := timingService.GetTimingByAgentID(agent.ID)
 			for _, timing := range timings {
-				if timing.Status != 2 {
-					timing.Status = 0
+				if timing.Status != models.STATUS_PAUSE {
+					timing.Status = models.STATUS_STOP
 					timingService.UpdateTiming(&timing)
 				}
 			}

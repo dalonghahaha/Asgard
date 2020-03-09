@@ -111,6 +111,22 @@ func BuildArchive(command *applications.Command) *Archive {
 	}
 }
 
+func BuildAgentMonitor(agentIP string, agentPort string, Pid int, UUID string, monitor *applications.Monitor) *AgentMonitor {
+	return &AgentMonitor{
+		Agent: &AgentInfo{
+			Ip:   agentIP,
+			Port: agentPort,
+		},
+		Monitor: &Monitor{
+			Uuid:    UUID,
+			Pid:     int32(Pid),
+			Cpu:     float32(monitor.CPUPercent),
+			Memory:  monitor.MemoryPercent,
+			Threads: int32(monitor.NumThreads),
+		},
+	}
+}
+
 func BuildAppMonitor(app *applications.App, monitor *applications.Monitor) *AppMonitor {
 	return &AppMonitor{
 		App: BuildApp(app),

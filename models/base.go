@@ -5,11 +5,20 @@ import (
 )
 
 const (
-	DB_NAME     = "asgard"
+	DB_NAME = "asgard"
+
 	TYPE_AGENT  = int64(1)
 	TYPE_APP    = int64(2)
 	TYPE_JOB    = int64(3)
 	TYPE_TIMING = int64(4)
+
+	AGENT_OFFLINE = int64(0)
+	AGENT_ONLINE  = int64(1)
+
+	STATUS_STOP     = int64(0)
+	STATUS_RUNNING  = int64(1)
+	STATUS_PAUSE    = int64(2)
+	STATUS_FINISHED = int64(3)
 )
 
 //Model基类，定义通用属性

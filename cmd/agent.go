@@ -124,7 +124,7 @@ func AgentMonitorReport() {
 		return
 	}
 	monitor := applications.BuildMonitor(info)
-	client.AgentMonitorReport(agentIP, agentPort, pid, agentUUID, monitor)
+	client.AgentMonitorReport(rpc.BuildAgentMonitor(agentIP, agentPort, pid, agentUUID, monitor))
 }
 
 func AppsRegister() error {
@@ -150,10 +150,10 @@ func AppsRegister() error {
 			return err
 		}
 		app.MonitorReport = func(monitor *applications.Monitor) {
-			client.AppMonitorReport(app, monitor)
+			client.AppMonitorReport(rpc.BuildAppMonitor(app, monitor))
 		}
 		app.ArchiveReport = func(command *applications.Command) {
-			client.AppArchiveReport(app, command)
+			client.AppArchiveReport(rpc.BuildAppArchive(app, command))
 		}
 	}
 	return nil
@@ -183,10 +183,10 @@ func JobsRegister() error {
 			return err
 		}
 		job.MonitorReport = func(monitor *applications.Monitor) {
-			client.JobMonitorReport(job, monitor)
+			client.JobMonitorReport(rpc.BuildJobMonior(job, monitor))
 		}
 		job.ArchiveReport = func(command *applications.Command) {
-			client.JobArchiveReport(job, command)
+			client.JobArchiveReport(rpc.BuildJobArchive(job, command))
 		}
 	}
 	return nil
@@ -216,10 +216,10 @@ func TimingsRegister() error {
 			return err
 		}
 		timing.MonitorReport = func(monitor *applications.Monitor) {
-			client.TimingMonitorReport(timing, monitor)
+			client.TimingMonitorReport(rpc.BuildTimingMonior(timing, monitor))
 		}
 		timing.ArchiveReport = func(command *applications.Command) {
-			client.TimingArchiveReport(timing, command)
+			client.TimingArchiveReport(rpc.BuildTimingArchive(timing, command))
 		}
 	}
 	return nil

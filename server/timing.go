@@ -13,10 +13,10 @@ func AddTiming(id int64, request *rpc.Timing) error {
 		return err
 	}
 	timing.MonitorReport = func(monitor *applications.Monitor) {
-		client.TimingMonitorReport(timing, monitor)
+		client.TimingMonitorReport(rpc.BuildTimingMonior(timing, monitor))
 	}
 	timing.ArchiveReport = func(command *applications.Command) {
-		client.TimingArchiveReport(timing, command)
+		client.TimingArchiveReport(rpc.BuildTimingArchive(timing, command))
 	}
 	applications.TimingAdd(id, timing)
 	return nil
