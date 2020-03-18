@@ -23,34 +23,34 @@ message AgentStatResponse {
     AgentStat agentStat = 2;
 }
 
+message LogRuquest {
+    string dir = 1;
+    int64 lines  =2;
+}
+
 message LogResponse {
-    repeated string content = 2;
+    repeated bytes content = 2;
 }
 
 service Agent {
     rpc Stat (Empty) returns (AgentStatResponse) {}
+    rpc Log (LogRuquest) returns (LogResponse) {}
     
     rpc AppList (Empty) returns (AppListResponse) {}
     rpc AppGet (ID) returns (AppResponse) {}
     rpc AppAdd (App) returns (Response) {}
     rpc AppUpdate (App) returns (Response) {}
     rpc AppRemove (ID) returns (Response) {}
-    rpc AppOutLog (ID) returns (LogResponse) {}
-    rpc AppErrLog (ID) returns (LogResponse) {}
 
     rpc JobList (Empty) returns (JobListResponse) {}
     rpc JobGet (ID) returns (JobResponse) {}
     rpc JobAdd (Job) returns (Response) {}
     rpc JobUpdate (Job) returns (Response) {}
     rpc JobRemove (ID) returns (Response) {}
-    rpc JobOutLog (ID) returns (LogResponse) {}
-    rpc JobErrLog (ID) returns (LogResponse) {}
 
     rpc TimingList (Empty) returns (TimingListResponse) {}
     rpc TimingGet (ID) returns (TimingResponse) {}
     rpc TimingAdd (Timing) returns (Response) {}
     rpc TimingUpdate (Timing) returns (Response) {}
     rpc TimingRemove (ID) returns (Response) {}
-    rpc TimingOutLog (ID) returns (LogResponse) {}
-    rpc TimingErrLog (ID) returns (LogResponse) {}
 }

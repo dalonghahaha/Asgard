@@ -173,8 +173,55 @@ func (m *AgentStatResponse) GetAgentStat() *AgentStat {
 	return nil
 }
 
+type LogRuquest struct {
+	Dir                  string   `protobuf:"bytes,1,opt,name=dir,proto3" json:"dir,omitempty"`
+	Lines                int64    `protobuf:"varint,2,opt,name=lines,proto3" json:"lines,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *LogRuquest) Reset()         { *m = LogRuquest{} }
+func (m *LogRuquest) String() string { return proto.CompactTextString(m) }
+func (*LogRuquest) ProtoMessage()    {}
+func (*LogRuquest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_56ede974c0020f77, []int{3}
+}
+
+func (m *LogRuquest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_LogRuquest.Unmarshal(m, b)
+}
+func (m *LogRuquest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_LogRuquest.Marshal(b, m, deterministic)
+}
+func (m *LogRuquest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_LogRuquest.Merge(m, src)
+}
+func (m *LogRuquest) XXX_Size() int {
+	return xxx_messageInfo_LogRuquest.Size(m)
+}
+func (m *LogRuquest) XXX_DiscardUnknown() {
+	xxx_messageInfo_LogRuquest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_LogRuquest proto.InternalMessageInfo
+
+func (m *LogRuquest) GetDir() string {
+	if m != nil {
+		return m.Dir
+	}
+	return ""
+}
+
+func (m *LogRuquest) GetLines() int64 {
+	if m != nil {
+		return m.Lines
+	}
+	return 0
+}
+
 type LogResponse struct {
-	Content              []string `protobuf:"bytes,2,rep,name=content,proto3" json:"content,omitempty"`
+	Content              [][]byte `protobuf:"bytes,2,rep,name=content,proto3" json:"content,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -184,7 +231,7 @@ func (m *LogResponse) Reset()         { *m = LogResponse{} }
 func (m *LogResponse) String() string { return proto.CompactTextString(m) }
 func (*LogResponse) ProtoMessage()    {}
 func (*LogResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_56ede974c0020f77, []int{3}
+	return fileDescriptor_56ede974c0020f77, []int{4}
 }
 
 func (m *LogResponse) XXX_Unmarshal(b []byte) error {
@@ -205,7 +252,7 @@ func (m *LogResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_LogResponse proto.InternalMessageInfo
 
-func (m *LogResponse) GetContent() []string {
+func (m *LogResponse) GetContent() [][]byte {
 	if m != nil {
 		return m.Content
 	}
@@ -216,41 +263,42 @@ func init() {
 	proto.RegisterType((*AgentInfo)(nil), "AgentInfo")
 	proto.RegisterType((*AgentStat)(nil), "AgentStat")
 	proto.RegisterType((*AgentStatResponse)(nil), "AgentStatResponse")
+	proto.RegisterType((*LogRuquest)(nil), "LogRuquest")
 	proto.RegisterType((*LogResponse)(nil), "LogResponse")
 }
 
 func init() { proto.RegisterFile("agent.proto", fileDescriptor_56ede974c0020f77) }
 
 var fileDescriptor_56ede974c0020f77 = []byte{
-	// 440 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x94, 0xdf, 0x8b, 0xd3, 0x40,
-	0x10, 0xc7, 0xbd, 0xa6, 0x6d, 0xc8, 0xb4, 0xf8, 0x63, 0x7d, 0x09, 0x95, 0x4a, 0xcd, 0xdd, 0x61,
-	0x41, 0x88, 0x70, 0xfe, 0x05, 0x11, 0x0f, 0xb9, 0x50, 0x11, 0xa3, 0xbe, 0xf8, 0x96, 0x6d, 0xd7,
-	0x92, 0x83, 0x66, 0x86, 0x64, 0x15, 0x7c, 0xf3, 0x4f, 0x97, 0x9d, 0xec, 0xa6, 0x89, 0xbd, 0xcb,
-	0xbd, 0xcd, 0x7e, 0xbf, 0xdf, 0x99, 0xdd, 0xcf, 0x10, 0x02, 0xb3, 0x7c, 0xaf, 0x4a, 0x1d, 0x53,
-	0x85, 0x1a, 0x17, 0x20, 0xf3, 0x5a, 0xd9, 0x3a, 0xc8, 0x89, 0x5c, 0x79, 0x8b, 0xd2, 0x96, 0x73,
-	0x5d, 0x1c, 0x8a, 0x72, 0xdf, 0x9c, 0xa2, 0xb7, 0x10, 0x24, 0xa6, 0xfd, 0xa6, 0xfc, 0x89, 0xe2,
-	0x31, 0x8c, 0x0a, 0x0a, 0xcf, 0x56, 0x67, 0xeb, 0x20, 0x1b, 0x15, 0x24, 0x04, 0x8c, 0x09, 0x2b,
-	0x1d, 0x8e, 0x58, 0xe1, 0x3a, 0xfa, 0x64, 0x1b, 0xbe, 0xea, 0x5c, 0x9b, 0x40, 0x4e, 0x54, 0x73,
-	0x8b, 0x97, 0x71, 0x6d, 0xb4, 0x5b, 0x94, 0x35, 0x37, 0x79, 0x19, 0xd7, 0x22, 0x04, 0xbf, 0xb9,
-	0xb5, 0x0e, 0x3d, 0x96, 0xdd, 0x31, 0xfa, 0x02, 0xcf, 0xda, 0x71, 0x99, 0xaa, 0x09, 0xcb, 0x5a,
-	0x99, 0x11, 0x5b, 0xdc, 0x29, 0x1e, 0x3b, 0xc9, 0xb8, 0x16, 0x6b, 0x08, 0x72, 0x17, 0xe4, 0xd9,
-	0xb3, 0x2b, 0x88, 0x8f, 0xad, 0x47, 0x33, 0x7a, 0x0d, 0xb3, 0x0d, 0xee, 0xdb, 0x61, 0x21, 0xf8,
-	0x5b, 0x2c, 0xb5, 0x2a, 0x4d, 0x9b, 0xb7, 0x0e, 0x32, 0x77, 0xbc, 0xfa, 0x3b, 0x85, 0x09, 0x4f,
-	0x10, 0x17, 0x30, 0x66, 0x9e, 0x69, 0x7c, 0x7d, 0x20, 0xfd, 0x67, 0x21, 0xe2, 0x93, 0x47, 0x45,
-	0x8f, 0xc4, 0x25, 0xf8, 0x09, 0xd1, 0xa6, 0xa8, 0x8f, 0xc1, 0xa7, 0xb1, 0x55, 0x3a, 0xb1, 0x25,
-	0x4c, 0x13, 0xa2, 0x8f, 0x4a, 0x0b, 0x2f, 0xbe, 0xf9, 0xb0, 0x98, 0x9b, 0x48, 0xc7, 0x7e, 0xc1,
-	0x76, 0xb2, 0xdb, 0x89, 0xb1, 0x71, 0x16, 0x41, 0xdc, 0x31, 0x5f, 0x42, 0x90, 0x10, 0x7d, 0xa7,
-	0x5d, 0xae, 0xd5, 0x5d, 0xfe, 0x92, 0xfd, 0x4c, 0x1d, 0xf0, 0xb7, 0x6a, 0xc6, 0xf7, 0xec, 0x15,
-	0xdb, 0x9f, 0x7f, 0xe9, 0x0d, 0xee, 0xdd, 0xed, 0x9d, 0x5d, 0xb4, 0x89, 0xeb, 0xaa, 0xba, 0x37,
-	0x71, 0x09, 0x7e, 0x8a, 0xf2, 0x3f, 0x4a, 0xab, 0xf4, 0x29, 0x53, 0x94, 0x1d, 0xca, 0x14, 0x65,
-	0x9f, 0x32, 0x45, 0xd9, 0x50, 0xa6, 0x28, 0x4f, 0x28, 0x53, 0x94, 0x2d, 0xe5, 0x89, 0xbf, 0x64,
-	0x7f, 0x88, 0x32, 0x45, 0xf9, 0x00, 0x65, 0x8a, 0x72, 0x88, 0xf2, 0x0d, 0xc0, 0x37, 0xfe, 0x04,
-	0x7b, 0xa0, 0xcf, 0xe3, 0xa3, 0xd8, 0x09, 0x9f, 0x43, 0xd0, 0xe8, 0x2d, 0xee, 0x13, 0x1b, 0xec,
-	0x84, 0x5e, 0xb9, 0x90, 0x81, 0xf6, 0xad, 0xdf, 0x7f, 0xf8, 0x05, 0xcc, 0x1b, 0xd9, 0xa2, 0xdf,
-	0x9d, 0x5a, 0xb9, 0xd4, 0xbd, 0x0b, 0x38, 0x77, 0x89, 0xa1, 0x1d, 0xb4, 0xa1, 0x81, 0x35, 0xbc,
-	0x9f, 0xfc, 0xf0, 0x2a, 0xda, 0xca, 0x29, 0xff, 0x0c, 0xde, 0xfd, 0x0b, 0x00, 0x00, 0xff, 0xff,
-	0x86, 0x7c, 0x3c, 0xb6, 0x4b, 0x04, 0x00, 0x00,
+	// 448 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x74, 0x93, 0xc1, 0x6e, 0xd3, 0x40,
+	0x10, 0x86, 0xdb, 0x38, 0x89, 0xe5, 0x89, 0x05, 0x65, 0xe1, 0x60, 0x19, 0x05, 0x15, 0xd3, 0x8a,
+	0x48, 0x48, 0x8b, 0x54, 0x78, 0x01, 0x23, 0x10, 0xaa, 0x15, 0x0e, 0x18, 0xb8, 0x70, 0xf3, 0xc6,
+	0x4b, 0xe4, 0x8a, 0x78, 0x86, 0x78, 0x8b, 0xc4, 0x6b, 0xf2, 0x44, 0x68, 0xc7, 0xeb, 0xd8, 0x26,
+	0xed, 0x6d, 0xe6, 0xff, 0xff, 0x99, 0xf9, 0x36, 0x8a, 0x61, 0x51, 0x6c, 0x75, 0x6d, 0x24, 0xed,
+	0xd1, 0x60, 0x0c, 0xaa, 0x68, 0xb4, 0xab, 0x83, 0x82, 0xa8, 0x2b, 0x6f, 0x50, 0xb9, 0x32, 0x34,
+	0xd5, 0xae, 0xaa, 0xb7, 0x6d, 0x97, 0xbc, 0x86, 0x20, 0xb5, 0xe3, 0xd7, 0xf5, 0x0f, 0x14, 0x0f,
+	0x60, 0x52, 0x51, 0x74, 0x7a, 0x7e, 0xba, 0x0a, 0xf2, 0x49, 0x45, 0x42, 0xc0, 0x94, 0x70, 0x6f,
+	0xa2, 0x09, 0x2b, 0x5c, 0x27, 0x9f, 0xdc, 0xc0, 0x17, 0x53, 0x18, 0x1b, 0x28, 0x88, 0x1a, 0x1e,
+	0xf1, 0x72, 0xae, 0xad, 0x76, 0x83, 0xaa, 0xe1, 0x21, 0x2f, 0xe7, 0x5a, 0x44, 0xe0, 0xb7, 0x57,
+	0x9b, 0xc8, 0x63, 0xb9, 0x6b, 0x93, 0xcf, 0xf0, 0xe8, 0xb0, 0x2e, 0xd7, 0x0d, 0x61, 0xdd, 0x68,
+	0xbb, 0x62, 0x83, 0xa5, 0xe6, 0xb5, 0xb3, 0x9c, 0x6b, 0xb1, 0x82, 0xa0, 0xe8, 0x82, 0xbc, 0x7b,
+	0x71, 0x05, 0xb2, 0x1f, 0xed, 0xcd, 0xe4, 0x2d, 0xc0, 0x1a, 0xb7, 0xf9, 0xed, 0xaf, 0x5b, 0xdd,
+	0x18, 0x71, 0x06, 0x5e, 0x59, 0xed, 0xdd, 0xa3, 0x6c, 0x29, 0x9e, 0xc0, 0xec, 0x67, 0x55, 0xeb,
+	0x8e, 0xb0, 0x6d, 0x92, 0x97, 0xb0, 0xb0, 0x53, 0x1d, 0x42, 0x04, 0xfe, 0x06, 0x6b, 0xa3, 0x6b,
+	0x7b, 0xcc, 0x5b, 0x85, 0x79, 0xd7, 0x5e, 0xfd, 0x9d, 0xc2, 0x8c, 0xef, 0x8a, 0x0b, 0x98, 0xf2,
+	0xaf, 0x30, 0x97, 0x1f, 0x76, 0x64, 0xfe, 0xc4, 0x42, 0x1e, 0x3d, 0x25, 0x39, 0x11, 0x09, 0x78,
+	0x6b, 0xdc, 0x8a, 0x85, 0xec, 0xa1, 0xe2, 0x50, 0x0e, 0x6e, 0x25, 0x27, 0xe2, 0x12, 0xfc, 0x94,
+	0x68, 0x5d, 0x35, 0xfd, 0xb2, 0x33, 0xe9, 0x94, 0x41, 0x6c, 0x09, 0xf3, 0x94, 0xe8, 0xa3, 0x36,
+	0xc2, 0x93, 0xd7, 0xef, 0xe3, 0xd0, 0x46, 0x06, 0xf6, 0x53, 0xb6, 0xd3, 0xb2, 0x14, 0x53, 0xeb,
+	0xc4, 0x81, 0x1c, 0x98, 0xcf, 0x20, 0x48, 0x89, 0xbe, 0x51, 0x59, 0x18, 0x7d, 0x97, 0xbf, 0x64,
+	0x3f, 0xd7, 0x3b, 0xfc, 0xad, 0xdb, 0xf5, 0x23, 0xfb, 0x12, 0xfc, 0x0c, 0xd5, 0x7f, 0x84, 0x4e,
+	0x19, 0x13, 0x66, 0xa8, 0x06, 0x84, 0x19, 0xaa, 0x31, 0x61, 0x86, 0xaa, 0x25, 0xcc, 0x50, 0x1d,
+	0x11, 0x66, 0xa8, 0x0e, 0x84, 0x47, 0xfe, 0x92, 0xfd, 0x7b, 0x09, 0x5f, 0x01, 0x7c, 0xe5, 0x3f,
+	0xd5, 0x08, 0xf2, 0xb1, 0xec, 0xc5, 0x41, 0xf8, 0x05, 0x04, 0xad, 0x7e, 0x40, 0x7d, 0xe8, 0x82,
+	0x83, 0xd0, 0xf3, 0x2e, 0x64, 0x81, 0x7d, 0xe7, 0x8f, 0x8f, 0x5e, 0x40, 0xd8, 0xca, 0x0e, 0xfb,
+	0xee, 0xd4, 0x79, 0x97, 0xba, 0x0f, 0xfe, 0xdd, 0xec, 0xbb, 0xb7, 0xa7, 0x8d, 0x9a, 0xf3, 0x47,
+	0xf9, 0xe6, 0x5f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xd4, 0x88, 0x98, 0xc4, 0xd3, 0x03, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -266,27 +314,22 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type AgentClient interface {
 	Stat(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*AgentStatResponse, error)
+	Log(ctx context.Context, in *LogRuquest, opts ...grpc.CallOption) (*LogResponse, error)
 	AppList(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*AppListResponse, error)
 	AppGet(ctx context.Context, in *ID, opts ...grpc.CallOption) (*AppResponse, error)
 	AppAdd(ctx context.Context, in *App, opts ...grpc.CallOption) (*Response, error)
 	AppUpdate(ctx context.Context, in *App, opts ...grpc.CallOption) (*Response, error)
 	AppRemove(ctx context.Context, in *ID, opts ...grpc.CallOption) (*Response, error)
-	AppOutLog(ctx context.Context, in *ID, opts ...grpc.CallOption) (*LogResponse, error)
-	AppErrLog(ctx context.Context, in *ID, opts ...grpc.CallOption) (*LogResponse, error)
 	JobList(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*JobListResponse, error)
 	JobGet(ctx context.Context, in *ID, opts ...grpc.CallOption) (*JobResponse, error)
 	JobAdd(ctx context.Context, in *Job, opts ...grpc.CallOption) (*Response, error)
 	JobUpdate(ctx context.Context, in *Job, opts ...grpc.CallOption) (*Response, error)
 	JobRemove(ctx context.Context, in *ID, opts ...grpc.CallOption) (*Response, error)
-	JobOutLog(ctx context.Context, in *ID, opts ...grpc.CallOption) (*LogResponse, error)
-	JobErrLog(ctx context.Context, in *ID, opts ...grpc.CallOption) (*LogResponse, error)
 	TimingList(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*TimingListResponse, error)
 	TimingGet(ctx context.Context, in *ID, opts ...grpc.CallOption) (*TimingResponse, error)
 	TimingAdd(ctx context.Context, in *Timing, opts ...grpc.CallOption) (*Response, error)
 	TimingUpdate(ctx context.Context, in *Timing, opts ...grpc.CallOption) (*Response, error)
 	TimingRemove(ctx context.Context, in *ID, opts ...grpc.CallOption) (*Response, error)
-	TimingOutLog(ctx context.Context, in *ID, opts ...grpc.CallOption) (*LogResponse, error)
-	TimingErrLog(ctx context.Context, in *ID, opts ...grpc.CallOption) (*LogResponse, error)
 }
 
 type agentClient struct {
@@ -300,6 +343,15 @@ func NewAgentClient(cc *grpc.ClientConn) AgentClient {
 func (c *agentClient) Stat(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*AgentStatResponse, error) {
 	out := new(AgentStatResponse)
 	err := c.cc.Invoke(ctx, "/Agent/Stat", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentClient) Log(ctx context.Context, in *LogRuquest, opts ...grpc.CallOption) (*LogResponse, error) {
+	out := new(LogResponse)
+	err := c.cc.Invoke(ctx, "/Agent/Log", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -351,24 +403,6 @@ func (c *agentClient) AppRemove(ctx context.Context, in *ID, opts ...grpc.CallOp
 	return out, nil
 }
 
-func (c *agentClient) AppOutLog(ctx context.Context, in *ID, opts ...grpc.CallOption) (*LogResponse, error) {
-	out := new(LogResponse)
-	err := c.cc.Invoke(ctx, "/Agent/AppOutLog", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *agentClient) AppErrLog(ctx context.Context, in *ID, opts ...grpc.CallOption) (*LogResponse, error) {
-	out := new(LogResponse)
-	err := c.cc.Invoke(ctx, "/Agent/AppErrLog", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *agentClient) JobList(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*JobListResponse, error) {
 	out := new(JobListResponse)
 	err := c.cc.Invoke(ctx, "/Agent/JobList", in, out, opts...)
@@ -408,24 +442,6 @@ func (c *agentClient) JobUpdate(ctx context.Context, in *Job, opts ...grpc.CallO
 func (c *agentClient) JobRemove(ctx context.Context, in *ID, opts ...grpc.CallOption) (*Response, error) {
 	out := new(Response)
 	err := c.cc.Invoke(ctx, "/Agent/JobRemove", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *agentClient) JobOutLog(ctx context.Context, in *ID, opts ...grpc.CallOption) (*LogResponse, error) {
-	out := new(LogResponse)
-	err := c.cc.Invoke(ctx, "/Agent/JobOutLog", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *agentClient) JobErrLog(ctx context.Context, in *ID, opts ...grpc.CallOption) (*LogResponse, error) {
-	out := new(LogResponse)
-	err := c.cc.Invoke(ctx, "/Agent/JobErrLog", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -477,48 +493,25 @@ func (c *agentClient) TimingRemove(ctx context.Context, in *ID, opts ...grpc.Cal
 	return out, nil
 }
 
-func (c *agentClient) TimingOutLog(ctx context.Context, in *ID, opts ...grpc.CallOption) (*LogResponse, error) {
-	out := new(LogResponse)
-	err := c.cc.Invoke(ctx, "/Agent/TimingOutLog", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *agentClient) TimingErrLog(ctx context.Context, in *ID, opts ...grpc.CallOption) (*LogResponse, error) {
-	out := new(LogResponse)
-	err := c.cc.Invoke(ctx, "/Agent/TimingErrLog", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // AgentServer is the server API for Agent service.
 type AgentServer interface {
 	Stat(context.Context, *Empty) (*AgentStatResponse, error)
+	Log(context.Context, *LogRuquest) (*LogResponse, error)
 	AppList(context.Context, *Empty) (*AppListResponse, error)
 	AppGet(context.Context, *ID) (*AppResponse, error)
 	AppAdd(context.Context, *App) (*Response, error)
 	AppUpdate(context.Context, *App) (*Response, error)
 	AppRemove(context.Context, *ID) (*Response, error)
-	AppOutLog(context.Context, *ID) (*LogResponse, error)
-	AppErrLog(context.Context, *ID) (*LogResponse, error)
 	JobList(context.Context, *Empty) (*JobListResponse, error)
 	JobGet(context.Context, *ID) (*JobResponse, error)
 	JobAdd(context.Context, *Job) (*Response, error)
 	JobUpdate(context.Context, *Job) (*Response, error)
 	JobRemove(context.Context, *ID) (*Response, error)
-	JobOutLog(context.Context, *ID) (*LogResponse, error)
-	JobErrLog(context.Context, *ID) (*LogResponse, error)
 	TimingList(context.Context, *Empty) (*TimingListResponse, error)
 	TimingGet(context.Context, *ID) (*TimingResponse, error)
 	TimingAdd(context.Context, *Timing) (*Response, error)
 	TimingUpdate(context.Context, *Timing) (*Response, error)
 	TimingRemove(context.Context, *ID) (*Response, error)
-	TimingOutLog(context.Context, *ID) (*LogResponse, error)
-	TimingErrLog(context.Context, *ID) (*LogResponse, error)
 }
 
 // UnimplementedAgentServer can be embedded to have forward compatible implementations.
@@ -527,6 +520,9 @@ type UnimplementedAgentServer struct {
 
 func (*UnimplementedAgentServer) Stat(ctx context.Context, req *Empty) (*AgentStatResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Stat not implemented")
+}
+func (*UnimplementedAgentServer) Log(ctx context.Context, req *LogRuquest) (*LogResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Log not implemented")
 }
 func (*UnimplementedAgentServer) AppList(ctx context.Context, req *Empty) (*AppListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AppList not implemented")
@@ -543,12 +539,6 @@ func (*UnimplementedAgentServer) AppUpdate(ctx context.Context, req *App) (*Resp
 func (*UnimplementedAgentServer) AppRemove(ctx context.Context, req *ID) (*Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AppRemove not implemented")
 }
-func (*UnimplementedAgentServer) AppOutLog(ctx context.Context, req *ID) (*LogResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AppOutLog not implemented")
-}
-func (*UnimplementedAgentServer) AppErrLog(ctx context.Context, req *ID) (*LogResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AppErrLog not implemented")
-}
 func (*UnimplementedAgentServer) JobList(ctx context.Context, req *Empty) (*JobListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method JobList not implemented")
 }
@@ -564,12 +554,6 @@ func (*UnimplementedAgentServer) JobUpdate(ctx context.Context, req *Job) (*Resp
 func (*UnimplementedAgentServer) JobRemove(ctx context.Context, req *ID) (*Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method JobRemove not implemented")
 }
-func (*UnimplementedAgentServer) JobOutLog(ctx context.Context, req *ID) (*LogResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method JobOutLog not implemented")
-}
-func (*UnimplementedAgentServer) JobErrLog(ctx context.Context, req *ID) (*LogResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method JobErrLog not implemented")
-}
 func (*UnimplementedAgentServer) TimingList(ctx context.Context, req *Empty) (*TimingListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TimingList not implemented")
 }
@@ -584,12 +568,6 @@ func (*UnimplementedAgentServer) TimingUpdate(ctx context.Context, req *Timing) 
 }
 func (*UnimplementedAgentServer) TimingRemove(ctx context.Context, req *ID) (*Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TimingRemove not implemented")
-}
-func (*UnimplementedAgentServer) TimingOutLog(ctx context.Context, req *ID) (*LogResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method TimingOutLog not implemented")
-}
-func (*UnimplementedAgentServer) TimingErrLog(ctx context.Context, req *ID) (*LogResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method TimingErrLog not implemented")
 }
 
 func RegisterAgentServer(s *grpc.Server, srv AgentServer) {
@@ -610,6 +588,24 @@ func _Agent_Stat_Handler(srv interface{}, ctx context.Context, dec func(interfac
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AgentServer).Stat(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Agent_Log_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LogRuquest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServer).Log(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Agent/Log",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServer).Log(ctx, req.(*LogRuquest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -704,42 +700,6 @@ func _Agent_AppRemove_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Agent_AppOutLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ID)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AgentServer).AppOutLog(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/Agent/AppOutLog",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentServer).AppOutLog(ctx, req.(*ID))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Agent_AppErrLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ID)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AgentServer).AppErrLog(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/Agent/AppErrLog",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentServer).AppErrLog(ctx, req.(*ID))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Agent_JobList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
@@ -826,42 +786,6 @@ func _Agent_JobRemove_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AgentServer).JobRemove(ctx, req.(*ID))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Agent_JobOutLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ID)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AgentServer).JobOutLog(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/Agent/JobOutLog",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentServer).JobOutLog(ctx, req.(*ID))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Agent_JobErrLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ID)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AgentServer).JobErrLog(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/Agent/JobErrLog",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentServer).JobErrLog(ctx, req.(*ID))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -956,42 +880,6 @@ func _Agent_TimingRemove_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Agent_TimingOutLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ID)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AgentServer).TimingOutLog(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/Agent/TimingOutLog",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentServer).TimingOutLog(ctx, req.(*ID))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Agent_TimingErrLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ID)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AgentServer).TimingErrLog(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/Agent/TimingErrLog",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentServer).TimingErrLog(ctx, req.(*ID))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 var _Agent_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "Agent",
 	HandlerType: (*AgentServer)(nil),
@@ -999,6 +887,10 @@ var _Agent_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Stat",
 			Handler:    _Agent_Stat_Handler,
+		},
+		{
+			MethodName: "Log",
+			Handler:    _Agent_Log_Handler,
 		},
 		{
 			MethodName: "AppList",
@@ -1021,14 +913,6 @@ var _Agent_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Agent_AppRemove_Handler,
 		},
 		{
-			MethodName: "AppOutLog",
-			Handler:    _Agent_AppOutLog_Handler,
-		},
-		{
-			MethodName: "AppErrLog",
-			Handler:    _Agent_AppErrLog_Handler,
-		},
-		{
 			MethodName: "JobList",
 			Handler:    _Agent_JobList_Handler,
 		},
@@ -1049,14 +933,6 @@ var _Agent_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Agent_JobRemove_Handler,
 		},
 		{
-			MethodName: "JobOutLog",
-			Handler:    _Agent_JobOutLog_Handler,
-		},
-		{
-			MethodName: "JobErrLog",
-			Handler:    _Agent_JobErrLog_Handler,
-		},
-		{
 			MethodName: "TimingList",
 			Handler:    _Agent_TimingList_Handler,
 		},
@@ -1075,14 +951,6 @@ var _Agent_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TimingRemove",
 			Handler:    _Agent_TimingRemove_Handler,
-		},
-		{
-			MethodName: "TimingOutLog",
-			Handler:    _Agent_TimingOutLog_Handler,
-		},
-		{
-			MethodName: "TimingErrLog",
-			Handler:    _Agent_TimingErrLog_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

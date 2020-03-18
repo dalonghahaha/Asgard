@@ -73,6 +73,8 @@ func setupRouter() {
 		job.GET("/start", jobController.Start)
 		job.GET("/restart", jobController.ReStart)
 		job.GET("/pause", jobController.Pause)
+		job.GET("/out_log", jobController.OutLog)
+		job.GET("/err_log", jobController.ErrLog)
 	}
 	timing := server.Group("/timing")
 	timing.Use(middlewares.Login)
@@ -89,5 +91,7 @@ func setupRouter() {
 		timing.GET("/start", timingController.Start)
 		timing.GET("/restart", timingController.ReStart)
 		timing.GET("/pause", timingController.Pause)
+		timing.GET("/out_log", timingController.OutLog)
+		timing.GET("/err_log", timingController.ErrLog)
 	}
 }

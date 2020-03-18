@@ -24,6 +24,10 @@ func (s *AgentServer) Stat(ctx context.Context, request *rpc.Empty) (*rpc.AgentS
 	return stat, nil
 }
 
+func (s *AgentServer) Log(ctx context.Context, request *rpc.LogRuquest) (*rpc.LogResponse, error) {
+	return &rpc.LogResponse{Content: GetLog(request.GetDir(), int(request.GetLines()))}, nil
+}
+
 func (s *AgentServer) AppList(ctx context.Context, request *rpc.Empty) (*rpc.AppListResponse, error) {
 	return &rpc.AppListResponse{Code: rpc.OK, Apps: GetAppList()}, nil
 }
@@ -48,14 +52,6 @@ func (s *AgentServer) AppUpdate(ctx context.Context, request *rpc.App) (*rpc.Res
 		return s.Error(err.Error())
 	}
 	return s.OK()
-}
-
-func (s *AgentServer) AppOutLog(ctx context.Context, request *rpc.ID) (*rpc.LogResponse, error) {
-	return &rpc.LogResponse{Content: GetAppOutLog(request.GetId())}, nil
-}
-
-func (s *AgentServer) AppErrLog(ctx context.Context, request *rpc.ID) (*rpc.LogResponse, error) {
-	return &rpc.LogResponse{Content: GetAppErrLog(request.GetId())}, nil
 }
 
 func (s *AgentServer) AppRemove(ctx context.Context, request *rpc.ID) (*rpc.Response, error) {
@@ -121,14 +117,6 @@ func (s *AgentServer) JobRemove(ctx context.Context, request *rpc.ID) (*rpc.Resp
 	return s.OK()
 }
 
-func (s *AgentServer) JobOutLog(ctx context.Context, request *rpc.ID) (*rpc.LogResponse, error) {
-	return &rpc.LogResponse{Content: GetJobOutLog(request.GetId())}, nil
-}
-
-func (s *AgentServer) JobErrLog(ctx context.Context, request *rpc.ID) (*rpc.LogResponse, error) {
-	return &rpc.LogResponse{Content: GetJobErrLog(request.GetId())}, nil
-}
-
 func (s *AgentServer) TimingList(ctx context.Context, request *rpc.Empty) (*rpc.TimingListResponse, error) {
 	list := []*rpc.Timing{}
 	for _, timing := range applications.Timings {
@@ -186,12 +174,4 @@ func (s *AgentServer) TimingRemove(ctx context.Context, request *rpc.ID) (*rpc.R
 		return s.Error(err.Error())
 	}
 	return s.OK()
-}
-
-func (s *AgentServer) TimingOutLog(ctx context.Context, request *rpc.ID) (*rpc.LogResponse, error) {
-	return &rpc.LogResponse{Content: GetTimingOutLog(request.GetId())}, nil
-}
-
-func (s *AgentServer) TimingErrLog(ctx context.Context, request *rpc.ID) (*rpc.LogResponse, error) {
-	return &rpc.LogResponse{Content: GetTimingErrLog(request.GetId())}, nil
 }

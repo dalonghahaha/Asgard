@@ -1,11 +1,13 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"os/exec"
+	"strconv"
+	"strings"
 
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
-	grpc_logrus "github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 
@@ -38,13 +40,40 @@ func recoverInterceptor() grpc.UnaryServerInterceptor {
 }
 
 func NewRPCServer() *grpc.Server {
-	grpc_logrus.ReplaceGrpcLogger(logrus.NewEntry(grpcLogger))
-	option := grpc_middleware.WithUnaryServerChain(
-		recoverInterceptor(),
+	// grpc_logrus.ReplaceGrpcLogger(logrus.NewEntry(grpcLogger))
+	// option := grpc_middleware.WithUnaryServerChain(
+	// 	recoverInterceptor(),
+	// )
+	return grpc.NewServer(
+		grpc.MaxRecvMsgSize(1024*1024*1024),
+		grpc.MaxSendMsgSize(1024*1024*1024),
 	)
-	return grpc.NewServer(option)
 }
 
 func DefaultServer() *grpc.Server {
 	return grpc.NewServer()
+}
+
+func GetLog(dir string, lines int) [][]byte {
+	content := [][]byte{}
+	info := Shell("tail", "-"+strconv.Itoa(lines), dir)
+	for _, line := range strings.Split(info, "\n") {
+		content = append(content, []byte(line))
+	}
+	return content
+}
+
+func Shell(executor string, args ...string) string {
+	cmd := exec.Command(executor, args...)
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	if err != nil {
+		fmt.Println(err.Error(), stderr.String())
+		return ""
+	}
+	result := out.String()
+	return strings.Trim(result, "\n")
 }

@@ -442,6 +442,7 @@ func (c *AppController) Pause(ctx *gin.Context) {
 
 func (c *AppController) OutLog(ctx *gin.Context) {
 	id := DefaultInt(ctx, "id", 0)
+	lines := DefaultInt(ctx, "lines", 10)
 	if id == 0 {
 		JumpError(ctx)
 		return
@@ -456,19 +457,23 @@ func (c *AppController) OutLog(ctx *gin.Context) {
 		JumpError(ctx)
 		return
 	}
-	content, err := client.GetAgentAppOutLog(agent, int64(id))
+	content, err := client.GetAgentLog(agent, app.StdOut, int64(lines))
 	if err != nil {
 		JumpError(ctx)
 		return
 	}
 	ctx.HTML(StatusOK, "app/log", gin.H{
-		"Subtitle": "正常日志",
+		"Subtitle": "应用正常日志查看",
+		"ID":       id,
+		"Lines":    lines,
+		"Type":     "out_log",
 		"Content":  content,
 	})
 }
 
 func (c *AppController) ErrLog(ctx *gin.Context) {
 	id := DefaultInt(ctx, "id", 0)
+	lines := DefaultInt(ctx, "lines", 10)
 	if id == 0 {
 		JumpError(ctx)
 		return
@@ -483,13 +488,16 @@ func (c *AppController) ErrLog(ctx *gin.Context) {
 		JumpError(ctx)
 		return
 	}
-	content, err := client.GetAgentAppErrLog(agent, int64(id))
+	content, err := client.GetAgentLog(agent, app.StdErr, int64(lines))
 	if err != nil {
 		JumpError(ctx)
 		return
 	}
 	ctx.HTML(StatusOK, "app/log", gin.H{
-		"Subtitle": "错误日志",
+		"Subtitle": "应用错误日志查看",
+		"ID":       id,
+		"Lines":    lines,
+		"Type":     "err_log",
 		"Content":  content,
 	})
 }

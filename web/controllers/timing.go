@@ -444,3 +444,65 @@ func (c *TimingController) Pause(ctx *gin.Context) {
 	c.timingService.UpdateTiming(timing)
 	APIOK(ctx)
 }
+
+func (c *TimingController) OutLog(ctx *gin.Context) {
+	id := DefaultInt(ctx, "id", 0)
+	lines := DefaultInt(ctx, "lines", 10)
+	if id == 0 {
+		JumpError(ctx)
+		return
+	}
+	timing := c.timingService.GetTimingByID(int64(id))
+	if timing == nil {
+		JumpError(ctx)
+		return
+	}
+	agent := c.agentService.GetAgentByID(timing.AgentID)
+	if agent == nil {
+		JumpError(ctx)
+		return
+	}
+	content, err := client.GetAgentLog(agent, timing.StdOut, int64(lines))
+	if err != nil {
+		JumpError(ctx)
+		return
+	}
+	ctx.HTML(StatusOK, "timing/log", gin.H{
+		"Subtitle": "定时任务日志查看",
+		"ID":       id,
+		"Lines":    lines,
+		"Type":     "out_log",
+		"Content":  content,
+	})
+}
+
+func (c *TimingController) ErrLog(ctx *gin.Context) {
+	id := DefaultInt(ctx, "id", 0)
+	lines := DefaultInt(ctx, "lines", 10)
+	if id == 0 {
+		JumpError(ctx)
+		return
+	}
+	timing := c.timingService.GetTimingByID(int64(id))
+	if timing == nil {
+		JumpError(ctx)
+		return
+	}
+	agent := c.agentService.GetAgentByID(timing.AgentID)
+	if agent == nil {
+		JumpError(ctx)
+		return
+	}
+	content, err := client.GetAgentLog(agent, timing.StdErr, int64(lines))
+	if err != nil {
+		JumpError(ctx)
+		return
+	}
+	ctx.HTML(StatusOK, "job/log", gin.H{
+		"Subtitle": "定时任务错误日志查看",
+		"ID":       id,
+		"Lines":    lines,
+		"Type":     "err_log",
+		"Content":  content,
+	})
+}

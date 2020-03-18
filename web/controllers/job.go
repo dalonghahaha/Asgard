@@ -445,3 +445,65 @@ func (c *JobController) Pause(ctx *gin.Context) {
 	c.jobService.UpdateJob(job)
 	APIOK(ctx)
 }
+
+func (c *JobController) OutLog(ctx *gin.Context) {
+	id := DefaultInt(ctx, "id", 0)
+	lines := DefaultInt(ctx, "lines", 10)
+	if id == 0 {
+		JumpError(ctx)
+		return
+	}
+	job := c.jobService.GetJobByID(int64(id))
+	if job == nil {
+		JumpError(ctx)
+		return
+	}
+	agent := c.agentService.GetAgentByID(job.AgentID)
+	if agent == nil {
+		JumpError(ctx)
+		return
+	}
+	content, err := client.GetAgentLog(agent, job.StdOut, int64(lines))
+	if err != nil {
+		JumpError(ctx)
+		return
+	}
+	ctx.HTML(StatusOK, "job/log", gin.H{
+		"Subtitle": "计划任务日志查看",
+		"ID":       id,
+		"Lines":    lines,
+		"Type":     "out_log",
+		"Content":  content,
+	})
+}
+
+func (c *JobController) ErrLog(ctx *gin.Context) {
+	id := DefaultInt(ctx, "id", 0)
+	lines := DefaultInt(ctx, "lines", 10)
+	if id == 0 {
+		JumpError(ctx)
+		return
+	}
+	job := c.jobService.GetJobByID(int64(id))
+	if job == nil {
+		JumpError(ctx)
+		return
+	}
+	agent := c.agentService.GetAgentByID(job.AgentID)
+	if agent == nil {
+		JumpError(ctx)
+		return
+	}
+	content, err := client.GetAgentLog(agent, job.StdErr, int64(lines))
+	if err != nil {
+		JumpError(ctx)
+		return
+	}
+	ctx.HTML(StatusOK, "job/log", gin.H{
+		"Subtitle": "计划任务错误日志查看",
+		"ID":       id,
+		"Lines":    lines,
+		"Type":     "err_log",
+		"Content":  content,
+	})
+}

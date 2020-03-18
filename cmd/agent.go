@@ -94,7 +94,7 @@ func StartAgentRpcServer() {
 		logger.Error("failed to listen:", err)
 		panic(err)
 	}
-	s := server.DefaultServer()
+	s := server.NewRPCServer()
 	rpc.RegisterAgentServer(s, &server.AgentServer{})
 	reflection.Register(s)
 	logger.Info("agent rpc server started at ", port)

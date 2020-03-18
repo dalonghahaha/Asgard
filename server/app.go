@@ -87,17 +87,3 @@ func DeleteAppByName(name string) error {
 	}
 	return nil
 }
-
-func GetAppOutLog(id int64) []string {
-	if app, ok := applications.APPs[id]; ok {
-		return app.GetOutLog()
-	}
-	return []string{"无记录"}
-}
-
-func GetAppErrLog(id int64) []string {
-	if app, ok := applications.APPs[id]; ok {
-		return app.GetErrLog()
-	}
-	return []string{"无记录"}
-}

@@ -39,7 +39,7 @@
             var lines = $("#lines").val();
             var _lines = parseInt(lines);
             if (_lines != NaN) {
-                window.location.href = "/app/" + type + "?id=" + id + "&lines=" + lines;
+                window.location.href = "/job/" + type + "?id=" + id + "&lines=" + lines;
             } else {
                 alert("输入行数不正确！")
             }

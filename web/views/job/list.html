@@ -11,7 +11,7 @@
         </div>
         <div class="col-auto ml-auto d-print-none">
             <div class="d-flex">
-                <a href="/job/add" class="btn btn-green">
+                <a href="/job/add" class="btn btn-success">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                         class="icon">
@@ -123,7 +123,25 @@
                                                     d="M7.5 9.5A.5.5 0 018 9h4a.5.5 0 010 1H8a.5.5 0 01-.5-.5zM17 4H3v2h14V4zM3 3a1 1 0 00-1 1v2a1 1 0 001 1h14a1 1 0 001-1V4a1 1 0 00-1-1H3z"
                                                     clip-rule="evenodd"></path>
                                             </svg>
+                                            <span class="cursor-pointer small text-muted">归档信息</span>
+                                        </a>
+                                        <a class="dropdown-item" href="/job/out_log?id={{.ID}}">
+                                            <svg class="icon icon-md cursor-pointer" xmlns="http://www.w3.org/2000/svg"
+                                                width="1em" height="1em" viewbox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd"
+                                                    d="M4 14.5a.5.5 0 01.5-.5h7a.5.5 0 010 1h-7a.5.5 0 01-.5-.5zm0-3a.5.5 0 01.5-.5h11a.5.5 0 010 1h-11a.5.5 0 01-.5-.5zm0-3a.5.5 0 01.5-.5h7a.5.5 0 010 1h-7a.5.5 0 01-.5-.5zm0-3a.5.5 0 01.5-.5h11a.5.5 0 010 1h-11a.5.5 0 01-.5-.5z"
+                                                    clip-rule="evenodd"></path>
+                                            </svg>
                                             <span class="cursor-pointer small text-muted">运行日志</span>
+                                        </a>
+                                        <a class="dropdown-item" href="/job/err_log?id={{.ID}}">
+                                            <svg class="icon icon-md cursor-pointer" xmlns="http://www.w3.org/2000/svg"
+                                                width="1em" height="1em" viewbox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd"
+                                                    d="M4 14.5a.5.5 0 01.5-.5h7a.5.5 0 010 1h-7a.5.5 0 01-.5-.5zm0-3a.5.5 0 01.5-.5h11a.5.5 0 010 1h-11a.5.5 0 01-.5-.5zm0-3a.5.5 0 01.5-.5h7a.5.5 0 010 1h-7a.5.5 0 01-.5-.5zm0-3a.5.5 0 01.5-.5h11a.5.5 0 010 1h-11a.5.5 0 01-.5-.5z"
+                                                    clip-rule="evenodd"></path>
+                                            </svg>
+                                            <span class="cursor-pointer small text-muted">错误日志</span>
                                         </a>
                                         {{if or (eq .Status 0) (eq .Status 2)}}
                                         <a class="dropdown-item" href="javascript:;" action="start">

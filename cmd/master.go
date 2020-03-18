@@ -68,7 +68,7 @@ func StartMasterRpcServer() {
 		logger.Error("failed to listen:", err)
 		panic(err)
 	}
-	s := server.DefaultServer()
+	s := server.NewRPCServer()
 	rpc.RegisterMasterServer(s, &server.MasterServer{})
 	reflection.Register(s)
 	logger.Info("master rpc server started at ", port)
