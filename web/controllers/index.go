@@ -2,11 +2,38 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
+
+	"Asgard/services"
 )
 
-func Index(c *gin.Context) {
-	c.HTML(StatusOK, "index", gin.H{
+type IndexController struct {
+	agentService  *services.AgentService
+	appService    *services.AppService
+	jobService    *services.JobService
+	timingService *services.TimingService
+}
+
+func NewIndexController() *IndexController {
+	return &IndexController{
+		appService:    services.NewAppService(),
+		agentService:  services.NewAgentService(),
+		jobService:    services.NewJobService(),
+		timingService: services.NewTimingService(),
+	}
+}
+
+func (c *IndexController) Index(ctx *gin.Context) {
+	where := map[string]interface{}{}
+	agentCount := c.agentService.GetAgentCount(where)
+	appCount := c.appService.GetAppCount(where)
+	jobCount := c.jobService.GetJobCount(where)
+	timingCount := c.timingService.GetTimingCount(where)
+	ctx.HTML(StatusOK, "index", gin.H{
 		"Subtitle": "首页",
+		"Agents":   agentCount,
+		"Apps":     appCount,
+		"Jobs":     jobCount,
+		"Timings":  timingCount,
 	})
 }
 

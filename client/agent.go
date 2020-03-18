@@ -127,6 +127,34 @@ func RemoveAgentApp(agent *models.Agent, id int64) error {
 	return fmt.Errorf(response.GetMessage())
 }
 
+func GetAgentAppOutLog(agent *models.Agent, id int64) ([]string, error) {
+	agentClient, err := GetAgent(agent)
+	if err != nil {
+		return []string{}, err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), RPCTimeOut)
+	defer cancel()
+	response, err := agentClient.AppOutLog(ctx, &rpc.ID{Id: id})
+	if err != nil {
+		return []string{}, err
+	}
+	return response.GetContent(), nil
+}
+
+func GetAgentAppErrLog(agent *models.Agent, id int64) ([]string, error) {
+	agentClient, err := GetAgent(agent)
+	if err != nil {
+		return []string{}, err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), RPCTimeOut)
+	defer cancel()
+	response, err := agentClient.AppErrLog(ctx, &rpc.ID{Id: id})
+	if err != nil {
+		return []string{}, err
+	}
+	return response.GetContent(), nil
+}
+
 func GetAgentJobList(agent *models.Agent) ([]*rpc.Job, error) {
 	agentClient, err := GetAgent(agent)
 	if err != nil {
@@ -209,6 +237,34 @@ func RemoveAgentJob(agent *models.Agent, id int64) error {
 	return fmt.Errorf(response.GetMessage())
 }
 
+func GetAgentJobOutLog(agent *models.Agent, id int64) ([]string, error) {
+	agentClient, err := GetAgent(agent)
+	if err != nil {
+		return []string{}, err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), RPCTimeOut)
+	defer cancel()
+	response, err := agentClient.JobOutLog(ctx, &rpc.ID{Id: id})
+	if err != nil {
+		return []string{}, err
+	}
+	return response.GetContent(), nil
+}
+
+func GetAgentJobErrLog(agent *models.Agent, id int64) ([]string, error) {
+	agentClient, err := GetAgent(agent)
+	if err != nil {
+		return []string{}, err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), RPCTimeOut)
+	defer cancel()
+	response, err := agentClient.JobErrLog(ctx, &rpc.ID{Id: id})
+	if err != nil {
+		return []string{}, err
+	}
+	return response.GetContent(), nil
+}
+
 func GetAgentTimingList(agent *models.Agent) ([]*rpc.Timing, error) {
 	agentClient, err := GetAgent(agent)
 	if err != nil {
@@ -289,4 +345,32 @@ func RemoveAgentTiming(agent *models.Agent, id int64) error {
 		return nil
 	}
 	return fmt.Errorf(response.GetMessage())
+}
+
+func GetAgentTimingOutLog(agent *models.Agent, id int64) ([]string, error) {
+	agentClient, err := GetAgent(agent)
+	if err != nil {
+		return []string{}, err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), RPCTimeOut)
+	defer cancel()
+	response, err := agentClient.TimingOutLog(ctx, &rpc.ID{Id: id})
+	if err != nil {
+		return []string{}, err
+	}
+	return response.GetContent(), nil
+}
+
+func GetAgentTimingErrLog(agent *models.Agent, id int64) ([]string, error) {
+	agentClient, err := GetAgent(agent)
+	if err != nil {
+		return []string{}, err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), RPCTimeOut)
+	defer cancel()
+	response, err := agentClient.TimingErrLog(ctx, &rpc.ID{Id: id})
+	if err != nil {
+		return []string{}, err
+	}
+	return response.GetContent(), nil
 }

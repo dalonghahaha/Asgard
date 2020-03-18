@@ -22,6 +22,7 @@ var (
 	useController    *controllers.UserController
 	groupController  *controllers.GroupController
 	timingController *controllers.TimingController
+	indexController  *controllers.IndexController
 )
 
 func Init() error {
@@ -57,6 +58,7 @@ func setupController() {
 	appController = controllers.NewAppController()
 	jobController = controllers.NewJobController()
 	timingController = controllers.NewTimingController()
+	indexController = controllers.NewIndexController()
 }
 
 func Run() {

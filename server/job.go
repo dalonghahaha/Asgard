@@ -38,3 +38,17 @@ func DeleteJob(id int64, job *applications.Job) error {
 	delete(applications.Jobs, id)
 	return nil
 }
+
+func GetJobOutLog(id int64) []string {
+	if job, ok := applications.Jobs[id]; ok {
+		return job.GetOutLog()
+	}
+	return []string{"无记录"}
+}
+
+func GetJobErrLog(id int64) []string {
+	if job, ok := applications.Jobs[id]; ok {
+		return job.GetErrLog()
+	}
+	return []string{"无记录"}
+}

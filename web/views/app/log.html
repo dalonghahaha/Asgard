@@ -1,0 +1,20 @@
+{{define "content"}}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="list list-row list-hoverable">
+                {{- range .Content}}
+                <div class="list-item">
+                    <div><span class="badge"></span></div>
+                    <div class="text-truncate">
+                        {{.}}
+                    </div>
+                </div>
+                {{- end}}
+            </div>
+        </div>
+    </div>
+</div>
+{{end}}
+{{define "script"}}
+{{end}}

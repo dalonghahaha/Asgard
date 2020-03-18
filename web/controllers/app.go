@@ -439,3 +439,57 @@ func (c *AppController) Pause(ctx *gin.Context) {
 	c.appService.UpdateApp(app)
 	APIOK(ctx)
 }
+
+func (c *AppController) OutLog(ctx *gin.Context) {
+	id := DefaultInt(ctx, "id", 0)
+	if id == 0 {
+		JumpError(ctx)
+		return
+	}
+	app := c.appService.GetAppByID(int64(id))
+	if app == nil {
+		JumpError(ctx)
+		return
+	}
+	agent := c.agentService.GetAgentByID(app.AgentID)
+	if agent == nil {
+		JumpError(ctx)
+		return
+	}
+	content, err := client.GetAgentAppOutLog(agent, int64(id))
+	if err != nil {
+		JumpError(ctx)
+		return
+	}
+	ctx.HTML(StatusOK, "app/log", gin.H{
+		"Subtitle": "正常日志",
+		"Content":  content,
+	})
+}
+
+func (c *AppController) ErrLog(ctx *gin.Context) {
+	id := DefaultInt(ctx, "id", 0)
+	if id == 0 {
+		JumpError(ctx)
+		return
+	}
+	app := c.appService.GetAppByID(int64(id))
+	if app == nil {
+		JumpError(ctx)
+		return
+	}
+	agent := c.agentService.GetAgentByID(app.AgentID)
+	if agent == nil {
+		JumpError(ctx)
+		return
+	}
+	content, err := client.GetAgentAppErrLog(agent, int64(id))
+	if err != nil {
+		JumpError(ctx)
+		return
+	}
+	ctx.HTML(StatusOK, "app/log", gin.H{
+		"Subtitle": "错误日志",
+		"Content":  content,
+	})
+}

@@ -38,3 +38,17 @@ func DeleteTiming(id int64, timing *applications.Timing) error {
 	delete(applications.Timings, id)
 	return nil
 }
+
+func GetTimingOutLog(id int64) []string {
+	if timing, ok := applications.Timings[id]; ok {
+		return timing.GetOutLog()
+	}
+	return []string{"无记录"}
+}
+
+func GetTimingErrLog(id int64) []string {
+	if timing, ok := applications.Timings[id]; ok {
+		return timing.GetErrLog()
+	}
+	return []string{"无记录"}
+}

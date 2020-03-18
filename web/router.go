@@ -8,7 +8,7 @@ import (
 func setupRouter() {
 	server.GET("/ping", controllers.Ping)
 	server.GET("/UI", controllers.UI)
-	server.GET("/", middlewares.Login, controllers.Index)
+	server.GET("/", middlewares.Login, indexController.Index)
 	server.GET("/nologin", controllers.Nologin)
 	server.GET("/error", controllers.Error)
 	server.GET("/register", useController.Register)
@@ -55,6 +55,8 @@ func setupRouter() {
 		app.GET("/start", appController.Start)
 		app.GET("/restart", appController.ReStart)
 		app.GET("/pause", appController.Pause)
+		app.GET("/out_log", appController.OutLog)
+		app.GET("/err_log", appController.ErrLog)
 	}
 	job := server.Group("/job")
 	job.Use(middlewares.Login)
@@ -84,5 +86,8 @@ func setupRouter() {
 		timing.GET("/monitor", timingController.Monitor)
 		timing.GET("/archive", timingController.Archive)
 		timing.GET("/delete", timingController.Delete)
+		timing.GET("/start", timingController.Start)
+		timing.GET("/restart", timingController.ReStart)
+		timing.GET("/pause", timingController.Pause)
 	}
 }

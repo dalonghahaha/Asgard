@@ -12,6 +12,7 @@ import (
 	"github.com/dalonghahaha/avenger/components/logger"
 	"github.com/dalonghahaha/avenger/tools/file"
 	"github.com/dalonghahaha/avenger/tools/uuid"
+	"github.com/hpcloud/tail"
 	"github.com/shirou/gopsutil/process"
 )
 
@@ -200,4 +201,28 @@ func (c *Command) monitor(info *process.Process) {
 	if c.MonitorReport != nil {
 		c.MonitorReport(monitor)
 	}
+}
+
+func (c *Command) GetOutLog() []string {
+	content := []string{}
+	t, err := tail.TailFile(c.Stdout, tail.Config{MaxLineSize: 50})
+	if err != nil {
+		return []string{err.Error()}
+	}
+	for line := range t.Lines {
+		content = append(content, line.Text)
+	}
+	return content
+}
+
+func (c *Command) GetErrLog() []string {
+	content := []string{}
+	t, err := tail.TailFile(c.Stderr, tail.Config{MaxLineSize: 50})
+	if err != nil {
+		return []string{err.Error()}
+	}
+	for line := range t.Lines {
+		content = append(content, line.Text)
+	}
+	return content
 }
