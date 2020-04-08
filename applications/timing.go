@@ -24,6 +24,10 @@ func TimingStartAll(moniter bool) {
 	if moniter {
 		go MoniterStart()
 	}
+	go TimingRun()
+}
+
+func TimingRun() {
 	duration := viper.GetInt("system.timer")
 	ticker = time.NewTicker(time.Second * time.Duration(duration))
 	for range ticker.C {
