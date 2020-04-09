@@ -12,8 +12,8 @@
 <div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="table-responsive">
-                <table class="table card-table table-vcenter text-nowrap datatable overflow-hidden">
+            <div>
+                <table class="table table-hover table-outline table-vcenter text-nowrap card-table">
                     <thead>
                         <tr>
                             <th style="width: 40%"><span>地址</span></th>
@@ -83,6 +83,25 @@
                                                     clip-rule="evenodd"></path>
                                             </svg>
                                             <span action="jobs" class="cursor-pointer small text-muted">计划任务列表</span>
+                                        </a>
+                                        <a class="dropdown-item" href="/timing/list?agent={{.ID}}">
+                                            <svg class="icon icon-md" width="1em" height="1em" viewBox="0 0 20 20"
+                                                fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                                <path fill-rule="evenodd"
+                                                    d="M10 17a6 6 0 100-12 6 6 0 000 12zm0 1a7 7 0 100-14 7 7 0 000 14z"
+                                                    clip-rule="evenodd"></path>
+                                                <path fill-rule="evenodd"
+                                                    d="M10 6.5a.5.5 0 01.5.5v4a.5.5 0 01-.053.224l-1.5 3a.5.5 0 11-.894-.448L9.5 10.882V7a.5.5 0 01.5-.5z"
+                                                    clip-rule="evenodd"></path>
+                                                <path
+                                                    d="M2.86 7.387A2.5 2.5 0 116.387 3.86 8.035 8.035 0 002.86 7.387zM13.613 3.86a2.5 2.5 0 113.527 3.527 8.035 8.035 0 00-3.527-3.527z">
+                                                </path>
+                                                <path fill-rule="evenodd"
+                                                    d="M13.646 16.146a.5.5 0 01.708 0l1 1a.5.5 0 01-.708.708l-1-1a.5.5 0 010-.708zm-7.292 0a.5.5 0 00-.708 0l-1 1a.5.5 0 00.708.708l1-1a.5.5 0 000-.708zM7.5 2.5A.5.5 0 018 2h4a.5.5 0 010 1H8a.5.5 0 01-.5-.5z"
+                                                    clip-rule="evenodd"></path>
+                                                <path d="M9 3h2v2H9V3z"></path>
+                                            </svg>
+                                            <span action="jobs" class="cursor-pointer small text-muted">定时任务列表</span>
                                         </a>
                                         <a class="dropdown-item" href="javascript:;" data-bind="{{.ID}}">
                                             <svg class="icon icon-md cursor-pointer" width="1em" height="1em"

@@ -1,6 +1,8 @@
 package services
 
 import (
+	"fmt"
+
 	"github.com/dalonghahaha/avenger/components/logger"
 	"github.com/jinzhu/gorm"
 
@@ -24,7 +26,15 @@ func (s *JobService) GetJobCount(where map[string]interface{}) (count int) {
 }
 
 func (s *JobService) GetJobPageList(where map[string]interface{}, page int, pageSize int) (list []models.Job, count int) {
-	err := models.PageList(&models.Job{}, where, page, pageSize, "created_at desc", &list, &count)
+	condition := "1=1"
+	for key, val := range where {
+		if key == "name" {
+			condition += fmt.Sprintf(" and %s like '%%%v%%' ", key, val)
+		} else {
+			condition += fmt.Sprintf(" and %s=%v", key, val)
+		}
+	}
+	err := models.PageListbyWhereString(&models.Job{}, condition, page, pageSize, "created_at desc", &list, &count)
 	if err != nil {
 		logger.Error("GetJobPageList Error:", err)
 		return nil, 0

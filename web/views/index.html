@@ -11,7 +11,7 @@
 		<div class="card card-sm">
 			<div class="card-body text-center">
 				<div class="d-flex align-items-center mt-auto">
-                    <div class="bg-green text-white stamp">
+					<div class="bg-green text-white stamp">
 						<svg class="icon icon-lg" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor"
 							xmlns="http://www.w3.org/2000/svg">
 							<path fill-rule="evenodd"
@@ -20,11 +20,11 @@
 							</path>
 						</svg>
 					</div>
-                    <div class="ml-3">
+					<div class="ml-3">
 						<div class="h1 m-0 text-body text-left">{{.Agents}}</div>
-                      	<small class="text-muted">运行实例</small>
+						<small class="text-muted">运行实例</small>
 					</div>
-                </div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -79,8 +79,9 @@
 				<div class="d-flex align-items-center mt-auto">
 					<div class="bg-green text-white stamp">
 						<svg class="icon icon-lg" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor"
-								xmlns="http://www.w3.org/2000/svg">
-							<path fill-rule="evenodd" d="M10 17a6 6 0 100-12 6 6 0 000 12zm0 1a7 7 0 100-14 7 7 0 000 14z"
+							xmlns="http://www.w3.org/2000/svg">
+							<path fill-rule="evenodd"
+								d="M10 17a6 6 0 100-12 6 6 0 000 12zm0 1a7 7 0 100-14 7 7 0 000 14z"
 								clip-rule="evenodd">
 							</path>
 							<path fill-rule="evenodd"
@@ -107,7 +108,162 @@
 		</div>
 	</div>
 </div>
+<div class="page-title-box">
+	<div class="row align-items-center">
+		<div class="col-auto">
+			<h2 class="page-title">实例概况</h2>
+		</div>
+	</div>
+</div>
+<div class="row">
+	<div class="col-12">
+		<div class="card">
+			<div class="card-body">
+				<h3 class="card-title">应用</h3>
+				<div id="agent-app"></div>
+				<h3 class="card-title">计划任务</h3>
+				<div id="agent-job"></div>
+				<h3 class="card-title">定时任务</h3>
+				<div id="agent-timing"></div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="page-title-box">
+	<div class="row align-items-center">
+		<div class="col-auto">
+			<h2 class="page-title">分组概况</h2>
+		</div>
+	</div>
+</div>
+<div class="row">
+	<div class="col-12">
+		<div class="card">
+			<div class="card-header">
+				<h4 class="card-title">分组</h4>
+			</div>
+			<div class="card-body">
+				<h3 class="card-title">应用</h3>
+				<div id="group-app"></div>
+				<h3 class="card-title">计划任务</h3>
+				<div id="group-job"></div>
+				<h3 class="card-title">定时任务</h3>
+				<div id="group-timing"></div>
+			</div>
+		</div>
+	</div>
+</div>
 {{end}}
 {{define "script"}}
-
+<script type="text/javascript">
+	function render_bar(id, name, data, categories) {
+		(new ApexCharts(document.getElementById(id), {
+			chart: {
+				type: "bar",
+				fontFamily: 'inherit',
+				height: 320,
+				parentHeightOffset: 0,
+				toolbar: {
+					show: false,
+				},
+				animations: {
+					enabled: false
+				},
+			},
+			plotOptions: {
+				bar: {
+					columnWidth: '50%',
+				}
+			},
+			dataLabels: {
+				enabled: false,
+			},
+			fill: {
+				opacity: 1,
+			},
+			series: [{
+				name: name,
+				data: data
+			}],
+			grid: {
+				padding: {
+					top: -20,
+					right: 0,
+					left: -4,
+					bottom: -8
+				},
+				strokeDashArray: 4,
+			},
+			xaxis: {
+				labels: {
+					padding: 0
+				},
+				tooltip: {
+					enabled: false
+				},
+				axisBorder: {
+					show: false,
+				},
+				categories: categories,
+			},
+			yaxis: {
+				labels: {
+					padding: 4
+				},
+			},
+			colors: ["#206bc4"],
+			legend: {
+				show: false,
+			},
+		})).render();
+	}
+	$(document).ready(function () {
+		var agent_list = [
+		{{- range .AgentList}}
+			{{.}},
+        {{- end}}
+		];
+		var group_list = [
+		{{- range .GroupList}}
+			{{.}},
+        {{- end}}
+		];
+		var agent_apps = [
+		{{- range .AgentApps}}
+			{{.}},
+        {{- end}}
+		];
+		var agent_jobs = [
+		{{- range .AgentJobs}}
+			{{.}},
+        {{- end}}
+		];
+		var agent_timings = [
+		{{- range .AgentTimings}}
+			{{.}},
+        {{- end}}
+		];
+		var group_apps = [
+		{{- range .GroupApps}}
+			{{.}},
+        {{- end}}
+		];
+		var group_jobs = [
+		{{- range .GroupJobs}}
+			{{.}},
+        {{- end}}
+		];
+		var group_timings = [
+		{{- range .GroupTimings}}
+			{{.}},
+        {{- end}}
+		];
+		render_bar("agent-app", "应用", agent_apps, agent_list);
+		render_bar("agent-job", "计划任务", agent_jobs, agent_list);
+		render_bar("agent-timing", "定时任务", agent_timings, agent_list);
+		render_bar("group-app", "应用", group_apps, group_list);
+		render_bar("group-job", "计划任务", group_jobs, group_list);
+		render_bar("group-timing", "定时任务", group_timings, group_list);
+	});
+</script>
 {{end}}

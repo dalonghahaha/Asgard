@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 
@@ -60,13 +61,28 @@ func (c *AppController) formatApp(info *models.App) map[string]interface{} {
 }
 
 func (c *AppController) List(ctx *gin.Context) {
-	agent := DefaultInt(ctx, "agent", 0)
+	groupID := DefaultInt(ctx, "group_id", 0)
+	agentID := DefaultInt(ctx, "agent_id", 0)
+	name := ctx.Query("name")
 	page := DefaultInt(ctx, "page", 1)
 	where := map[string]interface{}{}
-	if agent != 0 {
-		where["agent_id"] = agent
+	querys := []string{}
+	if groupID != 0 {
+		where["group_id"] = groupID
+		querys = append(querys, "group_id="+strconv.Itoa(groupID))
 	}
+	if agentID != 0 {
+		where["agent_id"] = agentID
+		querys = append(querys, "agent_id="+strconv.Itoa(agentID))
+	}
+	if name != "" {
+		where["name"] = name
+		querys = append(querys, "name="+name)
+	}
+	fmt.Println(where)
 	appList, total := c.appService.GetAppPageList(where, page, PageSize)
+	fmt.Println(appList)
+	fmt.Println(total)
 	if appList == nil {
 		APIError(ctx, "获取应用列表失败")
 	}
@@ -75,13 +91,18 @@ func (c *AppController) List(ctx *gin.Context) {
 		list = append(list, c.formatApp(&app))
 	}
 	mpurl := "/app/list"
-	if agent != 0 {
-		mpurl = "/app/list?agent=" + strconv.Itoa(agent)
+	if len(querys) > 0 {
+		mpurl = "/app/list?" + strings.Join(querys, "&")
 	}
 	ctx.HTML(StatusOK, "app/list", gin.H{
 		"Subtitle":   "应用列表",
 		"List":       list,
 		"Total":      total,
+		"GroupList":  c.groupService.GetUsageGroup(),
+		"AgentList":  c.agentService.GetUsageAgent(),
+		"GroupID":    groupID,
+		"AgentID":    agentID,
+		"Name":       name,
 		"Pagination": PagerHtml(total, page, mpurl),
 	})
 }

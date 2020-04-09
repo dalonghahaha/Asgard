@@ -27,11 +27,59 @@
 <div class="row">
     <div class="col-12">
         <div class="card">
+            <div class="card-body">
+                <form>
+                    <div class="row">
+                        <div class="col-xl-3">
+                            <div class="form-group row">
+                                <label class="form-label col-form-label text-muted">分组：</label>
+                                <div class="col">
+                                    <select id="group_id" name="group_id" class="form-select">
+                                        <option value="0">请选择</option>
+                                        {{- range .GroupList}}
+                                        <option value="{{.ID}}" {{if eq $.GroupID .ID}}selected{{end}}>{{.Name}}</option>
+                                        {{- end}}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3">
+                            <div class="form-group row">
+                                <label class="form-label col-form-label text-muted">运行实例：</label>
+                                <div class="col">
+                                    <select id="agent_id" name="agent_id" class="form-select">
+                                        <option value="0">请选择</option>
+                                        {{- range .AgentList}}
+                                        <option value="{{.ID}}" {{if eq $.AgentID .ID}}selected{{end}}>{{.IP}}:{{.Port}}</option>
+                                        {{- end}}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3">
+                            <div class="form-group row">
+                                <label class="form-label col-form-label text-muted">名称：</label>
+                                <div class="col">
+                                    <input type="text" id="name" name="name" class="form-control" placeholder="" value="{{.Name}}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3">
+                            <div class="form-group row">
+                                <div class="col">
+                                    <button type="submit" class="btn btn-primary ml-auto">查询</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
             <div>
                 <table class="table table-hover table-outline table-vcenter text-nowrap card-table">
                     <thead>
                         <tr>
-                            <th style="width: 25%"><span>名称</span></th>
+                            <th style="width: 5%"><span>ID</span></th>
+                            <th style="width: 20%"><span>名称</span></th>
                             <th style="width: 20%"><span>分组</span></th>
                             <th style="width: 20%"><span>运行实例</span></th>
                             <th style="width: 10%"><span>执行时间</span></th>
@@ -43,6 +91,7 @@
                     <tbody>
                         {{- range .List}}
                         <tr data-bind="{{.ID}}">
+                            <td>{{.ID}}</td>
                             <td>{{.Name}}</td>
                             <td>{{.GroupName}}</td>
                             <td>{{.AgentName}}</td>
@@ -61,10 +110,7 @@
                                 {{end}}
                             </td>
                             <td>
-                                <label class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox"
-                                        {{if eq .IsMonitor 1}}checked{{end}}>
-                                </label>
+                                {{if eq .IsMonitor 1}}是{{else}}否{{end}}
                             </td>
                             <td  class="text-right">
                                 <span class="dropdown">

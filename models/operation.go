@@ -38,6 +38,14 @@ func PageList(object interface{}, where map[string]interface{}, page int, pageSi
 	return db.Get(DB_NAME).Model(object).Where(where).Count(count).Error
 }
 
+func PageListbyWhereString(object interface{}, where string, page int, pageSize int, order string, list interface{}, count *int) error {
+	err := db.Get(DB_NAME).Where(where).Limit(pageSize).Offset((page - 1) * pageSize).Order(order).Find(list).Error
+	if err != nil {
+		return err
+	}
+	return db.Get(DB_NAME).Model(object).Where(where).Count(count).Error
+}
+
 func Get(id int64, object interface{}) error {
 	return db.Get(DB_NAME).Where("id = ? ", id).First(object).Error
 }
