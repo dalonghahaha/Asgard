@@ -30,7 +30,7 @@
                             <select id="agent_id" name="agent_id" class="form-select" required>
                                 <option value="">请选择</option>
                                 {{- range .AgentList}}
-                                <option value="{{.ID}}">{{.IP}}:{{.Port}}</option>
+                                <option value="{{.ID}}">{{.IP}}:{{.Port}}({{.Alias}})</option>
                                 {{- end}}
                             </select>
                         </div>

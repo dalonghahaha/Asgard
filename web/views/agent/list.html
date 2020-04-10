@@ -16,8 +16,9 @@
                 <table class="table table-hover table-outline table-vcenter text-nowrap card-table">
                     <thead>
                         <tr>
+                            <th style="width: 5%"><span>ID</span></th>
                             <th style="width: 30%"><span>别名</span></th>
-                            <th style="width: 30%"><span>地址</span></th>
+                            <th style="width: 25%"><span>地址</span></th>
                             <th style="width: 20%"><span>端口</span></th>
                             <th style="width: 10%"><span>状态</span></th>
                             <th style="width: 10%" class="text-right"></th>
@@ -26,6 +27,7 @@
                     <tbody>
                         {{- range .List}}
                         <tr>
+                            <td>{{.ID}}</td>
                             <td>{{.Alias}}</td>
                             <td>{{.IP}}</td>
                             <td>{{.Port}}</td>

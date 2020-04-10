@@ -14,7 +14,7 @@
                     <div class="col-md-6">
                         <div class="mb-2">
                             <label class="form-label">分组</label>
-                            <select name="group_id" class="form-select">
+                            <select id="group_id" name="group_id" class="form-select">
                                 <option value="">请选择</option>
                                 {{- range .GroupList}}
                                 <option value="{{.ID}}">{{.Name}}</option>
@@ -27,10 +27,10 @@
                     <div class="col-md-6">
                         <div class="mb-2">
                             <label class="form-label">运行实例</label>
-                            <select name="agent_id" class="form-select" required>
+                            <select id="agent_id" name="agent_id" class="form-select" required>
                                 <option value="">请选择</option>
                                 {{- range .AgentList}}
-                                <option value="{{.ID}}">{{.IP}}:{{.Port}}</option>
+                                <option value="{{.ID}}">{{.IP}}:{{.Port}}({{.Alias}})</option>
                                 {{- end}}
                             </select>
                         </div>
