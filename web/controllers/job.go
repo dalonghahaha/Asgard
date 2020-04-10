@@ -325,7 +325,7 @@ func (c *JobController) Update(ctx *gin.Context) {
 }
 
 func (c *JobController) Delete(ctx *gin.Context) {
-	id := FormDefaultInt(ctx, "id", 0)
+	id := DefaultInt(ctx, "id", 0)
 	if id == 0 {
 		APIBadRequest(ctx, "ID格式错误")
 		return

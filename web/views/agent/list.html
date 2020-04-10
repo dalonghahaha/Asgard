@@ -16,15 +16,17 @@
                 <table class="table table-hover table-outline table-vcenter text-nowrap card-table">
                     <thead>
                         <tr>
-                            <th style="width: 40%"><span>地址</span></th>
-                            <th style="width: 30%"><span>端口</span></th>
-                            <th style="width: 20%"><span>状态</span></th>
+                            <th style="width: 30%"><span>别名</span></th>
+                            <th style="width: 30%"><span>地址</span></th>
+                            <th style="width: 20%"><span>端口</span></th>
+                            <th style="width: 10%"><span>状态</span></th>
                             <th style="width: 10%" class="text-right"></th>
                         </tr>
                     </thead>
                     <tbody>
                         {{- range .List}}
                         <tr>
+                            <td>{{.Alias}}</td>
                             <td>{{.IP}}</td>
                             <td>{{.Port}}</td>
                             <td>
@@ -48,6 +50,18 @@
                                         </svg>
                                     </a>
                                     <div class="dropdown-menu">
+                                        <a class="dropdown-item" href="/agent/edit?id={{.ID}}">
+                                            <svg class="icon icon-md cursor-pointer" xmlns="http://www.w3.org/2000/svg"
+                                                width="1em" height="1em" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                                stroke-linejoin="round">
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7">
+                                                </path>
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z">
+                                                </path>
+                                            </svg>
+                                            <span class="cursor-pointer small text-muted">编辑别名</span>
+                                        </a>
                                         <a class="dropdown-item" href="/agent/monitor?id={{.ID}}">
                                             <svg action="moniter" class="icon icon-md cursor-pointer"
                                                 xmlns="http://www.w3.org/2000/svg" width="1em" height="1em"

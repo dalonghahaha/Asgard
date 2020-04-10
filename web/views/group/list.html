@@ -11,7 +11,7 @@
         </div>
         <div class="col-auto ml-auto d-print-none">
             <div class="d-flex">
-                <a href="/group/add" class="btn btn-green">
+                <a href="/group/add" class="btn btn-success">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                         class="icon">
@@ -31,14 +31,16 @@
                 <table class="table card-table table-vcenter text-nowrap datatable overflow-hidden">
                     <thead>
                         <tr>
-                            <th style="width: 80%"><span>名称</span></th>
-                            <th style="width: 10%"><span>状态</span></th>
+                            <th style="width: 5%"><span>ID</span></th>
+                            <th style="width: 70%"><span>名称</span></th>
+                            <th style="width: 15%"><span>状态</span></th>
                             <th style="width: 10%" class="text-right"></th>
                         </tr>
                     </thead>
                     <tbody>
                         {{- range .List}}
-                        <tr>
+                        <tr data-bind="{{.ID}}">
+                            <td>{{.ID}}</td>
                             <td>{{.Name}}</td>
                             <td>
                                 {{if eq .Status 0}}
@@ -72,7 +74,7 @@
                                             </svg>
                                             <span class="cursor-pointer small text-muted">编辑</span>
                                         </a>
-                                        <a class="dropdown-item" href="/group/auth?id={{.ID}}">
+                                        <!-- <a class="dropdown-item" href="/group/auth?id={{.ID}}">
                                             <svg class="icon icon-md cursor-pointer" width="1em" height="1em"
                                                 viewBox="0 0 20 20" fill="currentColor"
                                                 xmlns="http://www.w3.org/2000/svg">
@@ -81,7 +83,7 @@
                                                     clip-rule="evenodd"></path>
                                             </svg>
                                             <span class="cursor-pointer small text-muted">分配权限</span>
-                                        </a>
+                                        </a> -->
                                         <a class="dropdown-item" href="javascript:;" action="delete">
                                             <svg class="icon icon-md cursor-pointer" xmlns="http://www.w3.org/2000/svg"
                                                 width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor">
@@ -113,7 +115,15 @@
 <script type="text/javascript">
     $(document).ready(function () {
         $("table").delegate("a[action=delete]", "click", function () {
-            alert("删除");
+            var id = $(this).parent().attr("data-bind");
+            $.getJSON("/group/delete?id=" + id, function (data) {
+                if (data.code == 200) {
+                    alert("操作成功");
+                    window.location.reload(true)
+                } else {
+                    alert(data.message);
+                }
+            })
         });
     });
 </script>

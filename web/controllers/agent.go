@@ -63,3 +63,45 @@ func (c *AgentController) Monitor(ctx *gin.Context) {
 		"Time":     times,
 	})
 }
+
+func (c *AgentController) Edit(ctx *gin.Context) {
+	id := DefaultInt(ctx, "id", 0)
+	if id == 0 {
+		JumpError(ctx)
+		return
+	}
+	agent := c.agentService.GetAgentByID(int64(id))
+	if agent == nil {
+		JumpError(ctx)
+		return
+	}
+	ctx.HTML(StatusOK, "agent/edit", gin.H{
+		"Subtitle": "编辑别名",
+		"Agent":    agent,
+	})
+}
+
+func (c *AgentController) Update(ctx *gin.Context) {
+	id := FormDefaultInt(ctx, "id", 0)
+	alias := ctx.PostForm("alias")
+	if id == 0 {
+		APIBadRequest(ctx, "ID格式错误")
+		return
+	}
+	if alias == "" {
+		APIBadRequest(ctx, "别名不能为空")
+		return
+	}
+	agent := c.agentService.GetAgentByID(int64(id))
+	if agent == nil {
+		APIBadRequest(ctx, "实例不存在")
+		return
+	}
+	agent.Alias = alias
+	ok := c.agentService.UpdateAgent(agent)
+	if !ok {
+		APIError(ctx, "更新别名失败")
+		return
+	}
+	APIOK(ctx)
+}

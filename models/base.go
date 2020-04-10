@@ -19,6 +19,9 @@ const (
 	STATUS_RUNNING  = int64(1)
 	STATUS_PAUSE    = int64(2)
 	STATUS_FINISHED = int64(3)
+
+	STATUS_UNUSAGE = int64(0)
+	STATUS_USAGE   = int64(1)
 )
 
 //Model基类，定义通用属性

@@ -79,10 +79,7 @@ func (c *AppController) List(ctx *gin.Context) {
 		where["name"] = name
 		querys = append(querys, "name="+name)
 	}
-	fmt.Println(where)
 	appList, total := c.appService.GetAppPageList(where, page, PageSize)
-	fmt.Println(appList)
-	fmt.Println(total)
 	if appList == nil {
 		APIError(ctx, "获取应用列表失败")
 	}

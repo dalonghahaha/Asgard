@@ -1,8 +1,6 @@
 package controllers
 
 import (
-	"strconv"
-
 	"github.com/gin-gonic/gin"
 
 	"Asgard/models"
@@ -40,13 +38,18 @@ func (c *GroupController) Add(ctx *gin.Context) {
 
 func (c *GroupController) Create(ctx *gin.Context) {
 	name := ctx.PostForm("name")
+	status := ctx.PostForm("status")
 	if !Required(ctx, &name, "名称不能为空") {
 		return
 	}
 	group := new(models.Group)
 	group.Name = name
-	group.Status = 0
 	group.Creator = GetUserID(ctx)
+	if status != "" {
+		group.Status = models.STATUS_USAGE
+	} else {
+		group.Status = models.STATUS_UNUSAGE
+	}
 	ok := c.groupService.CreateGroup(group)
 	if !ok {
 		APIError(ctx, "创建分组失败")
@@ -89,28 +92,23 @@ func (c *GroupController) Update(ctx *gin.Context) {
 		APIBadRequest(ctx, "分组不存在")
 		return
 	}
-	if name != "" {
-		group.Name = name
-	}
-	if status != "" {
-		_status, err := strconv.ParseInt(status, 10, 64)
-		if err != nil {
-			APIBadRequest(ctx, "status格式错误")
-			return
-		}
-		group.Status = _status
-	}
+	group.Name = name
 	group.Updator = GetUserID(ctx)
+	if status != "" {
+		group.Status = models.STATUS_USAGE
+	} else {
+		group.Status = models.STATUS_UNUSAGE
+	}
 	ok := c.groupService.UpdateGroup(group)
 	if !ok {
-		APIError(ctx, "创建分组失败")
+		APIError(ctx, "更新分组失败")
 		return
 	}
 	APIOK(ctx)
 }
 
 func (c *GroupController) Delete(ctx *gin.Context) {
-	id := FormDefaultInt(ctx, "id", 0)
+	id := DefaultInt(ctx, "id", 0)
 	if id == 0 {
 		APIBadRequest(ctx, "ID格式错误")
 		return

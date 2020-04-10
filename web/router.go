@@ -30,6 +30,8 @@ func setupRouter() {
 	{
 		agent.GET("/list", agentController.List)
 		agent.GET("/monitor", agentController.Monitor)
+		agent.GET("/edit", agentController.Edit)
+		agent.POST("/update", agentController.Update)
 	}
 	group := server.Group("/group")
 	group.Use(middlewares.Login)

@@ -30,12 +30,12 @@
             <div class="card-body">
                 <form>
                     <div class="row">
-                        <div class="col-xl-3">
+                        <div class="col-xl-4">
                             <div class="form-group row">
                                 <label class="form-label col-form-label text-muted">分组：</label>
                                 <div class="col">
                                     <select id="group_id" name="group_id" class="form-select">
-                                        <option value="0">请选择</option>
+                                        <option value="0">全部</option>
                                         {{- range .GroupList}}
                                         <option value="{{.ID}}" {{if eq $.GroupID .ID}}selected{{end}}>{{.Name}}</option>
                                         {{- end}}
@@ -43,20 +43,20 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-xl-3">
+                        <div class="col-xl-4">
                             <div class="form-group row">
                                 <label class="form-label col-form-label text-muted">运行实例：</label>
                                 <div class="col">
                                     <select id="agent_id" name="agent_id" class="form-select">
-                                        <option value="0">请选择</option>
+                                        <option value="0">全部</option>
                                         {{- range .AgentList}}
-                                        <option value="{{.ID}}" {{if eq $.AgentID .ID}}selected{{end}}>{{.IP}}:{{.Port}}</option>
+                                        <option value="{{.ID}}" {{if eq $.AgentID .ID}}selected{{end}}>{{.IP}}:{{.Port}}({{.Alias}})</option>
                                         {{- end}}
                                     </select>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-xl-3">
+                        <div class="col-xl-4">
                             <div class="form-group row">
                                 <label class="form-label col-form-label text-muted">名称：</label>
                                 <div class="col">
@@ -64,7 +64,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-xl-3">
+                        <div class="col">
                             <div class="form-group row">
                                 <div class="col">
                                     <button type="submit" class="btn btn-primary ml-auto">查询</button>

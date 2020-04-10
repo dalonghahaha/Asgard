@@ -2,7 +2,7 @@
 <div class="page-title-box">
     <div class="row align-items-center">
         <div class="col-auto">
-            <h2 class="page-title">添加分组</h2>
+            <h2 class="page-title">编辑</h2>
         </div>
     </div>
 </div>
@@ -11,11 +11,21 @@
         <form id="group" class="card" method="post">
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-12">
+                    <div class="col-md-6">
                         <div class="mb-2">
                             <label class="form-label">名称</label>
                             <input name="name" type="text" class="form-control" placeholder="请输入名称" value="{{.Group.Name}}" required>
                             <input name="id" type="hidden" class="form-control" placeholder="请输入名称" value="{{.Group.ID}}" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="mb-2">
+                            <label class="form-label">启用</label>
+                            <label class="form-check form-switch">
+                                <input name="status" class="form-check-input" type="checkbox" {{if eq .Group.Status 1}}checked{{end}}>
+                            </label>
                         </div>
                     </div>
                 </div>
