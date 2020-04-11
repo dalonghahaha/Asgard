@@ -23,6 +23,10 @@ var TIMING_STATUS = []structs.M{
 		"ID":   STATUS_FINISHED,
 		"Name": "已完成",
 	},
+	structs.M{
+		"ID":   STATUS_DELETED,
+		"Name": "已删除",
+	},
 }
 
 type Timing struct {

@@ -66,7 +66,9 @@ func (c *TimingController) List(ctx *gin.Context) {
 	status := DefaultInt(ctx, "status", -99)
 	name := ctx.Query("name")
 	page := DefaultInt(ctx, "page", 1)
-	where := map[string]interface{}{}
+	where := map[string]interface{}{
+		"status": status,
+	}
 	querys := []string{}
 	if groupID != 0 {
 		where["group_id"] = groupID
@@ -77,7 +79,6 @@ func (c *TimingController) List(ctx *gin.Context) {
 		querys = append(querys, "agent_id="+strconv.Itoa(agentID))
 	}
 	if status != -99 {
-		where["status"] = status
 		querys = append(querys, "status="+strconv.Itoa(status))
 	}
 	if name != "" {
@@ -247,9 +248,10 @@ func (c *TimingController) ErrLog(ctx *gin.Context) {
 
 func (c *TimingController) Add(ctx *gin.Context) {
 	ctx.HTML(StatusOK, "timing/add", gin.H{
-		"Subtitle":  "添加定时任务",
-		"GroupList": c.groupService.GetUsageGroup(),
-		"AgentList": c.agentService.GetUsageAgent(),
+		"Subtitle":   "添加定时任务",
+		"OutBaseDir": OutDir + "timer/",
+		"GroupList":  c.groupService.GetUsageGroup(),
+		"AgentList":  c.agentService.GetUsageAgent(),
 	})
 }
 
@@ -391,6 +393,39 @@ func (c *TimingController) Update(ctx *gin.Context) {
 	ok := c.timingService.UpdateTiming(timing)
 	if !ok {
 		APIError(ctx, "更新定时任务失败")
+		return
+	}
+	APIOK(ctx)
+}
+
+func (c *TimingController) Copy(ctx *gin.Context) {
+	id := DefaultInt(ctx, "id", 0)
+	if id == 0 {
+		APIBadRequest(ctx, "ID格式错误")
+		return
+	}
+	timing := c.timingService.GetTimingByID(int64(id))
+	if timing == nil {
+		APIError(ctx, "定时任务不存在")
+		return
+	}
+	_timing := new(models.Timing)
+	_timing.GroupID = timing.GroupID
+	_timing.Name = timing.Name + "_copy"
+	_timing.AgentID = timing.AgentID
+	_timing.Dir = timing.Dir
+	_timing.Program = timing.Program
+	_timing.Args = timing.Args
+	_timing.StdOut = timing.StdOut
+	_timing.StdErr = timing.StdErr
+	_timing.Time = timing.Time
+	_timing.Timeout = timing.Timeout
+	_timing.IsMonitor = timing.IsMonitor
+	_timing.Status = models.STATUS_STOP
+	_timing.Creator = GetUserID(ctx)
+	ok := c.timingService.CreateTiming(_timing)
+	if !ok {
+		APIError(ctx, "复制定时任务失败")
 		return
 	}
 	APIOK(ctx)

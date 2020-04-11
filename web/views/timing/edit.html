@@ -34,9 +34,10 @@
                     </div>
                 </div>
             </div>
-            <div class="card-footer text-right">
-                <input name="id" type="hidden" class="form-control" placeholder="请输入名称" value="{{.Timing.ID}}" required>
+            <div class="card-footer">
+                <input name="id" type="hidden" value="{{.Timing.ID}}">
                 <button type="submit" class="btn btn-primary">提交</button>
+                <a href="/timing/list" class="btn btn-danger ml-2">返回</a>
             </div>
         </form>
     </div>

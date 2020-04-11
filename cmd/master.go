@@ -150,21 +150,21 @@ func CheckOfflineAgent() {
 		} else {
 			apps := appService.GetAppByAgentID(agent.ID)
 			for _, app := range apps {
-				if app.Status != models.STATUS_PAUSE {
+				if app.Status != models.STATUS_PAUSE && app.Status != models.STATUS_DELETED {
 					app.Status = models.STATUS_STOP
 					appService.UpdateApp(&app)
 				}
 			}
 			jobs := jobService.GetJobByAgentID(agent.ID)
 			for _, job := range jobs {
-				if job.Status != models.STATUS_PAUSE {
+				if job.Status != models.STATUS_PAUSE && job.Status != models.STATUS_DELETED {
 					job.Status = models.STATUS_STOP
 					jobService.UpdateJob(&job)
 				}
 			}
 			timings := timingService.GetTimingByAgentID(agent.ID)
 			for _, timing := range timings {
-				if timing.Status != models.STATUS_PAUSE && timing.Status != models.STATUS_FINISHED {
+				if timing.Status != models.STATUS_PAUSE && timing.Status != models.STATUS_DELETED && timing.Status != models.STATUS_FINISHED {
 					timing.Status = models.STATUS_STOP
 					timingService.UpdateTiming(&timing)
 				}

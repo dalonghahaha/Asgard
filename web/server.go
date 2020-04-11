@@ -69,6 +69,10 @@ func setupController() {
 	if cookieSalt != "" {
 		controllers.Domain = domain
 	}
+	outDir := viper.GetString("log.dir")
+	if outDir != "" {
+		controllers.OutDir = outDir
+	}
 	useController = controllers.NewUserController()
 	agentController = controllers.NewAgentController()
 	groupController = controllers.NewGroupController()

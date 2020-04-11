@@ -34,50 +34,62 @@
     </div>
 </div>
 <div class="row">
-    <div class="col-md-12">
+    <div class="col-md-6">
         <div class="mb-2">
             <label class="form-label">名称</label>
-            <input name="name" type="text" class="form-control" placeholder="请输入名称" value="{{.Info.Name}}" required>
+            <input id="name" name="name" type="text" class="form-control" placeholder="请输入名称" value="{{.Info.Name}}" required>
         </div>
     </div>
 </div>
 <div class="row">
-    <div class="col-md-12">
+    <div class="col-md-10">
         <div class="mb-2">
             <label class="form-label">执行目录</label>
-            <input name="dir" type="text" class="form-control" placeholder="请输入执行目录" value="{{.Info.Dir}}" required>
+            <input id="dir" name="dir" type="text" class="form-control" placeholder="请输入执行目录" value="{{.Info.Dir}}" required>
         </div>
     </div>
 </div>
 <div class="row">
-    <div class="col-md-12">
+    <div class="col-md-10">
         <div class="mb-2">
             <label class="form-label">执行程序</label>
-            <input name="program" type="text" class="form-control" placeholder="请输入执行程序" value="{{.Info.Program}}" required>
+            <input id="program" name="program" type="text" class="form-control" placeholder="请输入执行程序" value="{{.Info.Program}}" required>
         </div>
     </div>
 </div>
 <div class="row">
-    <div class="col-md-12">
+    <div class="col-md-10">
         <div class="mb-2">
             <label class="form-label">执行参数</label>
-            <input name="args" type="text" class="form-control" placeholder="请输入执行参数" value="{{.Info.Args}}">
+            <input id="args" name="args" type="text" class="form-control" placeholder="请输入执行参数" value="{{.Info.Args}}">
         </div>
     </div>
 </div>
 <div class="row">
-    <div class="col-md-12">
+    <div class="col-md-10">
         <div class="mb-2">
             <label class="form-label">标准输出路径</label>
-            <input name="std_out" type="text" class="form-control" placeholder="请输入标准输出路径" value="{{.Info.StdOut}}">
+            {{if .Info}}
+            <input id="std_out" name="std_out" type="text" class="form-control" placeholder="请输入标准输出路径" value="{{.Info.StdOut}}">
+            {{else if .OutBaseDir}}
+            <input id="std_out" name="std_out" type="text" class="form-control" placeholder="请输入标准输出路径" value="{{.OutBaseDir}}">
+            {{else}}
+            <input id="std_out" name="std_out" type="text" class="form-control" placeholder="请输入标准输出路径" value="">
+            {{end}}
         </div>
     </div>
 </div>
 <div class="row">
-    <div class="col-md-12">
+    <div class="col-md-10">
         <div class="mb-2">
             <label class="form-label">错误输出路径</label>
-            <input name="std_err" type="text" class="form-control" placeholder="请输入错误输出路径" value="{{.Info.StdErr}}">
+            {{if .Info}}
+            <input id="std_err" name="std_err" type="text" class="form-control" placeholder="请输入错误输出路径" value="{{.Info.StdErr}}">
+            {{else if .OutBaseDir}}
+            <input id="std_err" name="std_err" type="text" class="form-control" placeholder="请输入标准输出路径" value="{{.OutBaseDir}}">
+            {{else}}
+            <input id="std_err" name="std_err" type="text" class="form-control" placeholder="请输入标准输出路径" value="">
+            {{end}}
         </div>
     </div>
 </div>

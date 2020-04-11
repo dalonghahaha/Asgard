@@ -28,7 +28,13 @@ func (s *AppService) GetAppCount(where map[string]interface{}) (count int) {
 func (s *AppService) GetAppPageList(where map[string]interface{}, page int, pageSize int) (list []models.App, count int) {
 	condition := "1=1"
 	for key, val := range where {
-		if key == "name" {
+		if key == "status" {
+			if val.(int) == -99 {
+				condition += " and status != -1"
+			} else {
+				condition += fmt.Sprintf(" and %s=%v", key, val)
+			}
+		} else if key == "name" {
 			condition += fmt.Sprintf(" and %s like '%%%v%%' ", key, val)
 		} else {
 			condition += fmt.Sprintf(" and %s=%v", key, val)

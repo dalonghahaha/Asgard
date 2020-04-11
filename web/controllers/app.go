@@ -66,7 +66,9 @@ func (c *AppController) List(ctx *gin.Context) {
 	status := DefaultInt(ctx, "status", -99)
 	name := ctx.Query("name")
 	page := DefaultInt(ctx, "page", 1)
-	where := map[string]interface{}{}
+	where := map[string]interface{}{
+		"status": status,
+	}
 	querys := []string{}
 	if groupID != 0 {
 		where["group_id"] = groupID
@@ -77,7 +79,6 @@ func (c *AppController) List(ctx *gin.Context) {
 		querys = append(querys, "agent_id="+strconv.Itoa(agentID))
 	}
 	if status != -99 {
-		where["status"] = status
 		querys = append(querys, "status="+strconv.Itoa(status))
 	}
 	if name != "" {
@@ -246,9 +247,10 @@ func (c *AppController) ErrLog(ctx *gin.Context) {
 
 func (c *AppController) Add(ctx *gin.Context) {
 	ctx.HTML(StatusOK, "app/add", gin.H{
-		"Subtitle":  "添加应用",
-		"GroupList": c.groupService.GetUsageGroup(),
-		"AgentList": c.agentService.GetUsageAgent(),
+		"Subtitle":   "添加应用",
+		"OutBaseDir": OutDir + "guard/",
+		"GroupList":  c.groupService.GetUsageGroup(),
+		"AgentList":  c.agentService.GetUsageAgent(),
 	})
 }
 
@@ -389,6 +391,38 @@ func (c *AppController) Update(ctx *gin.Context) {
 	APIOK(ctx)
 }
 
+func (c *AppController) Copy(ctx *gin.Context) {
+	id := DefaultInt(ctx, "id", 0)
+	if id == 0 {
+		APIBadRequest(ctx, "ID格式错误")
+		return
+	}
+	app := c.appService.GetAppByID(int64(id))
+	if app == nil {
+		APIError(ctx, "应用不存在")
+		return
+	}
+	_app := new(models.App)
+	_app.GroupID = app.GroupID
+	_app.Name = app.Name + "_copy"
+	_app.AgentID = app.AgentID
+	_app.Dir = app.Dir
+	_app.Program = app.Program
+	_app.Args = app.Args
+	_app.StdOut = app.StdOut
+	_app.StdErr = app.StdErr
+	_app.AutoRestart = app.AutoRestart
+	_app.IsMonitor = app.IsMonitor
+	_app.Status = models.STATUS_STOP
+	_app.Creator = GetUserID(ctx)
+	ok := c.appService.CreateApp(_app)
+	if !ok {
+		APIError(ctx, "复制应用失败")
+		return
+	}
+	APIOK(ctx)
+}
+
 func (c *AppController) Delete(ctx *gin.Context) {
 	id := DefaultInt(ctx, "id", 0)
 	if id == 0 {
@@ -400,11 +434,11 @@ func (c *AppController) Delete(ctx *gin.Context) {
 		APIError(ctx, "应用不存在")
 		return
 	}
-	if app.Status == 1 {
+	if app.Status == models.STATUS_RUNNING {
 		APIError(ctx, "应用正在运行不能删除")
 		return
 	}
-	app.Status = -1
+	app.Status = models.STATUS_DELETED
 	app.Updator = GetUserID(ctx)
 	ok := c.appService.UpdateApp(app)
 	if !ok {

@@ -15,6 +15,7 @@ const (
 	AGENT_OFFLINE = int64(0)
 	AGENT_ONLINE  = int64(1)
 
+	STATUS_DELETED  = int64(-1)
 	STATUS_STOP     = int64(0)
 	STATUS_RUNNING  = int64(1)
 	STATUS_PAUSE    = int64(2)

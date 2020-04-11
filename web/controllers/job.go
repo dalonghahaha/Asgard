@@ -67,7 +67,9 @@ func (c *JobController) List(ctx *gin.Context) {
 	status := DefaultInt(ctx, "status", -99)
 	name := ctx.Query("name")
 	page := DefaultInt(ctx, "page", 1)
-	where := map[string]interface{}{}
+	where := map[string]interface{}{
+		"status": status,
+	}
 	querys := []string{}
 	if groupID != 0 {
 		where["group_id"] = groupID
@@ -78,7 +80,6 @@ func (c *JobController) List(ctx *gin.Context) {
 		querys = append(querys, "agent_id="+strconv.Itoa(agentID))
 	}
 	if status != -99 {
-		where["status"] = status
 		querys = append(querys, "status="+strconv.Itoa(status))
 	}
 	if name != "" {
@@ -247,9 +248,10 @@ func (c *JobController) ErrLog(ctx *gin.Context) {
 
 func (c *JobController) Add(ctx *gin.Context) {
 	ctx.HTML(StatusOK, "job/add", gin.H{
-		"Subtitle":  "添加计划任务",
-		"GroupList": c.groupService.GetUsageGroup(),
-		"AgentList": c.agentService.GetUsageAgent(),
+		"Subtitle":   "添加计划任务",
+		"OutBaseDir": OutDir + "cron/",
+		"GroupList":  c.groupService.GetUsageGroup(),
+		"AgentList":  c.agentService.GetUsageAgent(),
 	})
 }
 
@@ -391,6 +393,39 @@ func (c *JobController) Update(ctx *gin.Context) {
 	ok := c.jobService.UpdateJob(job)
 	if !ok {
 		APIError(ctx, "更新计划任务失败")
+		return
+	}
+	APIOK(ctx)
+}
+
+func (c *JobController) Copy(ctx *gin.Context) {
+	id := DefaultInt(ctx, "id", 0)
+	if id == 0 {
+		APIBadRequest(ctx, "ID格式错误")
+		return
+	}
+	job := c.jobService.GetJobByID(int64(id))
+	if job == nil {
+		APIError(ctx, "计划任务不存在")
+		return
+	}
+	_job := new(models.Job)
+	_job.GroupID = job.GroupID
+	_job.Name = job.Name + "_copy"
+	_job.AgentID = job.AgentID
+	_job.Dir = job.Dir
+	_job.Program = job.Program
+	_job.Args = job.Args
+	_job.StdOut = job.StdOut
+	_job.StdErr = job.StdErr
+	_job.Spec = job.Spec
+	_job.Timeout = job.Timeout
+	_job.IsMonitor = job.IsMonitor
+	_job.Status = models.STATUS_STOP
+	_job.Creator = GetUserID(ctx)
+	ok := c.jobService.CreateJob(_job)
+	if !ok {
+		APIError(ctx, "复制计划任务失败")
 		return
 	}
 	APIOK(ctx)

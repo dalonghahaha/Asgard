@@ -7,7 +7,9 @@
 <h3 class="card-title ml-4">
     {{.Name}}
 </h3>
-{{if eq .Status 0}}
+{{if eq .Status -1}}
+    {{include "partials/badge/deleted"}}
+{{else if eq .Status 0}}
     {{include "partials/badge/stop"}}
 {{else if eq .Status 1}}
     {{include "partials/badge/running"}}

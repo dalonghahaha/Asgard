@@ -2,7 +2,7 @@
 {{template "page_title" .}}
 <div class="row">
     <div class="col-12">
-        <form id="job" class="card" method="post">
+        <form id="main" class="card" method="post">
             <div class="card-body">
                 {{template "cmd_form" .}}
                 <div class="row">
@@ -32,8 +32,9 @@
                     </div>
                 </div>
             </div>
-            <div class="card-footer text-right">
+            <div class="card-footer">
                 <button type="submit" class="btn btn-primary">提交</button>
+                <a href="/job/list" class="btn btn-danger ml-2">返回</a>
             </div>
         </form>
     </div>
@@ -42,10 +43,21 @@
 {{define "script"}}
 <script type="text/javascript">
     $(document).ready(function () {
+        var out_base_dir = "{{.OutBaseDir}}";
         $('#group_id').selectize({});
         $('#agent_id').selectize({});
-        $("#job").on("submit", function (event) {
-            $('#job').ajaxSubmit({
+        $("#name").on("keyup", function (event) {
+            var name = $("#name").val();
+            if (name) {
+                $("#std_out").val(out_base_dir + name + "_std_out.log");
+                $("#std_err").val(out_base_dir + name + "_std_err.log");
+            } else {
+                $("#std_out").val(out_base_dir);
+                $("#std_err").val(out_base_dir);
+            }
+        });
+        $("#main").on("submit", function (event) {
+            $('#main').ajaxSubmit({
                 url: "/job/create",
                 dataType: "json",
                 timeout: 60000,

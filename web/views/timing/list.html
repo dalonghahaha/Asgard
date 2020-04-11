@@ -4,7 +4,7 @@
     <div class="col-12">
         {{template "search_bar" .}}
         {{- range .List}}
-        <div class="cmd-info card mb-2" data-bind= {{.ID}}>
+        <div class="cmd-info card mb-2" data-mod="timing" data-bind= {{.ID}}>
             <div class="ribbon ribbon-left ribbon-bookmark bg-orange">
                 <b>{{.ID}}</b>
             </div>
@@ -49,65 +49,7 @@
         $('#group_id').selectize({});
         $('#agent_id').selectize({});
         $('#status').selectize({});
-        $("#main").delegate("button[action=submit]", "click", function () {
-            $("#main").find("form").submit();
-        }).delegate("button[action=reset]", "click", function () {
-            window.location.href = "/timing/list";
-        }).delegate("button[action=add]", "click", function () {
-            window.location.href = "/timing/add";
-        }).delegate("button[action=show]", "click", function () {
-            $(this).parent().parent().next().toggle();
-        }).delegate("button[action=edit]", "click", function () {
-            window.location.href = "/timing/edit?id=" + $(this).parents(".cmd-info").attr("data-bind");
-        }).delegate("button[action=monitor]", "click", function () {
-            window.location.href = "/timing/monitor?id=" + $(this).parents(".cmd-info").attr("data-bind");
-        }).delegate("button[action=archive]", "click", function () {
-            window.location.href = "/timing/archive?id=" + $(this).parents(".cmd-info").attr("data-bind");
-        }).delegate("a[action=out_log]", "click", function () {
-            window.location.href = "/timing/out_log?id=" + $(this).parents(".cmd-info").attr("data-bind");
-        }).delegate("a[action=err_log]", "click", function () {
-            window.location.href = "/timing/err_log?id=" + $(this).parents(".cmd-info").attr("data-bind");
-        }).delegate("button[action=start]", "click", function () {
-            var url  = "/timing/start?id=" + $(this).parents(".cmd-info").attr("data-bind");
-            $.getJSON(url, function (data) {
-                if (data.code == 200) {
-                    alert("操作成功");
-                    window.location.reload(true)
-                } else {
-                    alert(data.message);
-                }
-            })
-        }).delegate("button[action=restart]", "click", function () {
-            var url  = "/timing/restart?id=" + $(this).parents(".cmd-info").attr("data-bind");
-            $.getJSON(url, function (data) {
-                if (data.code == 200) {
-                    alert("操作成功");
-                    window.location.reload(true)
-                } else {
-                    alert(data.message);
-                }
-            })
-        }).delegate("button[action=pause]", "click", function () {
-            var url  = "/timing/pause?id=" + $(this).parents(".cmd-info").attr("data-bind");
-            $.getJSON(url, function (data) {
-                if (data.code == 200) {
-                    alert("操作成功");
-                    window.location.reload(true)
-                } else {
-                    alert(data.message);
-                }
-            })
-        }).delegate("button[action=delete]", "click", function () {
-            var url  = "/timing/delete?id=" + $(this).parents(".cmd-info").attr("data-bind");
-            $.getJSON(url, function (data) {
-                if (data.code == 200) {
-                    alert("操作成功");
-                    window.location.reload(true)
-                } else {
-                    alert(data.message);
-                }
-            })
-        });
+        Asgard.listDelegate("timing");
     });
 </script>
 {{end}}

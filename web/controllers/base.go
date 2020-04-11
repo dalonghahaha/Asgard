@@ -14,6 +14,7 @@ import (
 )
 
 var (
+	OutDir           = "runtime/"
 	ErrorUrl         = "/error"
 	StatusOK         = http.StatusOK
 	StatusBadRequest = http.StatusBadRequest
