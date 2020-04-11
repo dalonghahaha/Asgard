@@ -1,4 +1,5 @@
 {{define "content"}}
+{{template "page_title" .}}
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -10,9 +11,9 @@
                             <input id="lines" type="text" class="form-control" value="{{.Lines}}" size="3">
                         </div>
                         行
-                        <input id="type" type="hidden" value="{{.Type}}">
                         <input id="id" type="hidden" value="{{.ID}}">
                         <a id="search" href="javascript:;" class="btn btn-primary ml-3">查询</a>
+                        <a href="{{.BackUrl}}" class="btn btn-primary ml-3">返回</a>
                     </div>
                 </div>
             </div>
@@ -35,11 +36,11 @@
     $(document).ready(function () {
         $("#search").on("click", function (event) {
             var id = $("#id").val();
-            var type = $("#type").val();
             var lines = $("#lines").val();
             var _lines = parseInt(lines);
+            var path = "{{.Path}}";
             if (_lines != NaN) {
-                window.location.href = "/app/" + type + "?id=" + id + "&lines=" + lines;
+                window.location.href = path + "?id=" + id + "&lines=" + lines;
             } else {
                 alert("输入行数不正确！")
             }

@@ -1,0 +1,22 @@
+{{define "cmd_info"}}
+<dd class="col-12">
+    <span class="text-body text-h4">执行目录：</span>
+    <span class="text-muted">{{.Dir}}</span>
+</dd>
+<dd class="col-12">
+    <span class="text-body text-h4">执行命令：</span>
+    <span class="text-green">{{.Program}}</span>&nbsp;<span class="text-red">{{.Args}}</span>
+</dd>
+<dd class="col-12">
+    <span class="text-body text-h4">正常输出：</span>
+    <span class="text-muted">
+        <a action="out_log" href="javascript:;">{{.StdOut}}</a>
+    </span>
+</dd>
+<dd class="col-12">
+    <span class="text-body text-h4">错误输出：</span>
+    <span class="text-muted">
+        <a action="err_log" href="javascript:;">{{.StdErr}}</a>
+    </span>
+</dd>
+{{end}}

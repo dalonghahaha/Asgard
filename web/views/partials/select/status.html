@@ -1,0 +1,11 @@
+<div class="form-group row">
+    <label class="form-label col-3 col-form-label">状态：</label>
+    <div class="col">
+        <select id="status" name="status" class="form-select">
+            <option value="-99">全部</option>
+            {{- range .StatusList}}
+            <option value="{{.ID}}" {{if eq $.Status .ID}}selected{{end}}>{{.Name}}</option>
+            {{- end}}
+        </select>
+    </div>
+</div>

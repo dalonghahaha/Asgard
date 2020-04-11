@@ -64,6 +64,7 @@ func (c *JobController) formatJob(info *models.Job) map[string]interface{} {
 func (c *JobController) List(ctx *gin.Context) {
 	groupID := DefaultInt(ctx, "group_id", 0)
 	agentID := DefaultInt(ctx, "agent_id", 0)
+	status := DefaultInt(ctx, "status", -99)
 	name := ctx.Query("name")
 	page := DefaultInt(ctx, "page", 1)
 	where := map[string]interface{}{}
@@ -75,6 +76,10 @@ func (c *JobController) List(ctx *gin.Context) {
 	if agentID != 0 {
 		where["agent_id"] = agentID
 		querys = append(querys, "agent_id="+strconv.Itoa(agentID))
+	}
+	if status != -99 {
+		where["status"] = status
+		querys = append(querys, "status="+strconv.Itoa(status))
 	}
 	if name != "" {
 		where["name"] = name
@@ -98,9 +103,11 @@ func (c *JobController) List(ctx *gin.Context) {
 		"Total":      total,
 		"GroupList":  c.groupService.GetUsageGroup(),
 		"AgentList":  c.agentService.GetUsageAgent(),
+		"StatusList": models.JOB_STATUS,
 		"GroupID":    groupID,
 		"AgentID":    agentID,
 		"Name":       name,
+		"Status":     status,
 		"Pagination": PagerHtml(total, page, mpurl),
 	})
 }
@@ -137,8 +144,9 @@ func (c *JobController) Monitor(ctx *gin.Context) {
 		memorys = append(memorys, FormatFloat(moniter.Memory))
 		times = append(times, FormatTime(moniter.CreatedAt))
 	}
-	ctx.HTML(StatusOK, "app/monitor", gin.H{
-		"Subtitle": "监控信息",
+	ctx.HTML(StatusOK, "monitor/list", gin.H{
+		"Subtitle": "计划任务监控信息",
+		"BackUrl":  "/job/list",
 		"CPU":      cpus,
 		"Memory":   memorys,
 		"Time":     times,
@@ -165,11 +173,75 @@ func (c *JobController) Archive(ctx *gin.Context) {
 		list = append(list, formatArchive(&archive))
 	}
 	mpurl := fmt.Sprintf("/job/archive?id=%d", id)
-	ctx.HTML(StatusOK, "job/archive", gin.H{
-		"Subtitle":   "归档列表",
+	ctx.HTML(StatusOK, "archive/list", gin.H{
+		"Subtitle":   "计划任务归档列表",
 		"List":       list,
 		"Total":      total,
 		"Pagination": PagerHtml(total, page, mpurl),
+	})
+}
+
+func (c *JobController) OutLog(ctx *gin.Context) {
+	id := DefaultInt(ctx, "id", 0)
+	lines := DefaultInt(ctx, "lines", 10)
+	if id == 0 {
+		JumpError(ctx)
+		return
+	}
+	job := c.jobService.GetJobByID(int64(id))
+	if job == nil {
+		JumpError(ctx)
+		return
+	}
+	agent := c.agentService.GetAgentByID(job.AgentID)
+	if agent == nil {
+		JumpError(ctx)
+		return
+	}
+	content, err := client.GetAgentLog(agent, job.StdOut, int64(lines))
+	if err != nil {
+		JumpError(ctx)
+		return
+	}
+	ctx.HTML(StatusOK, "log/list", gin.H{
+		"Subtitle": "计划任务日志查看",
+		"Path":     "/job/out_log",
+		"BackUrl":  "/job/list",
+		"ID":       id,
+		"Lines":    lines,
+		"Content":  content,
+	})
+}
+
+func (c *JobController) ErrLog(ctx *gin.Context) {
+	id := DefaultInt(ctx, "id", 0)
+	lines := DefaultInt(ctx, "lines", 10)
+	if id == 0 {
+		JumpError(ctx)
+		return
+	}
+	job := c.jobService.GetJobByID(int64(id))
+	if job == nil {
+		JumpError(ctx)
+		return
+	}
+	agent := c.agentService.GetAgentByID(job.AgentID)
+	if agent == nil {
+		JumpError(ctx)
+		return
+	}
+	content, err := client.GetAgentLog(agent, job.StdErr, int64(lines))
+	if err != nil {
+		JumpError(ctx)
+		return
+	}
+	ctx.HTML(StatusOK, "log/list", gin.H{
+		"Subtitle": "计划任务错误日志查看",
+		"Path":     "/job/err_log",
+		"BackUrl":  "/job/list",
+		"ID":       id,
+		"Lines":    lines,
+		"Content":  content,
 	})
 }
 
@@ -252,7 +324,7 @@ func (c *JobController) Edit(ctx *gin.Context) {
 	}
 	ctx.HTML(StatusOK, "job/edit", gin.H{
 		"Subtitle":  "编辑计划任务",
-		"Job":       c.formatJob(job),
+		"Info":      c.formatJob(job),
 		"GroupList": c.groupService.GetUsageGroup(),
 		"AgentList": c.agentService.GetUsageAgent(),
 	})
@@ -462,66 +534,4 @@ func (c *JobController) Pause(ctx *gin.Context) {
 	job.Updator = GetUserID(ctx)
 	c.jobService.UpdateJob(job)
 	APIOK(ctx)
-}
-
-func (c *JobController) OutLog(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
-	lines := DefaultInt(ctx, "lines", 10)
-	if id == 0 {
-		JumpError(ctx)
-		return
-	}
-	job := c.jobService.GetJobByID(int64(id))
-	if job == nil {
-		JumpError(ctx)
-		return
-	}
-	agent := c.agentService.GetAgentByID(job.AgentID)
-	if agent == nil {
-		JumpError(ctx)
-		return
-	}
-	content, err := client.GetAgentLog(agent, job.StdOut, int64(lines))
-	if err != nil {
-		JumpError(ctx)
-		return
-	}
-	ctx.HTML(StatusOK, "job/log", gin.H{
-		"Subtitle": "计划任务日志查看",
-		"ID":       id,
-		"Lines":    lines,
-		"Type":     "out_log",
-		"Content":  content,
-	})
-}
-
-func (c *JobController) ErrLog(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
-	lines := DefaultInt(ctx, "lines", 10)
-	if id == 0 {
-		JumpError(ctx)
-		return
-	}
-	job := c.jobService.GetJobByID(int64(id))
-	if job == nil {
-		JumpError(ctx)
-		return
-	}
-	agent := c.agentService.GetAgentByID(job.AgentID)
-	if agent == nil {
-		JumpError(ctx)
-		return
-	}
-	content, err := client.GetAgentLog(agent, job.StdErr, int64(lines))
-	if err != nil {
-		JumpError(ctx)
-		return
-	}
-	ctx.HTML(StatusOK, "job/log", gin.H{
-		"Subtitle": "计划任务错误日志查看",
-		"ID":       id,
-		"Lines":    lines,
-		"Type":     "err_log",
-		"Content":  content,
-	})
 }

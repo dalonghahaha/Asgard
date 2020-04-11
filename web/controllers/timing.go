@@ -63,6 +63,7 @@ func (c *TimingController) formatTiming(info *models.Timing) map[string]interfac
 func (c *TimingController) List(ctx *gin.Context) {
 	groupID := DefaultInt(ctx, "group_id", 0)
 	agentID := DefaultInt(ctx, "agent_id", 0)
+	status := DefaultInt(ctx, "status", -99)
 	name := ctx.Query("name")
 	page := DefaultInt(ctx, "page", 1)
 	where := map[string]interface{}{}
@@ -74,6 +75,10 @@ func (c *TimingController) List(ctx *gin.Context) {
 	if agentID != 0 {
 		where["agent_id"] = agentID
 		querys = append(querys, "agent_id="+strconv.Itoa(agentID))
+	}
+	if status != -99 {
+		where["status"] = status
+		querys = append(querys, "status="+strconv.Itoa(status))
 	}
 	if name != "" {
 		where["name"] = name
@@ -97,9 +102,11 @@ func (c *TimingController) List(ctx *gin.Context) {
 		"Total":      total,
 		"GroupList":  c.groupService.GetUsageGroup(),
 		"AgentList":  c.agentService.GetUsageAgent(),
+		"StatusList": models.TIMING_STATUS,
 		"GroupID":    groupID,
 		"AgentID":    agentID,
 		"Name":       name,
+		"Status":     status,
 		"Pagination": PagerHtml(total, page, mpurl),
 	})
 }
@@ -136,8 +143,9 @@ func (c *TimingController) Monitor(ctx *gin.Context) {
 		memorys = append(memorys, FormatFloat(moniter.Memory))
 		times = append(times, FormatTime(moniter.CreatedAt))
 	}
-	ctx.HTML(StatusOK, "timing/monitor", gin.H{
-		"Subtitle": "监控信息",
+	ctx.HTML(StatusOK, "monitor/list", gin.H{
+		"Subtitle": "定时任务监控信息",
+		"BackUrl":  "/timing/list",
 		"CPU":      cpus,
 		"Memory":   memorys,
 		"Time":     times,
@@ -164,11 +172,76 @@ func (c *TimingController) Archive(ctx *gin.Context) {
 		list = append(list, formatArchive(&archive))
 	}
 	mpurl := fmt.Sprintf("/timing/archive?id=%d", id)
-	ctx.HTML(StatusOK, "timing/archive", gin.H{
-		"Subtitle":   "归档列表",
+	ctx.HTML(StatusOK, "archive/list", gin.H{
+		"Subtitle":   "定时任务归档列表",
 		"List":       list,
 		"Total":      total,
 		"Pagination": PagerHtml(total, page, mpurl),
+	})
+}
+
+func (c *TimingController) OutLog(ctx *gin.Context) {
+	id := DefaultInt(ctx, "id", 0)
+	lines := DefaultInt(ctx, "lines", 10)
+	if id == 0 {
+		JumpError(ctx)
+		return
+	}
+	timing := c.timingService.GetTimingByID(int64(id))
+	if timing == nil {
+		JumpError(ctx)
+		return
+	}
+	agent := c.agentService.GetAgentByID(timing.AgentID)
+	if agent == nil {
+		JumpError(ctx)
+		return
+	}
+	content, err := client.GetAgentLog(agent, timing.StdOut, int64(lines))
+	if err != nil {
+		JumpError(ctx)
+		return
+	}
+	ctx.HTML(StatusOK, "log/list", gin.H{
+		"Subtitle": "定时任务日志查看",
+		"Path":     "/timing/out_log",
+		"BackUrl":  "/timing/list",
+		"ID":       id,
+		"Lines":    lines,
+		"Content":  content,
+	})
+}
+
+func (c *TimingController) ErrLog(ctx *gin.Context) {
+	id := DefaultInt(ctx, "id", 0)
+	lines := DefaultInt(ctx, "lines", 10)
+	if id == 0 {
+		JumpError(ctx)
+		return
+	}
+	timing := c.timingService.GetTimingByID(int64(id))
+	if timing == nil {
+		JumpError(ctx)
+		return
+	}
+	agent := c.agentService.GetAgentByID(timing.AgentID)
+	if agent == nil {
+		JumpError(ctx)
+		return
+	}
+	content, err := client.GetAgentLog(agent, timing.StdErr, int64(lines))
+	if err != nil {
+		JumpError(ctx)
+		return
+	}
+	ctx.HTML(StatusOK, "log/list", gin.H{
+		"Subtitle": "定时任务错误日志查看",
+		"Path":     "/timing/err_log",
+		"BackUrl":  "/timing/list",
+		"ID":       id,
+		"Lines":    lines,
+		"Type":     "err_log",
+		"Content":  content,
 	})
 }
 
@@ -251,7 +324,7 @@ func (c *TimingController) Edit(ctx *gin.Context) {
 	}
 	ctx.HTML(StatusOK, "timing/edit", gin.H{
 		"Subtitle":  "编辑定时任务",
-		"Timing":    c.formatTiming(timing),
+		"Info":      c.formatTiming(timing),
 		"GroupList": c.groupService.GetUsageGroup(),
 		"AgentList": c.agentService.GetUsageAgent(),
 	})
@@ -461,66 +534,4 @@ func (c *TimingController) Pause(ctx *gin.Context) {
 	timing.Updator = GetUserID(ctx)
 	c.timingService.UpdateTiming(timing)
 	APIOK(ctx)
-}
-
-func (c *TimingController) OutLog(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
-	lines := DefaultInt(ctx, "lines", 10)
-	if id == 0 {
-		JumpError(ctx)
-		return
-	}
-	timing := c.timingService.GetTimingByID(int64(id))
-	if timing == nil {
-		JumpError(ctx)
-		return
-	}
-	agent := c.agentService.GetAgentByID(timing.AgentID)
-	if agent == nil {
-		JumpError(ctx)
-		return
-	}
-	content, err := client.GetAgentLog(agent, timing.StdOut, int64(lines))
-	if err != nil {
-		JumpError(ctx)
-		return
-	}
-	ctx.HTML(StatusOK, "timing/log", gin.H{
-		"Subtitle": "定时任务日志查看",
-		"ID":       id,
-		"Lines":    lines,
-		"Type":     "out_log",
-		"Content":  content,
-	})
-}
-
-func (c *TimingController) ErrLog(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
-	lines := DefaultInt(ctx, "lines", 10)
-	if id == 0 {
-		JumpError(ctx)
-		return
-	}
-	timing := c.timingService.GetTimingByID(int64(id))
-	if timing == nil {
-		JumpError(ctx)
-		return
-	}
-	agent := c.agentService.GetAgentByID(timing.AgentID)
-	if agent == nil {
-		JumpError(ctx)
-		return
-	}
-	content, err := client.GetAgentLog(agent, timing.StdErr, int64(lines))
-	if err != nil {
-		JumpError(ctx)
-		return
-	}
-	ctx.HTML(StatusOK, "job/log", gin.H{
-		"Subtitle": "定时任务错误日志查看",
-		"ID":       id,
-		"Lines":    lines,
-		"Type":     "err_log",
-		"Content":  content,
-	})
 }

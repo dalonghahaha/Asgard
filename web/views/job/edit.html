@@ -1,101 +1,16 @@
 {{define "content"}}
-<div class="page-title-box">
-    <div class="row align-items-center">
-        <div class="col-auto">
-            <h2 class="page-title">编辑计划任务</h2>
-        </div>
-    </div>
-</div>
+{{template "page_title" .}}
 <div class="row">
     <div class="col-12">
         <form id="job" class="card" method="post">
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-2">
-                            <label class="form-label">分组</label>
-                            <select id="group_id" name="group_id" class="form-select">
-                                <option value="">请选择</option>
-                                {{- range .GroupList}}
-                                <option value="{{.ID}}" {{if eq $.Job.GroupID .ID}}selected{{end}}>{{.Name}}</option>
-                                {{- end}}
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-2">
-                            <label class="form-label">运行实例</label>
-                            <select id="agent_id" name="agent_id" class="form-select" required>
-                                <option value="">请选择</option>
-                                {{- range .AgentList}}
-                                <option value="{{.ID}}" {{if eq $.Job.AgentID .ID}}selected{{end}}>{{.IP}}:{{.Port}}({{.Alias}})</option>
-                                {{- end}}
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="mb-2">
-                            <label class="form-label">名称</label>
-                            <input name="name" type="text" class="form-control" placeholder="请输入名称"
-                                value="{{.Job.Name}}" required>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="mb-2">
-                            <label class="form-label">执行目录</label>
-                            <input name="dir" type="text" class="form-control" placeholder="请输入执行目录"
-                                value="{{.Job.Dir}}" required>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="mb-2">
-                            <label class="form-label">执行程序</label>
-                            <input name="program" type="text" class="form-control" placeholder="请输入执行程序"
-                                value="{{.Job.Program}}" required>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="mb-2">
-                            <label class="form-label">执行参数</label>
-                            <input name="args" type="text" class="form-control" placeholder="请输入执行参数"
-                                value="{{.Job.Args}}">
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="mb-2">
-                            <label class="form-label">标准输出路径</label>
-                            <input name="std_out" type="text" class="form-control" placeholder="请输入标准输出路径"
-                                value="{{.Job.StdOut}}">
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="mb-2">
-                            <label class="form-label">错误输出路径</label>
-                            <input name="std_err" type="text" class="form-control" placeholder="请输入错误输出路径"
-                                value="{{.Job.StdErr}}">
-                        </div>
-                    </div>
-                </div>
+                {{template "cmd_form" .}}
                 <div class="row">
                     <div class="col-md-12">
                         <div class="mb-2">
                             <label class="form-label">计划配置</label>
                             <input name="spec" type="text" class="form-control" placeholder="请输入计划配置"
-                                value="{{.Job.Spec}}">
+                                value="{{.Info.Spec}}">
                         </div>
                     </div>
                 </div>
@@ -104,7 +19,7 @@
                         <div class="mb-2">
                             <label class="form-label">超时时间</label>
                             <input name="timeout" type="text" class="form-control" placeholder="请输入超时时间"
-                                value="{{.Job.Timeout}}">
+                                value="{{.Info.Timeout}}">
                         </div>
                     </div>
                 </div>
@@ -114,14 +29,14 @@
                             <label class="form-label">是否开启监控</label>
                             <label class="form-check form-switch">
                                 <input name="is_monitor" class="form-check-input" type="checkbox"
-                                    {{if eq .Job.IsMonitor 1}}checked{{end}}>
+                                    {{if eq .Info.IsMonitor 1}}checked{{end}}>
                             </label>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="card-footer text-right">
-                <input name="id" type="hidden" class="form-control" placeholder="请输入名称" value="{{.Job.ID}}" required>
+                <input name="id" type="hidden" value="{{.Info.ID}}" required>
                 <button type="submit" class="btn btn-primary">提交</button>
             </div>
         </form>

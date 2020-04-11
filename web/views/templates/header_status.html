@@ -1,0 +1,19 @@
+{{define "header_status"}}
+<h3 class="card-title ml-6">
+    <span class="badge bg-teal">{{.GroupName}}</span>
+    <br />
+    <span class="badge bg-lime">{{.AgentName}}</span>
+</h3>
+<h3 class="card-title ml-4">
+    {{.Name}}
+</h3>
+{{if eq .Status 0}}
+    {{include "partials/badge/stop"}}
+{{else if eq .Status 1}}
+    {{include "partials/badge/running"}}
+{{else if eq .Status 2}}
+    {{include "partials/badge/pause"}}
+{{else if eq .Status 3}}
+    {{include "partials/badge/finished"}}
+{{end}}
+{{end}}

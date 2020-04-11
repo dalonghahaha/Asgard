@@ -1,92 +1,12 @@
 {{define "content"}}
-<div class="page-title-box">
-    <div class="row align-items-center">
-        <div class="col-auto">
-            <h2 class="page-title">添加计划任务</h2>
-        </div>
-    </div>
-</div>
+{{template "page_title" .}}
 <div class="row">
     <div class="col-12">
         <form id="job" class="card" method="post">
             <div class="card-body">
+                {{template "cmd_form" .}}
                 <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-2">
-                            <label class="form-label">分组</label>
-                            <select id="group_id" name="group_id" class="form-select">
-                                <option value="">请选择</option>
-                                {{- range .GroupList}}
-                                <option value="{{.ID}}">{{.Name}}</option>
-                                {{- end}}
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-2">
-                            <label class="form-label">运行实例</label>
-                            <select id="agent_id" name="agent_id" class="form-select" required>
-                                <option value="">请选择</option>
-                                {{- range .AgentList}}
-                                <option value="{{.ID}}">{{.IP}}:{{.Port}}({{.Alias}})</option>
-                                {{- end}}
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="mb-2">
-                            <label class="form-label">名称</label>
-                            <input name="name" type="text" class="form-control" placeholder="请输入名称" value="" required>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="mb-2">
-                            <label class="form-label">执行目录</label>
-                            <input name="dir" type="text" class="form-control" placeholder="请输入执行目录" value="" required>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="mb-2">
-                            <label class="form-label">执行程序</label>
-                            <input name="program" type="text" class="form-control" placeholder="请输入执行程序" value=""
-                                required>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="mb-2">
-                            <label class="form-label">执行参数</label>
-                            <input name="args" type="text" class="form-control" placeholder="请输入执行参数" value="">
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="mb-2">
-                            <label class="form-label">标准输出路径</label>
-                            <input name="std_out" type="text" class="form-control" placeholder="请输入标准输出路径" value="">
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="mb-2">
-                            <label class="form-label">错误输出路径</label>
-                            <input name="std_err" type="text" class="form-control" placeholder="请输入错误输出路径" value="">
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-12">
+                    <div class="col-md-4">
                         <div class="mb-2">
                             <label class="form-label">计划配置</label>
                             <input name="spec" type="text" class="form-control" placeholder="请输入计划配置" value="">
@@ -94,10 +14,10 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-12">
+                    <div class="col-md-4">
                         <div class="mb-2">
                             <label class="form-label">超时时间</label>
-                            <input name="timeout" type="text" class="form-control" placeholder="请输入超时时间" value="">
+                            <input name="timeout" type="text" class="form-control" placeholder="请输入超时时间" value="-1">
                         </div>
                     </div>
                 </div>

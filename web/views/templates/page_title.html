@@ -1,0 +1,16 @@
+{{define "page_title"}}
+<div class="page-title-box">
+    <div class="row align-items-center">
+        <div class="col-auto">
+            <h2 class="page-title">
+                {{.Subtitle}}
+            </h2>
+        </div>
+        {{if .Total}}
+        <div class="col-auto">
+            <div class="text-muted text-h5 mt-2">总记录数:{{.Total}}</div>
+        </div>
+        {{end}}
+    </div>
+</div>
+{{end}}

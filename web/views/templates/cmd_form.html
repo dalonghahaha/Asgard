@@ -1,0 +1,84 @@
+{{define "cmd_form"}}
+<div class="row">
+    <div class="col-md-6">
+        <div class="mb-2">
+            <label class="form-label">分组</label>
+            <select id="group_id" name="group_id" class="form-select">
+                <option value="">请选择</option>
+                {{- range .GroupList}}
+                {{if $.Info}}
+                <option value="{{.ID}}" {{if eq $.Info.GroupID .ID}}selected{{end}}>{{.Name}}</option>
+                {{else}}
+                <option value="{{.ID}}">{{.Name}}</option>
+                {{end}}
+                {{- end}}
+            </select>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-6">
+        <div class="mb-2">
+            <label class="form-label">运行实例</label>
+            <select id="agent_id" name="agent_id" class="form-select" required>
+                <option value="">请选择</option>
+                {{- range .AgentList}}
+                {{if $.Info}}
+                <option value="{{.ID}}" {{if eq $.Info.AgentID .ID}}selected{{end}}>{{.IP}}:{{.Port}}({{.Alias}})</option>
+                {{else}}
+                <option value="{{.ID}}">{{.IP}}:{{.Port}}({{.Alias}})</option>
+                {{end}}
+                {{- end}}
+            </select>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="mb-2">
+            <label class="form-label">名称</label>
+            <input name="name" type="text" class="form-control" placeholder="请输入名称" value="{{.Info.Name}}" required>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="mb-2">
+            <label class="form-label">执行目录</label>
+            <input name="dir" type="text" class="form-control" placeholder="请输入执行目录" value="{{.Info.Dir}}" required>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="mb-2">
+            <label class="form-label">执行程序</label>
+            <input name="program" type="text" class="form-control" placeholder="请输入执行程序" value="{{.Info.Program}}" required>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="mb-2">
+            <label class="form-label">执行参数</label>
+            <input name="args" type="text" class="form-control" placeholder="请输入执行参数" value="{{.Info.Args}}">
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="mb-2">
+            <label class="form-label">标准输出路径</label>
+            <input name="std_out" type="text" class="form-control" placeholder="请输入标准输出路径" value="{{.Info.StdOut}}">
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="mb-2">
+            <label class="form-label">错误输出路径</label>
+            <input name="std_err" type="text" class="form-control" placeholder="请输入错误输出路径" value="{{.Info.StdErr}}">
+        </div>
+    </div>
+</div>
+{{end}}

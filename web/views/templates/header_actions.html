@@ -1,0 +1,32 @@
+{{define "header_actions"}}
+<div class="card-actions btn-list">
+    <button action="show" class="btn btn-secondary btn-icon ml-auto" title="查看配置详情">
+        {{include "partials/svg/show"}}
+    </button>
+    <button action="edit" class="btn btn-secondary btn-icon" title="编辑">
+        {{include "partials/svg/edit"}}
+    </button>
+    <button action="monitor" class="btn btn-info btn-icon" title="查看监控信息">
+        {{include "partials/svg/monitor"}}
+    </button>
+    <button action="archive" class="btn btn-info btn-icon" title="查看归档信息">
+        {{include "partials/svg/archive"}}
+    </button>
+    {{if eq .Status 1}}
+    <button action="restart" class="btn btn-success btn-icon" title="重启">
+        {{include "partials/svg/restart"}}
+    </button>
+    <button action="pause" class="btn btn-warning btn-icon" title="暂停">
+        {{include "partials/svg/pause"}}
+    </button>
+    {{end}}
+    {{if or (eq .Status 0) (eq .Status 2)}}
+    <button action="start" class="btn btn-success btn-icon" title="启动">
+        {{include "partials/svg/start"}}
+    </button>
+    <button action="delete" class="btn btn-danger btn-icon" title="删除">
+        {{include "partials/svg/delete"}}
+    </button>
+    {{end}}
+</div>
+{{end}}

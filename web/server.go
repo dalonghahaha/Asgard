@@ -3,13 +3,14 @@ package web
 import (
 	"fmt"
 	"html/template"
+	"strings"
 
+	common_middlewares "github.com/dalonghahaha/avenger/middlewares/gin"
+	"github.com/dalonghahaha/avenger/tools/file"
 	"github.com/foolin/goview"
 	"github.com/foolin/goview/supports/ginview"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
-
-	common_middlewares "github.com/dalonghahaha/avenger/middlewares/gin"
 
 	"Asgard/web/controllers"
 )
@@ -25,6 +26,10 @@ var (
 	indexController  *controllers.IndexController
 )
 
+func Server() *gin.Engine {
+	return server
+}
+
 func Init() error {
 	if viper.GetString("server.mode") == "release" {
 		gin.SetMode(gin.ReleaseMode)
@@ -34,6 +39,18 @@ func Init() error {
 	server.Use(common_middlewares.Recover)
 	viewConfig := goview.DefaultConfig
 	viewConfig.Root = "web/views"
+	viewConfig.Extension = ".html"
+	viewConfig.Master = "layouts/master"
+	fileList, err := file.ReadDir("web/views/templates")
+	if err != nil {
+		return err
+	}
+	partials := []string{}
+	for _, file := range fileList {
+		partial := "templates/" + strings.Replace(file.Name(), viewConfig.Extension, "", -1)
+		partials = append(partials, partial)
+	}
+	viewConfig.Partials = partials
 	viewConfig.DisableCache = true
 	viewConfig.Funcs = template.FuncMap{
 		"unescaped": controllers.Unescaped,
