@@ -53,7 +53,7 @@ func (c *AppController) formatApp(info *models.App) map[string]interface{} {
 	}
 	agent := c.agentService.GetAgentByID(info.AgentID)
 	if agent != nil {
-		data["AgentName"] = agent.IP + ":" + agent.Port
+		data["AgentName"] = fmt.Sprintf("%s:%s(%s)", agent.IP, agent.Port, agent.Alias)
 	} else {
 		data["AgentName"] = ""
 	}
