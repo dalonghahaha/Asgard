@@ -10,25 +10,15 @@ import (
 	"Asgard/client"
 	"Asgard/constants"
 	"Asgard/models"
-	"Asgard/services"
+	"Asgard/providers"
+	"Asgard/web/utils"
 )
 
 type AppController struct {
-	appService     *services.AppService
-	agentService   *services.AgentService
-	groupService   *services.GroupService
-	moniterService *services.MonitorService
-	archiveService *services.ArchiveService
 }
 
 func NewAppController() *AppController {
-	return &AppController{
-		appService:     services.NewAppService(),
-		agentService:   services.NewAgentService(),
-		groupService:   services.NewGroupService(),
-		moniterService: services.NewMonitorService(),
-		archiveService: services.NewArchiveService(),
-	}
+	return &AppController{}
 }
 
 func (c *AppController) formatApp(info *models.App) map[string]interface{} {
@@ -46,13 +36,13 @@ func (c *AppController) formatApp(info *models.App) map[string]interface{} {
 		"IsMonitor":   info.IsMonitor,
 		"Status":      info.Status,
 	}
-	group := c.groupService.GetGroupByID(info.GroupID)
+	group := providers.GroupService.GetGroupByID(info.GroupID)
 	if group != nil {
 		data["GroupName"] = group.Name
 	} else {
 		data["GroupName"] = ""
 	}
-	agent := c.agentService.GetAgentByID(info.AgentID)
+	agent := providers.AgentService.GetAgentByID(info.AgentID)
 	if agent != nil {
 		data["AgentName"] = fmt.Sprintf("%s:%s(%s)", agent.IP, agent.Port, agent.Alias)
 	} else {
@@ -62,11 +52,11 @@ func (c *AppController) formatApp(info *models.App) map[string]interface{} {
 }
 
 func (c *AppController) List(ctx *gin.Context) {
-	groupID := DefaultInt(ctx, "group_id", 0)
-	agentID := DefaultInt(ctx, "agent_id", 0)
-	status := DefaultInt(ctx, "status", -99)
+	groupID := utils.DefaultInt(ctx, "group_id", 0)
+	agentID := utils.DefaultInt(ctx, "agent_id", 0)
+	status := utils.DefaultInt(ctx, "status", -99)
 	name := ctx.Query("name")
-	page := DefaultInt(ctx, "page", 1)
+	page := utils.DefaultInt(ctx, "page", 1)
 	where := map[string]interface{}{
 		"status": status,
 	}
@@ -86,9 +76,9 @@ func (c *AppController) List(ctx *gin.Context) {
 		where["name"] = name
 		querys = append(querys, "name="+name)
 	}
-	appList, total := c.appService.GetAppPageList(where, page, PageSize)
+	appList, total := providers.AppService.GetAppPageList(where, page, PageSize)
 	if appList == nil {
-		APIError(ctx, "获取应用列表失败")
+		utils.APIError(ctx, "获取应用列表失败")
 	}
 	list := []map[string]interface{}{}
 	for _, app := range appList {
@@ -102,28 +92,19 @@ func (c *AppController) List(ctx *gin.Context) {
 		"Subtitle":   "应用列表",
 		"List":       list,
 		"Total":      total,
-		"GroupList":  c.groupService.GetUsageGroup(),
-		"AgentList":  c.agentService.GetUsageAgent(),
+		"GroupList":  providers.GroupService.GetUsageGroup(),
+		"AgentList":  providers.AgentService.GetUsageAgent(),
 		"StatusList": constants.APP_STATUS,
 		"GroupID":    groupID,
 		"AgentID":    agentID,
 		"Name":       name,
 		"Status":     status,
-		"Pagination": PagerHtml(total, page, mpurl),
+		"Pagination": utils.PagerHtml(total, page, mpurl),
 	})
 }
 
 func (c *AppController) Show(ctx *gin.Context) {
-	id := DefaultInt64(ctx, "id", 0)
-	if id == 0 {
-		JumpError(ctx)
-		return
-	}
-	app := c.appService.GetAppByID(id)
-	if app == nil {
-		JumpError(ctx)
-		return
-	}
+	app := utils.GetApp(ctx)
 	ctx.HTML(StatusOK, "app/show", gin.H{
 		"Subtitle": "查看应用",
 		"App":      c.formatApp(app),
@@ -131,20 +112,9 @@ func (c *AppController) Show(ctx *gin.Context) {
 }
 
 func (c *AppController) Monitor(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
-	if id == 0 {
-		JumpError(ctx)
-		return
-	}
-	cpus := []string{}
-	memorys := []string{}
-	times := []string{}
-	moniters := c.moniterService.GetAppMonitor(id, 100)
-	for _, moniter := range moniters {
-		cpus = append(cpus, FormatFloat(moniter.CPU))
-		memorys = append(memorys, FormatFloat(moniter.Memory))
-		times = append(times, FormatTime(moniter.CreatedAt))
-	}
+	app := utils.GetApp(ctx)
+	moniters := providers.MoniterService.GetAppMonitor(app.ID, 100)
+	cpus, memorys, times := utils.MonitorFormat(moniters)
 	ctx.HTML(StatusOK, "monitor/list", gin.H{
 		"Subtitle": "应用监控信息",
 		"BackUrl":  "/app/list",
@@ -155,92 +125,62 @@ func (c *AppController) Monitor(ctx *gin.Context) {
 }
 
 func (c *AppController) Archive(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
-	page := DefaultInt(ctx, "page", 1)
+	page := utils.DefaultInt(ctx, "page", 1)
+	app := utils.GetApp(ctx)
 	where := map[string]interface{}{
 		"type":       constants.TYPE_APP,
-		"related_id": id,
+		"related_id": app.ID,
 	}
-	if id == 0 {
-		JumpError(ctx)
-		return
-	}
-	archiveList, total := c.archiveService.GetArchivePageList(where, page, PageSize)
+	archiveList, total := providers.ArchiveService.GetArchivePageList(where, page, PageSize)
 	if archiveList == nil {
-		APIError(ctx, "获取归档列表失败")
+		utils.APIError(ctx, "获取归档列表失败")
 	}
 	list := []map[string]interface{}{}
 	for _, archive := range archiveList {
 		list = append(list, formatArchive(&archive))
 	}
-	mpurl := fmt.Sprintf("/app/archive?id=%d", id)
+	mpurl := fmt.Sprintf("/app/archive?id=%d", app.ID)
 	ctx.HTML(StatusOK, "archive/list", gin.H{
 		"Subtitle":   "应用归档列表",
 		"List":       list,
 		"Total":      total,
-		"Pagination": PagerHtml(total, page, mpurl),
+		"Pagination": utils.PagerHtml(total, page, mpurl),
 	})
 }
 
 func (c *AppController) OutLog(ctx *gin.Context) {
-	id := DefaultInt64(ctx, "id", 0)
-	lines := DefaultInt64(ctx, "lines", 10)
-	if id == 0 {
-		JumpError(ctx)
-		return
-	}
-	app := c.appService.GetAppByID(id)
-	if app == nil {
-		JumpError(ctx)
-		return
-	}
-	agent := c.agentService.GetAgentByID(app.AgentID)
-	if agent == nil {
-		JumpError(ctx)
-		return
-	}
+	lines := utils.DefaultInt64(ctx, "lines", 10)
+	app := utils.GetApp(ctx)
+	agent := utils.GetAgent(ctx)
 	content, err := client.GetAgentLog(agent, app.StdOut, lines)
 	if err != nil {
-		JumpError(ctx)
+		utils.JumpWarning(ctx, "获取失败:"+err.Error())
 		return
 	}
 	ctx.HTML(StatusOK, "log/list", gin.H{
 		"Subtitle": "应用正常日志查看",
 		"Path":     "/app/out_log",
 		"BackUrl":  "/app/list",
-		"ID":       id,
+		"ID":       app.ID,
 		"Lines":    lines,
 		"Content":  content,
 	})
 }
 
 func (c *AppController) ErrLog(ctx *gin.Context) {
-	id := DefaultInt64(ctx, "id", 0)
-	lines := DefaultInt64(ctx, "lines", 10)
-	if id == 0 {
-		JumpError(ctx)
-		return
-	}
-	app := c.appService.GetAppByID(id)
-	if app == nil {
-		JumpError(ctx)
-		return
-	}
-	agent := c.agentService.GetAgentByID(app.AgentID)
-	if agent == nil {
-		JumpError(ctx)
-		return
-	}
+	lines := utils.DefaultInt64(ctx, "lines", 10)
+	app := utils.GetApp(ctx)
+	agent := utils.GetAgent(ctx)
 	content, err := client.GetAgentLog(agent, app.StdErr, lines)
 	if err != nil {
-		JumpError(ctx)
+		utils.JumpWarning(ctx, "获取失败:"+err.Error())
 		return
 	}
 	ctx.HTML(StatusOK, "log/list", gin.H{
 		"Subtitle": "应用错误日志查看",
 		"Path":     "/app/err_log",
 		"BackUrl":  "/app/list",
-		"ID":       id,
+		"ID":       app.ID,
 		"Lines":    lines,
 		"Content":  content,
 	})
@@ -250,159 +190,74 @@ func (c *AppController) Add(ctx *gin.Context) {
 	ctx.HTML(StatusOK, "app/add", gin.H{
 		"Subtitle":   "添加应用",
 		"OutBaseDir": OutDir + "guard/",
-		"GroupList":  c.groupService.GetUsageGroup(),
-		"AgentList":  c.agentService.GetUsageAgent(),
+		"GroupList":  providers.GroupService.GetUsageGroup(),
+		"AgentList":  providers.AgentService.GetUsageAgent(),
 	})
 }
 
 func (c *AppController) Create(ctx *gin.Context) {
-	groupID := FormDefaultInt64(ctx, "group_id", 0)
-	name := ctx.PostForm("name")
-	agentID := FormDefaultInt64(ctx, "agent_id", 0)
-	dir := ctx.PostForm("dir")
-	program := ctx.PostForm("program")
-	args := ctx.PostForm("args")
-	stdOut := ctx.PostForm("std_out")
-	stdErr := ctx.PostForm("std_err")
-	autoRestart := ctx.PostForm("auto_restart")
-	isMonitor := ctx.PostForm("is_monitor")
-	if !Required(ctx, &name, "名称不能为空") {
-		return
-	}
-	if !Required(ctx, &dir, "执行目录不能为空") {
-		return
-	}
-	if !Required(ctx, &program, "执行程序不能为空") {
-		return
-	}
-	if !Required(ctx, &stdOut, "标准输出路径不能为空") {
-		return
-	}
-	if !Required(ctx, &stdErr, "错误输出路径不能为空") {
-		return
-	}
-	if agentID == 0 {
-		APIBadRequest(ctx, "运行实例不能为空")
-		return
-	}
 	app := new(models.App)
-	app.GroupID = groupID
-	app.Name = name
-	app.AgentID = agentID
-	app.Dir = dir
-	app.Program = program
-	app.Args = args
-	app.StdOut = stdOut
-	app.StdErr = stdErr
+	app.GroupID = utils.FormDefaultInt64(ctx, "group_id", 0)
+	app.AgentID = utils.FormDefaultInt64(ctx, "agent_id", 0)
+	app.Name = ctx.PostForm("name")
+	app.Dir = ctx.PostForm("dir")
+	app.Program = ctx.PostForm("program")
+	app.Args = ctx.PostForm("args")
+	app.StdOut = ctx.PostForm("std_out")
+	app.StdErr = ctx.PostForm("std_err")
 	app.Status = constants.APP_STATUS_STOP
 	app.Creator = GetUserID(ctx)
-	if autoRestart != "" {
+	if ctx.PostForm("auto_restart") != "" {
 		app.AutoRestart = 1
 	}
-	if isMonitor != "" {
+	if ctx.PostForm("is_monitor") != "" {
 		app.IsMonitor = 1
 	}
-	ok := c.appService.CreateApp(app)
+	ok := providers.AppService.CreateApp(app)
 	if !ok {
-		APIError(ctx, "创建应用失败")
+		utils.APIError(ctx, "创建应用失败")
 		return
 	}
-	APIOK(ctx)
+	utils.APIOK(ctx)
 }
 
 func (c *AppController) Edit(ctx *gin.Context) {
-	id := DefaultInt64(ctx, "id", 0)
-	if id == 0 {
-		JumpError(ctx)
-		return
-	}
-	app := c.appService.GetAppByID(id)
-	if app == nil {
-		JumpError(ctx)
-		return
-	}
+	app := utils.GetApp(ctx)
 	ctx.HTML(StatusOK, "app/edit", gin.H{
 		"Subtitle":  "编辑应用",
 		"Info":      c.formatApp(app),
-		"GroupList": c.groupService.GetUsageGroup(),
-		"AgentList": c.agentService.GetUsageAgent(),
+		"GroupList": providers.GroupService.GetUsageGroup(),
+		"AgentList": providers.AgentService.GetUsageAgent(),
 	})
 }
 
 func (c *AppController) Update(ctx *gin.Context) {
-	id := FormDefaultInt64(ctx, "id", 0)
-	groupID := FormDefaultInt64(ctx, "group_id", 0)
-	name := ctx.PostForm("name")
-	agentID := FormDefaultInt64(ctx, "agent_id", 0)
-	dir := ctx.PostForm("dir")
-	program := ctx.PostForm("program")
-	args := ctx.PostForm("args")
-	stdOut := ctx.PostForm("std_out")
-	stdErr := ctx.PostForm("std_err")
-	autoRestart := ctx.PostForm("auto_restart")
-	isMonitor := ctx.PostForm("is_monitor")
-	if id == 0 {
-		APIBadRequest(ctx, "ID格式错误")
-		return
-	}
-	if !Required(ctx, &name, "名称不能为空") {
-		return
-	}
-	if !Required(ctx, &dir, "执行目录不能为空") {
-		return
-	}
-	if !Required(ctx, &program, "执行程序不能为空") {
-		return
-	}
-	if !Required(ctx, &stdOut, "标准输出路径不能为空") {
-		return
-	}
-	if !Required(ctx, &stdErr, "错误输出路径不能为空") {
-		return
-	}
-	if agentID == 0 {
-		APIBadRequest(ctx, "运行实例不能为空")
-		return
-	}
-	app := c.appService.GetAppByID(id)
-	if app == nil {
-		APIBadRequest(ctx, "应用不存在")
-		return
-	}
-	app.GroupID = groupID
-	app.Name = name
-	app.AgentID = agentID
-	app.Dir = dir
-	app.Program = program
-	app.Args = args
-	app.StdOut = stdOut
-	app.StdErr = stdErr
+	app := utils.GetApp(ctx)
+	app.GroupID = utils.FormDefaultInt64(ctx, "group_id", 0)
+	app.AgentID = utils.FormDefaultInt64(ctx, "agent_id", 0)
+	app.Name = ctx.PostForm("name")
+	app.Dir = ctx.PostForm("dir")
+	app.Program = ctx.PostForm("program")
+	app.Args = ctx.PostForm("args")
+	app.StdOut = ctx.PostForm("std_out")
+	app.StdErr = ctx.PostForm("std_err")
 	app.Updator = GetUserID(ctx)
-	if autoRestart != "" {
+	if ctx.PostForm("auto_restart") != "" {
 		app.AutoRestart = 1
 	}
-	if isMonitor != "" {
+	if ctx.PostForm("is_monitor") != "" {
 		app.IsMonitor = 1
 	}
-	ok := c.appService.UpdateApp(app)
+	ok := providers.AppService.UpdateApp(app)
 	if !ok {
-		APIError(ctx, "更新应用失败")
+		utils.APIError(ctx, "更新应用失败")
 		return
 	}
-	APIOK(ctx)
+	utils.APIOK(ctx)
 }
 
 func (c *AppController) Copy(ctx *gin.Context) {
-	id := DefaultInt64(ctx, "id", 0)
-	if id == 0 {
-		APIBadRequest(ctx, "ID格式错误")
-		return
-	}
-	app := c.appService.GetAppByID(int64(id))
-	if app == nil {
-		APIError(ctx, "应用不存在")
-		return
-	}
+	app := utils.GetApp(ctx)
 	_app := new(models.App)
 	_app.GroupID = app.GroupID
 	_app.Name = app.Name + "_copy"
@@ -416,151 +271,103 @@ func (c *AppController) Copy(ctx *gin.Context) {
 	_app.IsMonitor = app.IsMonitor
 	_app.Status = constants.APP_STATUS_STOP
 	_app.Creator = GetUserID(ctx)
-	ok := c.appService.CreateApp(_app)
+	ok := providers.AppService.CreateApp(_app)
 	if !ok {
-		APIError(ctx, "复制应用失败")
+		utils.APIError(ctx, "复制应用失败")
 		return
 	}
-	APIOK(ctx)
+	utils.APIOK(ctx)
 }
 
 func (c *AppController) Delete(ctx *gin.Context) {
-	id := DefaultInt64(ctx, "id", 0)
-	if id == 0 {
-		APIBadRequest(ctx, "ID格式错误")
-		return
-	}
-	app := c.appService.GetAppByID(id)
-	if app == nil {
-		APIError(ctx, "应用不存在")
-		return
-	}
+	app := utils.GetApp(ctx)
 	if app.Status == constants.APP_STATUS_RUNNING {
-		APIError(ctx, "应用正在运行不能删除")
+		utils.APIError(ctx, "应用正在运行不能删除")
 		return
 	}
 	app.Status = constants.APP_STATUS_DELETED
 	app.Updator = GetUserID(ctx)
-	ok := c.appService.UpdateApp(app)
+	ok := providers.AppService.UpdateApp(app)
 	if !ok {
-		APIError(ctx, "删除应用失败")
+		utils.APIError(ctx, "删除应用失败")
 		return
 	}
-	APIOK(ctx)
+	utils.APIOK(ctx)
 }
 
 func (c *AppController) Start(ctx *gin.Context) {
-	id := DefaultInt64(ctx, "id", 0)
-	if id == 0 {
-		APIBadRequest(ctx, "ID格式错误")
-		return
-	}
-	app := c.appService.GetAppByID(id)
-	if app == nil {
-		APIError(ctx, "应用不存在")
-		return
-	}
+	app := utils.GetApp(ctx)
+	agent := utils.GetAgent(ctx)
 	if app.Status == constants.APP_STATUS_RUNNING {
-		APIError(ctx, "应用已经启动")
+		utils.APIError(ctx, "应用已经启动")
 		return
 	}
-	agent := c.agentService.GetAgentByID(app.AgentID)
-	if agent == nil {
-		APIError(ctx, "应用对应实例获取异常")
-		return
-	}
-	_app, err := client.GetAgentApp(agent, id)
+	_app, err := client.GetAgentApp(agent, app.ID)
 	if err != nil {
-		APIError(ctx, fmt.Sprintf("获取应用情况异常:%s", err.Error()))
+		utils.APIError(ctx, fmt.Sprintf("获取应用情况异常:%s", err.Error()))
 		return
 	}
 	if _app == nil {
 		err = client.AddAgentApp(agent, app)
 		if err != nil {
-			APIError(ctx, fmt.Sprintf("添加应用异常:%s", err.Error()))
+			utils.APIError(ctx, fmt.Sprintf("添加应用异常:%s", err.Error()))
 			return
 		}
 		app.Status = constants.APP_STATUS_STOP
-		c.appService.UpdateApp(app)
-		APIOK(ctx)
+		providers.AppService.UpdateApp(app)
+		utils.APIOK(ctx)
 		return
 	}
 	app.Status = constants.APP_STATUS_RUNNING
 	app.Updator = GetUserID(ctx)
-	c.appService.UpdateApp(app)
-	APIOK(ctx)
+	providers.AppService.UpdateApp(app)
+	utils.APIOK(ctx)
 }
 
 func (c *AppController) ReStart(ctx *gin.Context) {
-	id := DefaultInt64(ctx, "id", 0)
-	if id == 0 {
-		APIBadRequest(ctx, "ID格式错误")
-		return
-	}
-	app := c.appService.GetAppByID(id)
-	if app == nil {
-		APIError(ctx, "应用不存在")
-		return
-	}
-	agent := c.agentService.GetAgentByID(app.AgentID)
-	if agent == nil {
-		APIError(ctx, "应用对应实例获取异常")
-		return
-	}
-	_app, err := client.GetAgentApp(agent, id)
+	app := utils.GetApp(ctx)
+	agent := utils.GetAgent(ctx)
+	_app, err := client.GetAgentApp(agent, app.ID)
 	if err != nil {
-		APIError(ctx, fmt.Sprintf("获取应用情况异常:%s", err.Error()))
+		utils.APIError(ctx, fmt.Sprintf("获取应用情况异常:%s", err.Error()))
 		return
 	}
 	if _app == nil {
 		err = client.AddAgentApp(agent, app)
 		if err != nil {
-			APIError(ctx, fmt.Sprintf("重启异常:%s", err.Error()))
+			utils.APIError(ctx, fmt.Sprintf("重启异常:%s", err.Error()))
 			return
 		}
-		APIOK(ctx)
+		utils.APIOK(ctx)
 		return
 	}
 	err = client.UpdateAgentApp(agent, app)
 	if err != nil {
-		APIError(ctx, fmt.Sprintf("重启异常:%s", err.Error()))
+		utils.APIError(ctx, fmt.Sprintf("重启异常:%s", err.Error()))
 		return
 	}
-	APIOK(ctx)
+	utils.APIOK(ctx)
 }
 
 func (c *AppController) Pause(ctx *gin.Context) {
-	id := DefaultInt64(ctx, "id", 0)
-	if id == 0 {
-		APIBadRequest(ctx, "ID格式错误")
-		return
-	}
-	app := c.appService.GetAppByID(id)
-	if app == nil {
-		APIError(ctx, "应用不存在")
-		return
-	}
-	agent := c.agentService.GetAgentByID(app.AgentID)
-	if agent == nil {
-		APIError(ctx, "应用对应实例获取异常")
-		return
-	}
-	_app, err := client.GetAgentApp(agent, id)
+	app := utils.GetApp(ctx)
+	agent := utils.GetAgent(ctx)
+	_app, err := client.GetAgentApp(agent, app.ID)
 	if err != nil {
-		APIError(ctx, fmt.Sprintf("获取应用情况异常:%s", err.Error()))
+		utils.APIError(ctx, fmt.Sprintf("获取应用情况异常:%s", err.Error()))
 		return
 	}
 	if _app == nil {
-		APIOK(ctx)
+		utils.APIOK(ctx)
 		return
 	}
-	err = client.RemoveAgentApp(agent, int64(id))
+	err = client.RemoveAgentApp(agent, app.ID)
 	if err != nil {
-		APIError(ctx, fmt.Sprintf("停止应用异常:%s", err.Error()))
+		utils.APIError(ctx, fmt.Sprintf("停止应用异常:%s", err.Error()))
 		return
 	}
 	app.Status = constants.APP_STATUS_PAUSE
 	app.Updator = GetUserID(ctx)
-	c.appService.UpdateApp(app)
-	APIOK(ctx)
+	providers.AppService.UpdateApp(app)
+	utils.APIOK(ctx)
 }

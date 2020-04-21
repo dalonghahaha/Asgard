@@ -1,0 +1,18 @@
+{{define "content"}}
+{{template "page_title" .}}
+<div class="container-xl d-flex flex-column justify-content-center">
+    <div class="empty">
+        <p class="empty-title h3">{{.Message}}</p>
+        <div class="empty-action">
+            <a href="/" class="btn btn-primary">回到首页</a>
+        </div>
+    </div>
+</div>
+{{end}}
+{{define "script"}}
+<script type="text/javascript">
+    setTimeout(function () {
+        window.location.href = "/"
+    }, 2000);
+</script>
+{{end}}

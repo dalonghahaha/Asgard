@@ -1,14 +1,17 @@
 package controllers
 
-import "Asgard/models"
+import (
+	"Asgard/models"
+	"Asgard/web/utils"
+)
 
 func formatArchive(info *models.Archive) map[string]interface{} {
 	data := map[string]interface{}{
 		"ID":        info.ID,
 		"UUID":      info.UUID,
 		"PID":       info.PID,
-		"BeginTime": FormatTime(info.BeginTime),
-		"EndTime":   FormatTime(info.EndTime),
+		"BeginTime": utils.FormatTime(info.BeginTime),
+		"EndTime":   utils.FormatTime(info.EndTime),
 		"Status":    info.Status,
 		"Signal":    info.Signal,
 	}

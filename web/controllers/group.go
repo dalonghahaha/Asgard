@@ -5,29 +5,27 @@ import (
 
 	"Asgard/constants"
 	"Asgard/models"
-	"Asgard/services"
+	"Asgard/providers"
+	"Asgard/web/utils"
 )
 
 type GroupController struct {
-	groupService *services.GroupService
 }
 
 func NewGroupController() *GroupController {
-	return &GroupController{
-		groupService: services.NewGroupService(),
-	}
+	return &GroupController{}
 }
 
 func (c *GroupController) List(ctx *gin.Context) {
-	page := DefaultInt(ctx, "page", 1)
+	page := utils.DefaultInt(ctx, "page", 1)
 	where := map[string]interface{}{}
-	list, total := c.groupService.GetGroupPageList(where, page, PageSize)
+	list, total := providers.GroupService.GetGroupPageList(where, page, PageSize)
 	mpurl := "/group/list"
 	ctx.HTML(StatusOK, "group/list", gin.H{
 		"Subtitle":   "分组列表",
 		"List":       list,
 		"Total":      total,
-		"Pagination": PagerHtml(total, page, mpurl),
+		"Pagination": utils.PagerHtml(total, page, mpurl),
 	})
 }
 
@@ -40,7 +38,7 @@ func (c *GroupController) Add(ctx *gin.Context) {
 func (c *GroupController) Create(ctx *gin.Context) {
 	name := ctx.PostForm("name")
 	status := ctx.PostForm("status")
-	if !Required(ctx, &name, "名称不能为空") {
+	if !utils.Required(ctx, name, "名称不能为空") {
 		return
 	}
 	group := new(models.Group)
@@ -51,23 +49,23 @@ func (c *GroupController) Create(ctx *gin.Context) {
 	} else {
 		group.Status = constants.GROUP_STATUS_UNUSAGE
 	}
-	ok := c.groupService.CreateGroup(group)
+	ok := providers.GroupService.CreateGroup(group)
 	if !ok {
-		APIError(ctx, "创建分组失败")
+		utils.APIError(ctx, "创建分组失败")
 		return
 	}
-	APIOK(ctx)
+	utils.APIOK(ctx)
 }
 
 func (c *GroupController) Edit(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
+	id := utils.DefaultInt(ctx, "id", 0)
 	if id == 0 {
-		JumpError(ctx)
+		utils.JumpError(ctx)
 		return
 	}
-	group := c.groupService.GetGroupByID(int64(id))
+	group := providers.GroupService.GetGroupByID(int64(id))
 	if group == nil {
-		JumpError(ctx)
+		utils.JumpError(ctx)
 		return
 	}
 	ctx.HTML(StatusOK, "group/edit", gin.H{
@@ -77,16 +75,16 @@ func (c *GroupController) Edit(ctx *gin.Context) {
 }
 
 func (c *GroupController) Update(ctx *gin.Context) {
-	id := FormDefaultInt64(ctx, "id", 0)
+	id := utils.DefaultInt64(ctx, "id", 0)
 	name := ctx.PostForm("name")
 	status := ctx.PostForm("status")
 	if id == 0 {
-		APIBadRequest(ctx, "ID格式错误")
+		utils.APIBadRequest(ctx, "ID格式错误")
 		return
 	}
-	group := c.groupService.GetGroupByID(id)
+	group := providers.GroupService.GetGroupByID(id)
 	if group == nil {
-		APIBadRequest(ctx, "分组不存在")
+		utils.APIBadRequest(ctx, "分组不存在")
 		return
 	}
 	group.Name = name
@@ -96,29 +94,29 @@ func (c *GroupController) Update(ctx *gin.Context) {
 	} else {
 		group.Status = constants.GROUP_STATUS_UNUSAGE
 	}
-	ok := c.groupService.UpdateGroup(group)
+	ok := providers.GroupService.UpdateGroup(group)
 	if !ok {
-		APIError(ctx, "更新分组失败")
+		utils.APIError(ctx, "更新分组失败")
 		return
 	}
-	APIOK(ctx)
+	utils.APIOK(ctx)
 }
 
 func (c *GroupController) Delete(ctx *gin.Context) {
-	id := DefaultInt64(ctx, "id", 0)
+	id := utils.DefaultInt64(ctx, "id", 0)
 	if id == 0 {
-		APIBadRequest(ctx, "ID格式错误")
+		utils.APIBadRequest(ctx, "ID格式错误")
 		return
 	}
-	group := c.groupService.GetGroupByID(id)
+	group := providers.GroupService.GetGroupByID(id)
 	if group == nil {
-		APIBadRequest(ctx, "分组不存在")
+		utils.APIBadRequest(ctx, "分组不存在")
 		return
 	}
-	ok := c.groupService.DeleteGroupByID(id)
+	ok := providers.GroupService.DeleteGroupByID(id)
 	if !ok {
-		APIError(ctx, "删除分组失败")
+		utils.APIError(ctx, "删除分组失败")
 		return
 	}
-	APIOK(ctx)
+	utils.APIOK(ctx)
 }

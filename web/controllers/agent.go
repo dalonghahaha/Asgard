@@ -5,18 +5,14 @@ import (
 
 	"Asgard/constants"
 	"Asgard/models"
-	"Asgard/services"
+	"Asgard/providers"
+	"Asgard/web/utils"
 )
 
-type AgentController struct {
-	agentService   *services.AgentService
-	moniterService *services.MonitorService
-}
+type AgentController struct{}
 
 func NewAgentController() *AgentController {
-	return &AgentController{
-		agentService: services.NewAgentService(),
-	}
+	return &AgentController{}
 }
 
 func (c *AgentController) formatAgent(info *models.Agent) map[string]interface{} {
@@ -30,32 +26,32 @@ func (c *AgentController) formatAgent(info *models.Agent) map[string]interface{}
 }
 
 func (c *AgentController) List(ctx *gin.Context) {
-	page := DefaultInt(ctx, "page", 1)
+	page := utils.DefaultInt(ctx, "page", 1)
 	where := map[string]interface{}{}
-	agentList, total := c.agentService.GetAgentPageList(where, page, PageSize)
+	agentList, total := providers.AgentService.GetAgentPageList(where, page, PageSize)
 	mpurl := "/agent/list"
 	ctx.HTML(200, "agent/list", gin.H{
 		"Subtitle":   "实例列表",
 		"List":       agentList,
 		"Total":      total,
-		"Pagination": PagerHtml(total, page, mpurl),
+		"Pagination": utils.PagerHtml(total, page, mpurl),
 	})
 }
 
 func (c *AgentController) Monitor(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
+	id := utils.DefaultInt(ctx, "id", 0)
 	if id == 0 {
-		JumpError(ctx)
+		utils.JumpError(ctx)
 		return
 	}
 	cpus := []string{}
 	memorys := []string{}
 	times := []string{}
-	moniters := c.moniterService.GetAgentMonitor(id, 100)
+	moniters := providers.MoniterService.GetAgentMonitor(id, 100)
 	for _, moniter := range moniters {
-		cpus = append(cpus, FormatFloat(moniter.CPU))
-		memorys = append(memorys, FormatFloat(moniter.Memory))
-		times = append(times, FormatTime(moniter.CreatedAt))
+		cpus = append(cpus, utils.FormatFloat(moniter.CPU))
+		memorys = append(memorys, utils.FormatFloat(moniter.Memory))
+		times = append(times, utils.FormatTime(moniter.CreatedAt))
 	}
 	ctx.HTML(StatusOK, "monitor/list", gin.H{
 		"Subtitle": "实例监控信息",
@@ -67,14 +63,14 @@ func (c *AgentController) Monitor(ctx *gin.Context) {
 }
 
 func (c *AgentController) Edit(ctx *gin.Context) {
-	id := DefaultInt64(ctx, "id", 0)
+	id := utils.DefaultInt64(ctx, "id", 0)
 	if id == 0 {
-		JumpError(ctx)
+		utils.JumpError(ctx)
 		return
 	}
-	agent := c.agentService.GetAgentByID(id)
+	agent := providers.AgentService.GetAgentByID(id)
 	if agent == nil {
-		JumpError(ctx)
+		utils.JumpError(ctx)
 		return
 	}
 	ctx.HTML(StatusOK, "agent/edit", gin.H{
@@ -84,30 +80,30 @@ func (c *AgentController) Edit(ctx *gin.Context) {
 }
 
 func (c *AgentController) Update(ctx *gin.Context) {
-	id := FormDefaultInt64(ctx, "id", 0)
+	id := utils.DefaultInt64(ctx, "id", 0)
 	alias := ctx.PostForm("alias")
 	status := ctx.PostForm("status")
 	if id == 0 {
-		APIBadRequest(ctx, "ID格式错误")
+		utils.APIBadRequest(ctx, "ID格式错误")
 		return
 	}
 	if alias == "" {
-		APIBadRequest(ctx, "别名不能为空")
+		utils.APIBadRequest(ctx, "别名不能为空")
 		return
 	}
-	agent := c.agentService.GetAgentByID(id)
+	agent := providers.AgentService.GetAgentByID(id)
 	if agent == nil {
-		APIBadRequest(ctx, "实例不存在")
+		utils.APIBadRequest(ctx, "实例不存在")
 		return
 	}
 	agent.Alias = alias
 	if status != "" {
 		agent.Status = constants.AGENT_FORBIDDEN
 	}
-	ok := c.agentService.UpdateAgent(agent)
+	ok := providers.AgentService.UpdateAgent(agent)
 	if !ok {
-		APIError(ctx, "更新失败")
+		utils.APIError(ctx, "更新失败")
 		return
 	}
-	APIOK(ctx)
+	utils.APIOK(ctx)
 }

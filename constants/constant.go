@@ -8,6 +8,13 @@ const (
 	TYPE_JOB    = int64(3)
 	TYPE_TIMING = int64(4)
 
+	USER_ROLE_ADMIN  = "Administrator"
+	USER_ROLE_NORMAL = "User"
+
+	USER_STATUS_UNVERIFIED = int64(0)
+	USER_STATUS_NORMAL     = int64(1)
+	USER_STATUS_FORBIDDEN  = int64(-1)
+
 	AGENT_OFFLINE   = int64(0)
 	AGENT_ONLINE    = int64(1)
 	AGENT_FORBIDDEN = int64(-1)

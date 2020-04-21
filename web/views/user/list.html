@@ -27,11 +27,11 @@
                     <thead>
                         <tr>
                             <th style="width: 5%"><span>头像</span></th>
-                            <th style="width: 30%"><span>用户名</span></th>
-                            <th style="width: 25%"><span>邮箱</span></th>
-                            <th style="width: 25%"><span>手机</span></th>
+                            <th style="width: 20%"><span>用户名</span></th>
+                            <th style="width: 15%"><span>邮箱</span></th>
+                            <th style="width: 15%"><span>手机</span></th>
                             <th style="width: 5%"><span>状态</span></th>
-                            <th style="width: 10%"></th>
+                            <th style="width: 40%"></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -39,7 +39,7 @@
                         <tr data-bind="{{.ID}}">
                             <td>
                                 <span class="avatar avatar-md"
-                                    style="background-image: url(/assets/image/odin.jpeg)"></span>
+                                    style="background-image: url({{.Avatar}})"></span>
                             </td>
                             <td>{{.NickName}}</td>
                             <td>{{.Email}}</td>
@@ -56,40 +56,24 @@
                                 {{end}}
                             </td>
                             <td class="text-right">
-                                <span class="dropdown">
-                                    <a class="btn-icon mx-2" data-toggle="dropdown">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round" class="icon">
-                                            <circle cx="12" cy="12" r="1"></circle>
-                                            <circle cx="12" cy="5" r="1"></circle>
-                                            <circle cx="12" cy="19" r="1"></circle>
-                                        </svg>
+                                <div class="btn-list">
+                                    {{if eq $.Role "Administrator"}}
+                                    <a href="/user/edit?id={{.ID}}" title="编辑" class="btn btn-secondary btn-icon ml-auto">
+                                        {{include "partials/svg/edit"}}
                                     </a>
-                                    <div class="dropdown-menu">
-                                        <a class="dropdown-item" href="/user/show?id={{.ID}}">
-                                            <svg class="icon icon-md" xmlns="http://www.w3.org/2000/svg" width="1em"
-                                                height="1em" viewBox="0 0 20 20" fill="currentColor">
-                                                <path fill-rule="evenodd"
-                                                    d="M12.442 12.442a1 1 0 011.415 0l3.85 3.85a1 1 0 01-1.414 1.415l-3.85-3.85a1 1 0 010-1.415z"
-                                                    clip-rule="evenodd"></path>
-                                                <path fill-rule="evenodd"
-                                                    d="M8.5 14a5.5 5.5 0 100-11 5.5 5.5 0 000 11zM15 8.5a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z"
-                                                    clip-rule="evenodd"></path>
-                                            </svg>
-                                            <span class="small text-muted">查看</span>
-                                        </a>
-                                        <a class="dropdown-item" href="javascript:;">
-                                            <svg class="icon icon-md" width="1em" height="1em" viewBox="0 0 20 20"
-                                                fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                                <path fill-rule="evenodd"
-                                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM7.354 6.646L10 9.293l2.646-2.647a.5.5 0 01.708.708L10.707 10l2.647 2.646a.5.5 0 01-.708.708L10 10.707l-2.646 2.647a.5.5 0 01-.708-.708L9.293 10 6.646 7.354a.5.5 0 11.708-.708z"
-                                                    clip-rule="evenodd"></path>
-                                            </svg>
-                                            <span class="cursor-pointer small text-muted">禁用</span>
-                                        </a>
-                                    </div>
-                                </span>
+                                    <a href="/user/reset_password?id={{.ID}}" title="修改密码" class="btn btn-secondary btn-icon">
+                                        {{include "partials/svg/option"}}
+                                    </a>
+                                    {{if eq .Status 0}}
+                                    <a data-bind="{{.ID}}" href="javascript:;" action="verify" title="审核" class="btn btn-success btn-icon">
+                                        {{include "partials/svg/verify"}}
+                                    </a>
+                                    {{end}}
+                                    <a data-bind="{{.ID}}" href="javascript:;" action="forbidden" title="删除" class="btn btn-danger btn-icon">
+                                        {{include "partials/svg/forbidden"}}
+                                    </a>
+                                    {{end}}
+                                </div>
                             </td>
                         </tr>
                         {{- end}}
@@ -105,5 +89,28 @@
 {{end}}
 {{define "script"}}
 <script type="text/javascript">
+    $(document).ready(function () {
+        $("table").delegate("a[action=forbidden]", "click", function () {
+            var id = $(this).attr("data-bind");
+            $.getJSON("/user/forbidden?id=" + id, function (data) {
+                if (data.code == 200) {
+                    alert("操作成功");
+                    window.location.reload(true)
+                } else {
+                    alert(data.message);
+                }
+            })
+        }).delegate("a[action=verify]", "click", function () {
+            var id = $(this).attr("data-bind");
+            $.getJSON("/user/verify?id=" + id, function (data) {
+                if (data.code == 200) {
+                    alert("操作成功");
+                    window.location.reload(true)
+                } else {
+                    alert(data.message);
+                }
+            })
+        })
+    });
 </script>
 {{end}}

@@ -37,7 +37,7 @@ func (s *MonitorService) GetAgentMonitor(id int, size int) (list []models.Monito
 	return
 }
 
-func (s *MonitorService) GetAppMonitor(id int, size int) (list []models.Monitor) {
+func (s *MonitorService) GetAppMonitor(id int64, size int) (list []models.Monitor) {
 	where := map[string]interface{}{
 		"type":       constants.TYPE_APP,
 		"related_id": id,
@@ -50,7 +50,7 @@ func (s *MonitorService) GetAppMonitor(id int, size int) (list []models.Monitor)
 	return
 }
 
-func (s *MonitorService) GetJobMonitor(id int, size int) (list []models.Monitor) {
+func (s *MonitorService) GetJobMonitor(id int64, size int) (list []models.Monitor) {
 	where := map[string]interface{}{
 		"type":       constants.TYPE_JOB,
 		"related_id": id,
@@ -63,7 +63,7 @@ func (s *MonitorService) GetJobMonitor(id int, size int) (list []models.Monitor)
 	return
 }
 
-func (s *MonitorService) GetTimingMonitor(id int, size int) (list []models.Monitor) {
+func (s *MonitorService) GetTimingMonitor(id int64, size int) (list []models.Monitor) {
 	where := map[string]interface{}{
 		"type":       constants.TYPE_TIMING,
 		"related_id": id,

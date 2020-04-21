@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/viper"
 
 	"Asgard/web/controllers"
+	"Asgard/web/utils"
 )
 
 var (
@@ -53,7 +54,7 @@ func Init() error {
 	viewConfig.Partials = partials
 	viewConfig.DisableCache = true
 	viewConfig.Funcs = template.FuncMap{
-		"unescaped": controllers.Unescaped,
+		"unescaped": utils.Unescaped,
 	}
 	server.HTMLRender = ginview.New(viewConfig)
 	server.Static("/assets", "web/assets")

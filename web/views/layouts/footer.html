@@ -16,16 +16,15 @@
                 return false;
             }
         });
-        $(document).ready(function () {
-            $.getJSON("/user/info", function (data) {
-                if (data.code == 200) {
-                    var html = data.data.nickname + "<span class=\"text-muted d-block mt-1 text-h6\">" + data.data.role + "</span>"
-                    $("#user_info").html(html)
-                } else {
-                    alert(data.message);
-                }
-            })
-        })
+        $.getJSON("/user/info", function (data) {
+            if (data.code == 200) {
+                var html = data.data.nickname + "<span class=\"text-muted d-block mt-1 text-h6\">" + data.data.role + "</span>"
+                $("#user_info").html(html)
+                $("#user_avatar").css("background-image", "url(" + data.data.avatar + ")");
+            } else {
+                alert(data.message);
+            }
+        });
     });
 
     var Asgard = {
