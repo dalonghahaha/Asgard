@@ -1,14 +1,16 @@
 package controllers
 
 import (
-	"Asgard/client"
-	"Asgard/models"
-	"Asgard/services"
 	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+
+	"Asgard/client"
+	"Asgard/constants"
+	"Asgard/models"
+	"Asgard/services"
 )
 
 type TimingController struct {
@@ -103,7 +105,7 @@ func (c *TimingController) List(ctx *gin.Context) {
 		"Total":      total,
 		"GroupList":  c.groupService.GetUsageGroup(),
 		"AgentList":  c.agentService.GetUsageAgent(),
-		"StatusList": models.TIMING_STATUS,
+		"StatusList": constants.TIMING_STATUS,
 		"GroupID":    groupID,
 		"AgentID":    agentID,
 		"Name":       name,
@@ -113,12 +115,12 @@ func (c *TimingController) List(ctx *gin.Context) {
 }
 
 func (c *TimingController) Show(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
+	id := DefaultInt64(ctx, "id", 0)
 	if id == 0 {
 		JumpError(ctx)
 		return
 	}
-	timing := c.timingService.GetTimingByID(int64(id))
+	timing := c.timingService.GetTimingByID(id)
 	if timing == nil {
 		JumpError(ctx)
 		return
@@ -157,7 +159,7 @@ func (c *TimingController) Archive(ctx *gin.Context) {
 	id := DefaultInt(ctx, "id", 0)
 	page := DefaultInt(ctx, "page", 1)
 	where := map[string]interface{}{
-		"type":       models.TYPE_TIMING,
+		"type":       constants.TYPE_TIMING,
 		"related_id": id,
 	}
 	if id == 0 {
@@ -182,13 +184,13 @@ func (c *TimingController) Archive(ctx *gin.Context) {
 }
 
 func (c *TimingController) OutLog(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
-	lines := DefaultInt(ctx, "lines", 10)
+	id := DefaultInt64(ctx, "id", 0)
+	lines := DefaultInt64(ctx, "lines", 10)
 	if id == 0 {
 		JumpError(ctx)
 		return
 	}
-	timing := c.timingService.GetTimingByID(int64(id))
+	timing := c.timingService.GetTimingByID(id)
 	if timing == nil {
 		JumpError(ctx)
 		return
@@ -198,7 +200,7 @@ func (c *TimingController) OutLog(ctx *gin.Context) {
 		JumpError(ctx)
 		return
 	}
-	content, err := client.GetAgentLog(agent, timing.StdOut, int64(lines))
+	content, err := client.GetAgentLog(agent, timing.StdOut, lines)
 	if err != nil {
 		JumpError(ctx)
 		return
@@ -214,13 +216,13 @@ func (c *TimingController) OutLog(ctx *gin.Context) {
 }
 
 func (c *TimingController) ErrLog(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
-	lines := DefaultInt(ctx, "lines", 10)
+	id := DefaultInt64(ctx, "id", 0)
+	lines := DefaultInt64(ctx, "lines", 10)
 	if id == 0 {
 		JumpError(ctx)
 		return
 	}
-	timing := c.timingService.GetTimingByID(int64(id))
+	timing := c.timingService.GetTimingByID(id)
 	if timing == nil {
 		JumpError(ctx)
 		return
@@ -230,7 +232,7 @@ func (c *TimingController) ErrLog(ctx *gin.Context) {
 		JumpError(ctx)
 		return
 	}
-	content, err := client.GetAgentLog(agent, timing.StdErr, int64(lines))
+	content, err := client.GetAgentLog(agent, timing.StdErr, lines)
 	if err != nil {
 		JumpError(ctx)
 		return
@@ -256,9 +258,9 @@ func (c *TimingController) Add(ctx *gin.Context) {
 }
 
 func (c *TimingController) Create(ctx *gin.Context) {
-	groupID := FormDefaultInt(ctx, "group_id", 0)
+	groupID := FormDefaultInt64(ctx, "group_id", 0)
 	name := ctx.PostForm("name")
-	agentID := FormDefaultInt(ctx, "agent_id", 0)
+	agentID := FormDefaultInt64(ctx, "agent_id", 0)
 	dir := ctx.PostForm("dir")
 	program := ctx.PostForm("program")
 	args := ctx.PostForm("args")
@@ -290,9 +292,9 @@ func (c *TimingController) Create(ctx *gin.Context) {
 		return
 	}
 	timing := new(models.Timing)
-	timing.GroupID = int64(groupID)
+	timing.GroupID = groupID
 	timing.Name = name
-	timing.AgentID = int64(agentID)
+	timing.AgentID = agentID
 	timing.Dir = dir
 	timing.Program = program
 	timing.Args = args
@@ -300,7 +302,7 @@ func (c *TimingController) Create(ctx *gin.Context) {
 	timing.StdErr = stdErr
 	timing.Time, _ = parseTime(_time)
 	timing.Timeout = int64(timeout)
-	timing.Status = models.STATUS_STOP
+	timing.Status = constants.TIMING_STATUS_STOP
 	timing.Creator = GetUserID(ctx)
 	if isMonitor != "" {
 		timing.IsMonitor = 1
@@ -314,12 +316,12 @@ func (c *TimingController) Create(ctx *gin.Context) {
 }
 
 func (c *TimingController) Edit(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
+	id := DefaultInt64(ctx, "id", 0)
 	if id == 0 {
 		JumpError(ctx)
 		return
 	}
-	timing := c.timingService.GetTimingByID(int64(id))
+	timing := c.timingService.GetTimingByID(id)
 	if timing == nil {
 		JumpError(ctx)
 		return
@@ -333,17 +335,17 @@ func (c *TimingController) Edit(ctx *gin.Context) {
 }
 
 func (c *TimingController) Update(ctx *gin.Context) {
-	id := FormDefaultInt(ctx, "id", 0)
-	groupID := FormDefaultInt(ctx, "group_id", 0)
+	id := FormDefaultInt64(ctx, "id", 0)
+	groupID := FormDefaultInt64(ctx, "group_id", 0)
 	name := ctx.PostForm("name")
-	agentID := FormDefaultInt(ctx, "agent_id", 0)
+	agentID := FormDefaultInt64(ctx, "agent_id", 0)
 	dir := ctx.PostForm("dir")
 	program := ctx.PostForm("program")
 	args := ctx.PostForm("args")
 	stdOut := ctx.PostForm("std_out")
 	stdErr := ctx.PostForm("std_err")
 	_time := ctx.PostForm("time")
-	timeout := FormDefaultInt(ctx, "timeout", 0)
+	timeout := FormDefaultInt64(ctx, "timeout", 0)
 	isMonitor := ctx.PostForm("is_monitor")
 	if id == 0 {
 		APIBadRequest(ctx, "ID格式错误")
@@ -371,21 +373,21 @@ func (c *TimingController) Update(ctx *gin.Context) {
 		APIBadRequest(ctx, "运行实例不能为空")
 		return
 	}
-	timing := c.timingService.GetTimingByID(int64(id))
+	timing := c.timingService.GetTimingByID(id)
 	if timing == nil {
 		APIBadRequest(ctx, "定时任务不存在")
 		return
 	}
-	timing.GroupID = int64(groupID)
+	timing.GroupID = groupID
 	timing.Name = name
-	timing.AgentID = int64(agentID)
+	timing.AgentID = agentID
 	timing.Dir = dir
 	timing.Program = program
 	timing.Args = args
 	timing.StdOut = stdOut
 	timing.StdErr = stdErr
 	timing.Time, _ = parseTime(_time)
-	timing.Timeout = int64(timeout)
+	timing.Timeout = timeout
 	timing.Updator = GetUserID(ctx)
 	if isMonitor != "" {
 		timing.IsMonitor = 1
@@ -399,12 +401,12 @@ func (c *TimingController) Update(ctx *gin.Context) {
 }
 
 func (c *TimingController) Copy(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
+	id := DefaultInt64(ctx, "id", 0)
 	if id == 0 {
 		APIBadRequest(ctx, "ID格式错误")
 		return
 	}
-	timing := c.timingService.GetTimingByID(int64(id))
+	timing := c.timingService.GetTimingByID(id)
 	if timing == nil {
 		APIError(ctx, "定时任务不存在")
 		return
@@ -421,7 +423,7 @@ func (c *TimingController) Copy(ctx *gin.Context) {
 	_timing.Time = timing.Time
 	_timing.Timeout = timing.Timeout
 	_timing.IsMonitor = timing.IsMonitor
-	_timing.Status = models.STATUS_STOP
+	_timing.Status = constants.TIMING_STATUS_STOP
 	_timing.Creator = GetUserID(ctx)
 	ok := c.timingService.CreateTiming(_timing)
 	if !ok {
@@ -432,12 +434,12 @@ func (c *TimingController) Copy(ctx *gin.Context) {
 }
 
 func (c *TimingController) Delete(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
+	id := DefaultInt64(ctx, "id", 0)
 	if id == 0 {
 		APIBadRequest(ctx, "ID格式错误")
 		return
 	}
-	timing := c.timingService.GetTimingByID(int64(id))
+	timing := c.timingService.GetTimingByID(id)
 	if timing == nil {
 		APIError(ctx, "定时任务不存在")
 		return
@@ -457,17 +459,17 @@ func (c *TimingController) Delete(ctx *gin.Context) {
 }
 
 func (c *TimingController) Start(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
+	id := DefaultInt64(ctx, "id", 0)
 	if id == 0 {
 		APIBadRequest(ctx, "ID格式错误")
 		return
 	}
-	timing := c.timingService.GetTimingByID(int64(id))
+	timing := c.timingService.GetTimingByID(id)
 	if timing == nil {
 		APIError(ctx, "定时任务不存在")
 		return
 	}
-	if timing.Status == models.STATUS_RUNNING {
+	if timing.Status == constants.TIMING_STATUS_RUNNING {
 		APIError(ctx, "定时任务已经启动")
 		return
 	}
@@ -476,7 +478,7 @@ func (c *TimingController) Start(ctx *gin.Context) {
 		APIError(ctx, "定时任务对应实例获取异常")
 		return
 	}
-	_timing, err := client.GetAgentTiming(agent, int64(id))
+	_timing, err := client.GetAgentTiming(agent, id)
 	if err != nil {
 		APIError(ctx, fmt.Sprintf("获取定时任务情况异常:%s", err.Error()))
 		return
@@ -487,24 +489,24 @@ func (c *TimingController) Start(ctx *gin.Context) {
 			APIError(ctx, fmt.Sprintf("添加计划任务异常:%s", err.Error()))
 			return
 		}
-		timing.Status = models.STATUS_RUNNING
+		timing.Status = constants.TIMING_STATUS_RUNNING
 		c.timingService.UpdateTiming(timing)
 		APIOK(ctx)
 		return
 	}
-	timing.Status = models.STATUS_RUNNING
+	timing.Status = constants.TIMING_STATUS_RUNNING
 	timing.Updator = GetUserID(ctx)
 	c.timingService.UpdateTiming(timing)
 	APIOK(ctx)
 }
 
 func (c *TimingController) ReStart(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
+	id := DefaultInt64(ctx, "id", 0)
 	if id == 0 {
 		APIBadRequest(ctx, "ID格式错误")
 		return
 	}
-	timing := c.timingService.GetTimingByID(int64(id))
+	timing := c.timingService.GetTimingByID(id)
 	if timing == nil {
 		APIError(ctx, "定时任务不存在")
 		return
@@ -514,7 +516,7 @@ func (c *TimingController) ReStart(ctx *gin.Context) {
 		APIError(ctx, "定时任务对应实例获取异常")
 		return
 	}
-	_timing, err := client.GetAgentTiming(agent, int64(id))
+	_timing, err := client.GetAgentTiming(agent, id)
 	if err != nil {
 		APIError(ctx, fmt.Sprintf("获取定时任务情况异常:%s", err.Error()))
 		return
@@ -536,7 +538,7 @@ func (c *TimingController) ReStart(ctx *gin.Context) {
 }
 
 func (c *TimingController) Pause(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
+	id := DefaultInt64(ctx, "id", 0)
 	if id == 0 {
 		APIBadRequest(ctx, "ID格式错误")
 		return
@@ -551,7 +553,7 @@ func (c *TimingController) Pause(ctx *gin.Context) {
 		APIError(ctx, "定时任务对应实例获取异常")
 		return
 	}
-	_timing, err := client.GetAgentTiming(agent, int64(id))
+	_timing, err := client.GetAgentTiming(agent, id)
 	if err != nil {
 		APIError(ctx, fmt.Sprintf("获取定时任务情况异常:%s", err.Error()))
 		return
@@ -565,7 +567,7 @@ func (c *TimingController) Pause(ctx *gin.Context) {
 		APIError(ctx, fmt.Sprintf("停止定时任务异常:%s", err.Error()))
 		return
 	}
-	timing.Status = models.STATUS_PAUSE
+	timing.Status = constants.TIMING_STATUS_PAUSE
 	timing.Updator = GetUserID(ctx)
 	c.timingService.UpdateTiming(timing)
 	APIOK(ctx)

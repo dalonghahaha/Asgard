@@ -6,6 +6,7 @@ import (
 	"github.com/dalonghahaha/avenger/components/logger"
 	"github.com/jinzhu/gorm"
 
+	"Asgard/constants"
 	"Asgard/models"
 )
 
@@ -61,7 +62,7 @@ func (s *JobService) GetJobByID(id int64) *models.Job {
 }
 
 func (s *JobService) GetJobByAgentID(id int64) (list []models.Job) {
-	err := models.Where(&list, "agent_id = ? and status != ?", id, models.STATUS_PAUSE)
+	err := models.Where(&list, "agent_id = ? and status != ?", id, constants.JOB_STATUS_PAUSE)
 	if err != nil {
 		logger.Error("GetJobByAgentID Error:", err)
 		return nil

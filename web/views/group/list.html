@@ -32,9 +32,9 @@
                     <thead>
                         <tr>
                             <th style="width: 5%"><span>ID</span></th>
-                            <th style="width: 70%"><span>名称</span></th>
-                            <th style="width: 15%"><span>状态</span></th>
-                            <th style="width: 10%" class="text-right"></th>
+                            <th style="width: 15%"><span>名称</span></th>
+                            <th style="width: 10%"><span>状态</span></th>
+                            <th style="width: 60%" class="text-right"></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -51,53 +51,25 @@
                                 {{end}}
                             </td>
                             <td class="text-right">
-                                <span class="dropdown">
-                                    <a class="btn-icon mx-2" data-toggle="dropdown">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round" class="icon">
-                                            <circle cx="12" cy="12" r="1"></circle>
-                                            <circle cx="12" cy="5" r="1"></circle>
-                                            <circle cx="12" cy="19" r="1"></circle>
-                                        </svg>
+                                <div class="btn-list">
+                                    <a href="/group/edit?id={{.ID}}" title="编辑" class="btn btn-secondary btn-icon ml-auto">
+                                        {{include "partials/svg/edit"}}
                                     </a>
-                                    <div class="dropdown-menu" data-bind="{{.ID}}">
-                                        <a class="dropdown-item" href="/group/edit?id={{.ID}}">
-                                            <svg class="icon icon-md cursor-pointer" xmlns="http://www.w3.org/2000/svg"
-                                                width="1em" height="1em" viewBox="0 0 24 24" fill="none"
-                                                stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-                                                stroke-linejoin="round">
-                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7">
-                                                </path>
-                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z">
-                                                </path>
-                                            </svg>
-                                            <span class="cursor-pointer small text-muted">编辑</span>
-                                        </a>
-                                        <!-- <a class="dropdown-item" href="/group/auth?id={{.ID}}">
-                                            <svg class="icon icon-md cursor-pointer" width="1em" height="1em"
-                                                viewBox="0 0 20 20" fill="currentColor"
-                                                xmlns="http://www.w3.org/2000/svg">
-                                                <path fill-rule="evenodd"
-                                                    d="M17 16s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1h8zm-7.995-.944v-.002zM9.022 15h7.956a.274.274 0 00.014-.002l.008-.002c-.002-.264-.167-1.03-.76-1.72C15.688 12.629 14.718 12 13 12c-1.717 0-2.687.63-3.24 1.276-.593.69-.759 1.457-.76 1.72a1.05 1.05 0 00.022.004zm7.973.056v-.002zM13 9a2 2 0 100-4 2 2 0 000 4zm3-2a3 3 0 11-6 0 3 3 0 016 0zm-7.064 4.28a5.873 5.873 0 00-1.23-.247A7.334 7.334 0 007 11c-4 0-5 3-5 4 0 .667.333 1 1 1h4.216A2.238 2.238 0 017 15c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816zM6.92 12c-1.668.02-2.615.64-3.16 1.276C3.163 13.97 3 14.739 3 15h3c0-1.045.323-2.086.92-3zM3.5 7.5a3 3 0 116 0 3 3 0 01-6 0zm3-2a2 2 0 100 4 2 2 0 000-4z"
-                                                    clip-rule="evenodd"></path>
-                                            </svg>
-                                            <span class="cursor-pointer small text-muted">分配权限</span>
-                                        </a> -->
-                                        <a class="dropdown-item" href="javascript:;" action="delete">
-                                            <svg class="icon icon-md cursor-pointer" xmlns="http://www.w3.org/2000/svg"
-                                                width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor">
-                                                <path
-                                                    d="M7.5 7.5A.5.5 0 018 8v6a.5.5 0 01-1 0V8a.5.5 0 01.5-.5zm2.5 0a.5.5 0 01.5.5v6a.5.5 0 01-1 0V8a.5.5 0 01.5-.5zm3 .5a.5.5 0 00-1 0v6a.5.5 0 001 0V8z">
-                                                </path>
-                                                <path fill-rule="evenodd"
-                                                    d="M16.5 5a1 1 0 01-1 1H15v9a2 2 0 01-2 2H7a2 2 0 01-2-2V6h-.5a1 1 0 01-1-1V4a1 1 0 011-1H8a1 1 0 011-1h2a1 1 0 011 1h3.5a1 1 0 011 1v1zM6.118 6L6 6.059V15a1 1 0 001 1h6a1 1 0 001-1V6.059L13.882 6H6.118zM4.5 5V4h11v1h-11z"
-                                                    clip-rule="evenodd"></path>
-                                            </svg>
-                                            <span class="cursor-pointer small text-muted">删除</span>
-                                        </a>
-                                    </div>
-                                </span>
+                                    <a data-bind="{{.ID}}" href="javascript:;" action="delete" title="删除" class="btn btn-danger btn-icon">
+                                        {{include "partials/svg/delete"}}
+                                    </a>
+                                    {{if eq .Status 1}}
+                                    <a href="/app/list?group_id={{.ID}}" title="应用列表" class="btn btn-info btn-icon">
+                                        {{include "partials/svg/app"}}
+                                    </a>
+                                    <a href="/job/list?group_id={{.ID}}" title="计划任务列表" class="btn btn-info btn-icon">
+                                        {{include "partials/svg/job"}}
+                                    </a>
+                                    <a href="/timing/list?group_id={{.ID}}" title="定时任务列表" class="btn btn-info btn-icon">
+                                        {{include "partials/svg/timing"}}
+                                    </a>
+                                    {{end}}
+                                </div>
                             </td>
                         </tr>
                         {{- end}}
@@ -115,7 +87,7 @@
 <script type="text/javascript">
     $(document).ready(function () {
         $("table").delegate("a[action=delete]", "click", function () {
-            var id = $(this).parent().attr("data-bind");
+            var id = $(this).attr("data-bind");
             $.getJSON("/group/delete?id=" + id, function (data) {
                 if (data.code == 200) {
                     alert("操作成功");

@@ -17,11 +17,11 @@
                     <thead>
                         <tr>
                             <th style="width: 5%"><span>ID</span></th>
-                            <th style="width: 30%"><span>别名</span></th>
-                            <th style="width: 25%"><span>地址</span></th>
-                            <th style="width: 20%"><span>端口</span></th>
+                            <th style="width: 15%"><span>别名</span></th>
+                            <th style="width: 15%"><span>地址</span></th>
+                            <th style="width: 10%"><span>端口</span></th>
                             <th style="width: 10%"><span>状态</span></th>
-                            <th style="width: 10%" class="text-right"></th>
+                            <th style="width: 45%">操作</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -41,96 +41,23 @@
                                 {{end}}
                             </td>
                             <td class="text-right">
-                                <span class="dropdown">
-                                    <a class="btn-icon mx-2" data-toggle="dropdown">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round" class="icon">
-                                            <circle cx="12" cy="12" r="1"></circle>
-                                            <circle cx="12" cy="5" r="1"></circle>
-                                            <circle cx="12" cy="19" r="1"></circle>
-                                        </svg>
+                                <div class="btn-list">
+                                    <a href="/agent/edit?id={{.ID}}" title="编辑" class="btn btn-secondary btn-icon ml-auto">
+                                        {{include "partials/svg/edit"}}
                                     </a>
-                                    <div class="dropdown-menu">
-                                        <a class="dropdown-item" href="/agent/edit?id={{.ID}}">
-                                            <svg class="icon icon-md cursor-pointer" xmlns="http://www.w3.org/2000/svg"
-                                                width="1em" height="1em" viewBox="0 0 24 24" fill="none"
-                                                stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-                                                stroke-linejoin="round">
-                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7">
-                                                </path>
-                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z">
-                                                </path>
-                                            </svg>
-                                            <span class="cursor-pointer small text-muted">编辑别名</span>
-                                        </a>
-                                        <a class="dropdown-item" href="/agent/monitor?id={{.ID}}">
-                                            <svg action="moniter" class="icon icon-md cursor-pointer"
-                                                xmlns="http://www.w3.org/2000/svg" width="1em" height="1em"
-                                                viewBox="0 0 20 20" fill="currentColor">
-                                                <path d="M2 2h1v16H2V2zm1 15h15v1H3v-1z"></path>
-                                                <path fill-rule="evenodd"
-                                                    d="M16.39 6.312l-4.349 5.437L9 8.707l-3.646 3.647-.708-.708L9 7.293l2.959 2.958 3.65-4.563.781.624z"
-                                                    clip-rule="evenodd"></path>
-                                                <path fill-rule="evenodd"
-                                                    d="M12 5.5a.5.5 0 01.5-.5h4a.5.5 0 01.5.5v4a.5.5 0 01-1 0V6h-3.5a.5.5 0 01-.5-.5z"
-                                                    clip-rule="evenodd"></path>
-                                            </svg>
-                                            <span action="moniter" class="cursor-pointer small text-muted">运行状态</span>
-                                        </a>
-                                        <a class="dropdown-item" href="/app/list?agent={{.ID}}">
-                                            <svg class="icon icon-md" width="1em" height="1em" viewBox="0 0 20 20"
-                                                fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                                <path fill-rule="evenodd"
-                                                    d="M7.443 3.991a60.17 60.17 0 00-2.725.802.454.454 0 00-.315.366C3.87 9.056 5.1 11.9 6.567 13.773c.736.94 1.533 1.636 2.197 2.093.333.228.626.394.857.5.116.053.21.089.282.11A.73.73 0 0010 16.5a.774.774 0 00.097-.023c.072-.022.166-.058.282-.111a5.94 5.94 0 00.857-.5 10.198 10.198 0 002.197-2.093C14.9 11.9 16.13 9.056 15.597 5.159a.454.454 0 00-.315-.366c-.626-.2-1.682-.526-2.725-.802C11.491 3.71 10.51 3.5 10 3.5c-.51 0-1.49.21-2.557.491zm-.256-.966C8.23 2.749 9.337 2.5 10 2.5c.662 0 1.77.249 2.813.525 1.066.282 2.14.614 2.772.815.528.168.926.623 1.003 1.184.573 4.197-.756 7.307-2.367 9.365a11.192 11.192 0 01-2.418 2.3 6.942 6.942 0 01-1.007.586c-.27.124-.558.225-.796.225s-.526-.101-.796-.225a6.908 6.908 0 01-1.007-.586 11.192 11.192 0 01-2.418-2.3c-1.611-2.058-2.94-5.168-2.367-9.365A1.454 1.454 0 014.415 3.84a61.105 61.105 0 012.772-.815z"
-                                                    clip-rule="evenodd"></path>
-                                                <path
-                                                    d="M10 4.25c.909 0 3.188.685 4.254 1.022a.94.94 0 01.656.773c.814 6.424-4.13 9.452-4.91 9.452V4.25z">
-                                                </path>
-                                            </svg>
-                                            <span action="apps" class="cursor-pointer small text-muted">应用列表</span>
-                                        </a>
-                                        <a class="dropdown-item" href="/job/list?agent={{.ID}}">
-                                            <svg action="jobs" class="icon icon-md cursor-pointer" width="1em"
-                                                height="1em" viewBox="0 0 20 20" fill="currentColor"
-                                                xmlns="http://www.w3.org/2000/svg">
-                                                <path fill-rule="evenodd"
-                                                    d="M7 13.5a.5.5 0 01.5-.5h9a.5.5 0 010 1h-9a.5.5 0 01-.5-.5zm0-4a.5.5 0 01.5-.5h9a.5.5 0 010 1h-9a.5.5 0 01-.5-.5zm0-4a.5.5 0 01.5-.5h9a.5.5 0 010 1h-9a.5.5 0 01-.5-.5zm-3 1a1 1 0 100-2 1 1 0 000 2zm0 4a1 1 0 100-2 1 1 0 000 2zm0 4a1 1 0 100-2 1 1 0 000 2z"
-                                                    clip-rule="evenodd"></path>
-                                            </svg>
-                                            <span action="jobs" class="cursor-pointer small text-muted">计划任务列表</span>
-                                        </a>
-                                        <a class="dropdown-item" href="/timing/list?agent={{.ID}}">
-                                            <svg class="icon icon-md" width="1em" height="1em" viewBox="0 0 20 20"
-                                                fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                                <path fill-rule="evenodd"
-                                                    d="M10 17a6 6 0 100-12 6 6 0 000 12zm0 1a7 7 0 100-14 7 7 0 000 14z"
-                                                    clip-rule="evenodd"></path>
-                                                <path fill-rule="evenodd"
-                                                    d="M10 6.5a.5.5 0 01.5.5v4a.5.5 0 01-.053.224l-1.5 3a.5.5 0 11-.894-.448L9.5 10.882V7a.5.5 0 01.5-.5z"
-                                                    clip-rule="evenodd"></path>
-                                                <path
-                                                    d="M2.86 7.387A2.5 2.5 0 116.387 3.86 8.035 8.035 0 002.86 7.387zM13.613 3.86a2.5 2.5 0 113.527 3.527 8.035 8.035 0 00-3.527-3.527z">
-                                                </path>
-                                                <path fill-rule="evenodd"
-                                                    d="M13.646 16.146a.5.5 0 01.708 0l1 1a.5.5 0 01-.708.708l-1-1a.5.5 0 010-.708zm-7.292 0a.5.5 0 00-.708 0l-1 1a.5.5 0 00.708.708l1-1a.5.5 0 000-.708zM7.5 2.5A.5.5 0 018 2h4a.5.5 0 010 1H8a.5.5 0 01-.5-.5z"
-                                                    clip-rule="evenodd"></path>
-                                                <path d="M9 3h2v2H9V3z"></path>
-                                            </svg>
-                                            <span action="jobs" class="cursor-pointer small text-muted">定时任务列表</span>
-                                        </a>
-                                        <a class="dropdown-item" href="javascript:;" data-bind="{{.ID}}">
-                                            <svg class="icon icon-md cursor-pointer" width="1em" height="1em"
-                                                viewBox="0 0 20 20" fill="currentColor"
-                                                xmlns="http://www.w3.org/2000/svg">
-                                                <path fill-rule="evenodd"
-                                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM7.354 6.646L10 9.293l2.646-2.647a.5.5 0 01.708.708L10.707 10l2.647 2.646a.5.5 0 01-.708.708L10 10.707l-2.646 2.647a.5.5 0 01-.708-.708L9.293 10 6.646 7.354a.5.5 0 11.708-.708z"
-                                                    clip-rule="evenodd"></path>
-                                            </svg>
-                                            <span action="jobs" class="cursor-pointer small text-muted">禁用实例</span>
-                                        </a>
-                                    </div>
-                                </span>
+                                    <a href="/agent/monitor?id={{.ID}}" title="运行状态" class="btn btn-info btn-icon">
+                                        {{include "partials/svg/monitor"}}
+                                    </a>
+                                    <a href="/app/list?agent_id={{.ID}}" title="应用列表" class="btn btn-info btn-icon">
+                                        {{include "partials/svg/app"}}
+                                    </a>
+                                    <a href="/job/list?agent_id={{.ID}}" title="计划任务列表" class="btn btn-info btn-icon">
+                                        {{include "partials/svg/job"}}
+                                    </a>
+                                    <a href="/timing/list?agent_id={{.ID}}" title="定时任务列表" class="btn btn-info btn-icon">
+                                        {{include "partials/svg/timing"}}
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                         {{- end}}

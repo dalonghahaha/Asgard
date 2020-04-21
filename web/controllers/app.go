@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"Asgard/client"
+	"Asgard/constants"
 	"Asgard/models"
 	"Asgard/services"
 )
@@ -103,7 +104,7 @@ func (c *AppController) List(ctx *gin.Context) {
 		"Total":      total,
 		"GroupList":  c.groupService.GetUsageGroup(),
 		"AgentList":  c.agentService.GetUsageAgent(),
-		"StatusList": models.APP_STATUS,
+		"StatusList": constants.APP_STATUS,
 		"GroupID":    groupID,
 		"AgentID":    agentID,
 		"Name":       name,
@@ -113,12 +114,12 @@ func (c *AppController) List(ctx *gin.Context) {
 }
 
 func (c *AppController) Show(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
+	id := DefaultInt64(ctx, "id", 0)
 	if id == 0 {
 		JumpError(ctx)
 		return
 	}
-	app := c.appService.GetAppByID(int64(id))
+	app := c.appService.GetAppByID(id)
 	if app == nil {
 		JumpError(ctx)
 		return
@@ -157,7 +158,7 @@ func (c *AppController) Archive(ctx *gin.Context) {
 	id := DefaultInt(ctx, "id", 0)
 	page := DefaultInt(ctx, "page", 1)
 	where := map[string]interface{}{
-		"type":       models.TYPE_APP,
+		"type":       constants.TYPE_APP,
 		"related_id": id,
 	}
 	if id == 0 {
@@ -182,13 +183,13 @@ func (c *AppController) Archive(ctx *gin.Context) {
 }
 
 func (c *AppController) OutLog(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
-	lines := DefaultInt(ctx, "lines", 10)
+	id := DefaultInt64(ctx, "id", 0)
+	lines := DefaultInt64(ctx, "lines", 10)
 	if id == 0 {
 		JumpError(ctx)
 		return
 	}
-	app := c.appService.GetAppByID(int64(id))
+	app := c.appService.GetAppByID(id)
 	if app == nil {
 		JumpError(ctx)
 		return
@@ -198,7 +199,7 @@ func (c *AppController) OutLog(ctx *gin.Context) {
 		JumpError(ctx)
 		return
 	}
-	content, err := client.GetAgentLog(agent, app.StdOut, int64(lines))
+	content, err := client.GetAgentLog(agent, app.StdOut, lines)
 	if err != nil {
 		JumpError(ctx)
 		return
@@ -214,13 +215,13 @@ func (c *AppController) OutLog(ctx *gin.Context) {
 }
 
 func (c *AppController) ErrLog(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
-	lines := DefaultInt(ctx, "lines", 10)
+	id := DefaultInt64(ctx, "id", 0)
+	lines := DefaultInt64(ctx, "lines", 10)
 	if id == 0 {
 		JumpError(ctx)
 		return
 	}
-	app := c.appService.GetAppByID(int64(id))
+	app := c.appService.GetAppByID(id)
 	if app == nil {
 		JumpError(ctx)
 		return
@@ -230,7 +231,7 @@ func (c *AppController) ErrLog(ctx *gin.Context) {
 		JumpError(ctx)
 		return
 	}
-	content, err := client.GetAgentLog(agent, app.StdErr, int64(lines))
+	content, err := client.GetAgentLog(agent, app.StdErr, lines)
 	if err != nil {
 		JumpError(ctx)
 		return
@@ -255,9 +256,9 @@ func (c *AppController) Add(ctx *gin.Context) {
 }
 
 func (c *AppController) Create(ctx *gin.Context) {
-	groupID := FormDefaultInt(ctx, "group_id", 0)
+	groupID := FormDefaultInt64(ctx, "group_id", 0)
 	name := ctx.PostForm("name")
-	agentID := FormDefaultInt(ctx, "agent_id", 0)
+	agentID := FormDefaultInt64(ctx, "agent_id", 0)
 	dir := ctx.PostForm("dir")
 	program := ctx.PostForm("program")
 	args := ctx.PostForm("args")
@@ -285,15 +286,15 @@ func (c *AppController) Create(ctx *gin.Context) {
 		return
 	}
 	app := new(models.App)
-	app.GroupID = int64(groupID)
+	app.GroupID = groupID
 	app.Name = name
-	app.AgentID = int64(agentID)
+	app.AgentID = agentID
 	app.Dir = dir
 	app.Program = program
 	app.Args = args
 	app.StdOut = stdOut
 	app.StdErr = stdErr
-	app.Status = models.STATUS_STOP
+	app.Status = constants.APP_STATUS_STOP
 	app.Creator = GetUserID(ctx)
 	if autoRestart != "" {
 		app.AutoRestart = 1
@@ -310,12 +311,12 @@ func (c *AppController) Create(ctx *gin.Context) {
 }
 
 func (c *AppController) Edit(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
+	id := DefaultInt64(ctx, "id", 0)
 	if id == 0 {
 		JumpError(ctx)
 		return
 	}
-	app := c.appService.GetAppByID(int64(id))
+	app := c.appService.GetAppByID(id)
 	if app == nil {
 		JumpError(ctx)
 		return
@@ -329,10 +330,10 @@ func (c *AppController) Edit(ctx *gin.Context) {
 }
 
 func (c *AppController) Update(ctx *gin.Context) {
-	id := FormDefaultInt(ctx, "id", 0)
-	groupID := FormDefaultInt(ctx, "group_id", 0)
+	id := FormDefaultInt64(ctx, "id", 0)
+	groupID := FormDefaultInt64(ctx, "group_id", 0)
 	name := ctx.PostForm("name")
-	agentID := FormDefaultInt(ctx, "agent_id", 0)
+	agentID := FormDefaultInt64(ctx, "agent_id", 0)
 	dir := ctx.PostForm("dir")
 	program := ctx.PostForm("program")
 	args := ctx.PostForm("args")
@@ -363,14 +364,14 @@ func (c *AppController) Update(ctx *gin.Context) {
 		APIBadRequest(ctx, "运行实例不能为空")
 		return
 	}
-	app := c.appService.GetAppByID(int64(id))
+	app := c.appService.GetAppByID(id)
 	if app == nil {
 		APIBadRequest(ctx, "应用不存在")
 		return
 	}
-	app.GroupID = int64(groupID)
+	app.GroupID = groupID
 	app.Name = name
-	app.AgentID = int64(agentID)
+	app.AgentID = agentID
 	app.Dir = dir
 	app.Program = program
 	app.Args = args
@@ -392,7 +393,7 @@ func (c *AppController) Update(ctx *gin.Context) {
 }
 
 func (c *AppController) Copy(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
+	id := DefaultInt64(ctx, "id", 0)
 	if id == 0 {
 		APIBadRequest(ctx, "ID格式错误")
 		return
@@ -413,7 +414,7 @@ func (c *AppController) Copy(ctx *gin.Context) {
 	_app.StdErr = app.StdErr
 	_app.AutoRestart = app.AutoRestart
 	_app.IsMonitor = app.IsMonitor
-	_app.Status = models.STATUS_STOP
+	_app.Status = constants.APP_STATUS_STOP
 	_app.Creator = GetUserID(ctx)
 	ok := c.appService.CreateApp(_app)
 	if !ok {
@@ -424,21 +425,21 @@ func (c *AppController) Copy(ctx *gin.Context) {
 }
 
 func (c *AppController) Delete(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
+	id := DefaultInt64(ctx, "id", 0)
 	if id == 0 {
 		APIBadRequest(ctx, "ID格式错误")
 		return
 	}
-	app := c.appService.GetAppByID(int64(id))
+	app := c.appService.GetAppByID(id)
 	if app == nil {
 		APIError(ctx, "应用不存在")
 		return
 	}
-	if app.Status == models.STATUS_RUNNING {
+	if app.Status == constants.APP_STATUS_RUNNING {
 		APIError(ctx, "应用正在运行不能删除")
 		return
 	}
-	app.Status = models.STATUS_DELETED
+	app.Status = constants.APP_STATUS_DELETED
 	app.Updator = GetUserID(ctx)
 	ok := c.appService.UpdateApp(app)
 	if !ok {
@@ -449,17 +450,17 @@ func (c *AppController) Delete(ctx *gin.Context) {
 }
 
 func (c *AppController) Start(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
+	id := DefaultInt64(ctx, "id", 0)
 	if id == 0 {
 		APIBadRequest(ctx, "ID格式错误")
 		return
 	}
-	app := c.appService.GetAppByID(int64(id))
+	app := c.appService.GetAppByID(id)
 	if app == nil {
 		APIError(ctx, "应用不存在")
 		return
 	}
-	if app.Status == models.STATUS_RUNNING {
+	if app.Status == constants.APP_STATUS_RUNNING {
 		APIError(ctx, "应用已经启动")
 		return
 	}
@@ -468,7 +469,7 @@ func (c *AppController) Start(ctx *gin.Context) {
 		APIError(ctx, "应用对应实例获取异常")
 		return
 	}
-	_app, err := client.GetAgentApp(agent, int64(id))
+	_app, err := client.GetAgentApp(agent, id)
 	if err != nil {
 		APIError(ctx, fmt.Sprintf("获取应用情况异常:%s", err.Error()))
 		return
@@ -479,24 +480,24 @@ func (c *AppController) Start(ctx *gin.Context) {
 			APIError(ctx, fmt.Sprintf("添加应用异常:%s", err.Error()))
 			return
 		}
-		app.Status = models.STATUS_RUNNING
+		app.Status = constants.APP_STATUS_STOP
 		c.appService.UpdateApp(app)
 		APIOK(ctx)
 		return
 	}
-	app.Status = models.STATUS_RUNNING
+	app.Status = constants.APP_STATUS_RUNNING
 	app.Updator = GetUserID(ctx)
 	c.appService.UpdateApp(app)
 	APIOK(ctx)
 }
 
 func (c *AppController) ReStart(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
+	id := DefaultInt64(ctx, "id", 0)
 	if id == 0 {
 		APIBadRequest(ctx, "ID格式错误")
 		return
 	}
-	app := c.appService.GetAppByID(int64(id))
+	app := c.appService.GetAppByID(id)
 	if app == nil {
 		APIError(ctx, "应用不存在")
 		return
@@ -506,7 +507,7 @@ func (c *AppController) ReStart(ctx *gin.Context) {
 		APIError(ctx, "应用对应实例获取异常")
 		return
 	}
-	_app, err := client.GetAgentApp(agent, int64(id))
+	_app, err := client.GetAgentApp(agent, id)
 	if err != nil {
 		APIError(ctx, fmt.Sprintf("获取应用情况异常:%s", err.Error()))
 		return
@@ -529,12 +530,12 @@ func (c *AppController) ReStart(ctx *gin.Context) {
 }
 
 func (c *AppController) Pause(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
+	id := DefaultInt64(ctx, "id", 0)
 	if id == 0 {
 		APIBadRequest(ctx, "ID格式错误")
 		return
 	}
-	app := c.appService.GetAppByID(int64(id))
+	app := c.appService.GetAppByID(id)
 	if app == nil {
 		APIError(ctx, "应用不存在")
 		return
@@ -544,7 +545,7 @@ func (c *AppController) Pause(ctx *gin.Context) {
 		APIError(ctx, "应用对应实例获取异常")
 		return
 	}
-	_app, err := client.GetAgentApp(agent, int64(id))
+	_app, err := client.GetAgentApp(agent, id)
 	if err != nil {
 		APIError(ctx, fmt.Sprintf("获取应用情况异常:%s", err.Error()))
 		return
@@ -558,7 +559,7 @@ func (c *AppController) Pause(ctx *gin.Context) {
 		APIError(ctx, fmt.Sprintf("停止应用异常:%s", err.Error()))
 		return
 	}
-	app.Status = models.STATUS_PAUSE
+	app.Status = constants.APP_STATUS_PAUSE
 	app.Updator = GetUserID(ctx)
 	c.appService.UpdateApp(app)
 	APIOK(ctx)

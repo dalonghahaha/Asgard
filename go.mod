@@ -11,8 +11,6 @@ require (
 	github.com/gin-gonic/gin v1.5.0
 	github.com/go-ole/go-ole v1.2.4 // indirect
 	github.com/golang/protobuf v1.3.2
-	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0
-	github.com/hpcloud/tail v1.0.0
 	github.com/jinzhu/gorm v1.9.11
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/logrusorgru/aurora v0.0.0-20191116043053-66b7ad493a23 // indirect

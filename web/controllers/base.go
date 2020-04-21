@@ -82,27 +82,51 @@ func APIError(ctx *gin.Context, message string) {
 }
 
 func DefaultInt(ctx *gin.Context, key string, defaultVal int) int {
-	page := ctx.Query(key)
-	if page == "" {
+	val := ctx.Query(key)
+	if val == "" {
 		return defaultVal
 	}
-	_page, err := strconv.Atoi(page)
+	_val, err := strconv.Atoi(val)
 	if err != nil {
 		return defaultVal
 	}
-	return _page
+	return _val
+}
+
+func DefaultInt64(ctx *gin.Context, key string, defaultVal int64) int64 {
+	val := ctx.Query(key)
+	if val == "" {
+		return defaultVal
+	}
+	_val, err := strconv.ParseInt(val, 10, 64)
+	if err != nil {
+		return defaultVal
+	}
+	return _val
 }
 
 func FormDefaultInt(ctx *gin.Context, key string, defaultVal int) int {
-	page := ctx.PostForm(key)
-	if page == "" {
+	val := ctx.PostForm(key)
+	if val == "" {
 		return defaultVal
 	}
-	_page, err := strconv.Atoi(page)
+	_val, err := strconv.Atoi(val)
 	if err != nil {
 		return defaultVal
 	}
-	return _page
+	return _val
+}
+
+func FormDefaultInt64(ctx *gin.Context, key string, defaultVal int64) int64 {
+	val := ctx.PostForm(key)
+	if val == "" {
+		return defaultVal
+	}
+	_val, err := strconv.ParseInt(val, 10, 64)
+	if err != nil {
+		return defaultVal
+	}
+	return _val
 }
 
 func GetUserID(ctx *gin.Context) int64 {

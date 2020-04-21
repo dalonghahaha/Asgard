@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 
+	"Asgard/constants"
 	"Asgard/models"
 	"Asgard/services"
 )
@@ -56,8 +57,9 @@ func (c *AgentController) Monitor(ctx *gin.Context) {
 		memorys = append(memorys, FormatFloat(moniter.Memory))
 		times = append(times, FormatTime(moniter.CreatedAt))
 	}
-	ctx.HTML(StatusOK, "agent/monitor", gin.H{
-		"Subtitle": "监控信息",
+	ctx.HTML(StatusOK, "monitor/list", gin.H{
+		"Subtitle": "实例监控信息",
+		"BackUrl":  "/agent/list",
 		"CPU":      cpus,
 		"Memory":   memorys,
 		"Time":     times,
@@ -65,12 +67,12 @@ func (c *AgentController) Monitor(ctx *gin.Context) {
 }
 
 func (c *AgentController) Edit(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
+	id := DefaultInt64(ctx, "id", 0)
 	if id == 0 {
 		JumpError(ctx)
 		return
 	}
-	agent := c.agentService.GetAgentByID(int64(id))
+	agent := c.agentService.GetAgentByID(id)
 	if agent == nil {
 		JumpError(ctx)
 		return
@@ -82,8 +84,9 @@ func (c *AgentController) Edit(ctx *gin.Context) {
 }
 
 func (c *AgentController) Update(ctx *gin.Context) {
-	id := FormDefaultInt(ctx, "id", 0)
+	id := FormDefaultInt64(ctx, "id", 0)
 	alias := ctx.PostForm("alias")
+	status := ctx.PostForm("status")
 	if id == 0 {
 		APIBadRequest(ctx, "ID格式错误")
 		return
@@ -92,15 +95,18 @@ func (c *AgentController) Update(ctx *gin.Context) {
 		APIBadRequest(ctx, "别名不能为空")
 		return
 	}
-	agent := c.agentService.GetAgentByID(int64(id))
+	agent := c.agentService.GetAgentByID(id)
 	if agent == nil {
 		APIBadRequest(ctx, "实例不存在")
 		return
 	}
 	agent.Alias = alias
+	if status != "" {
+		agent.Status = constants.AGENT_FORBIDDEN
+	}
 	ok := c.agentService.UpdateAgent(agent)
 	if !ok {
-		APIError(ctx, "更新别名失败")
+		APIError(ctx, "更新失败")
 		return
 	}
 	APIOK(ctx)

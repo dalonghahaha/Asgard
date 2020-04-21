@@ -12,7 +12,7 @@ import (
 	"google.golang.org/grpc/reflection"
 
 	"Asgard/client"
-	"Asgard/models"
+	"Asgard/constants"
 	"Asgard/rpc"
 	"Asgard/server"
 	"Asgard/services"
@@ -71,7 +71,6 @@ func StartMasterRpcServer() {
 	s := server.NewRPCServer()
 	rpc.RegisterMasterServer(s, &server.MasterServer{})
 	reflection.Register(s)
-	logger.Info("master rpc server started at ", port)
 	err = s.Serve(listen)
 	if err != nil {
 		logger.Error("failed to serve:", err)
@@ -100,39 +99,39 @@ func CheckOnlineAgent() {
 	for _, agent := range agentList {
 		apps, err := client.GetAgentAppList(&agent)
 		if err != nil {
-			agent.Status = models.AGENT_OFFLINE
+			agent.Status = constants.AGENT_OFFLINE
 			agentService.UpdateAgent(&agent)
 		} else {
 			for _, app := range apps {
 				_app := appService.GetAppByID(app.GetId())
 				if _app != nil {
-					_app.Status = models.STATUS_RUNNING
+					_app.Status = constants.APP_STATUS_RUNNING
 					appService.UpdateApp(_app)
 				}
 			}
 		}
 		jobs, err := client.GetAgentJobList(&agent)
 		if err != nil {
-			agent.Status = models.AGENT_OFFLINE
+			agent.Status = constants.AGENT_OFFLINE
 			agentService.UpdateAgent(&agent)
 		} else {
 			for _, job := range jobs {
 				_job := jobService.GetJobByID(job.GetId())
 				if _job != nil {
-					_job.Status = models.STATUS_RUNNING
+					_job.Status = constants.JOB_STATUS_RUNNING
 					jobService.UpdateJob(_job)
 				}
 			}
 		}
 		timings, err := client.GetAgentTimingList(&agent)
 		if err != nil {
-			agent.Status = models.AGENT_OFFLINE
+			agent.Status = constants.AGENT_OFFLINE
 			agentService.UpdateAgent(&agent)
 		} else {
 			for _, timing := range timings {
 				_timing := timingService.GetTimingByID(timing.GetId())
 				if _timing != nil {
-					_timing.Status = models.STATUS_RUNNING
+					_timing.Status = constants.TIMING_STATUS_RUNNING
 					timingService.UpdateTiming(_timing)
 				}
 			}
@@ -145,27 +144,27 @@ func CheckOfflineAgent() {
 	for _, agent := range agentList {
 		_, err := client.GetAgentStat(&agent)
 		if err == nil {
-			agent.Status = models.AGENT_ONLINE
+			agent.Status = constants.AGENT_ONLINE
 			agentService.UpdateAgent(&agent)
 		} else {
 			apps := appService.GetAppByAgentID(agent.ID)
 			for _, app := range apps {
-				if app.Status != models.STATUS_PAUSE && app.Status != models.STATUS_DELETED {
-					app.Status = models.STATUS_STOP
+				if app.Status != constants.APP_STATUS_PAUSE && app.Status != constants.APP_STATUS_DELETED {
+					app.Status = constants.APP_STATUS_STOP
 					appService.UpdateApp(&app)
 				}
 			}
 			jobs := jobService.GetJobByAgentID(agent.ID)
 			for _, job := range jobs {
-				if job.Status != models.STATUS_PAUSE && job.Status != models.STATUS_DELETED {
-					job.Status = models.STATUS_STOP
+				if job.Status != constants.JOB_STATUS_PAUSE && job.Status != constants.JOB_STATUS_DELETED {
+					job.Status = constants.JOB_STATUS_STOP
 					jobService.UpdateJob(&job)
 				}
 			}
 			timings := timingService.GetTimingByAgentID(agent.ID)
 			for _, timing := range timings {
-				if timing.Status != models.STATUS_PAUSE && timing.Status != models.STATUS_DELETED && timing.Status != models.STATUS_FINISHED {
-					timing.Status = models.STATUS_STOP
+				if timing.Status != constants.TIMING_STATUS_PAUSE && timing.Status != constants.TIMING_STATUS_DELETED && timing.Status != constants.TIMING_STATUS_FINISHED {
+					timing.Status = constants.TIMING_STATUS_STOP
 					timingService.UpdateTiming(&timing)
 				}
 			}

@@ -97,7 +97,6 @@ func StartAgentRpcServer() {
 	s := server.NewRPCServer()
 	rpc.RegisterAgentServer(s, &server.AgentServer{})
 	reflection.Register(s)
-	logger.Info("agent rpc server started at ", port)
 	err = s.Serve(listen)
 	if err != nil {
 		logger.Error("failed to serve:", err)

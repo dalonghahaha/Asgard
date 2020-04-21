@@ -34,6 +34,37 @@ func (c *UserController) List(ctx *gin.Context) {
 	})
 }
 
+func (c *UserController) Add(ctx *gin.Context) {
+	ctx.HTML(StatusOK, "user/add", gin.H{
+		"Subtitle": "添加用户",
+	})
+}
+
+func (c *UserController) Create(ctx *gin.Context) {
+	nickname := ctx.PostForm("nickname")
+	email := ctx.PostForm("email")
+	mobile := ctx.PostForm("mobile")
+	password := ctx.PostForm("password")
+	salt := random.Letters(8)
+	password, err := coding.MD5(password + "|" + salt)
+	if err != nil {
+		APIError(ctx, "生产密码失败")
+		return
+	}
+	user := new(models.User)
+	user.NickName = nickname
+	user.Email = email
+	user.Mobile = mobile
+	user.Salt = salt
+	user.Password = password
+	ok := c.useService.CreateUser(user)
+	if !ok {
+		APIError(ctx, "创建用户")
+		return
+	}
+	APIOK(ctx)
+}
+
 func (c *UserController) Info(ctx *gin.Context) {
 	userID := GetUserID(ctx)
 	if userID == 0 {
@@ -175,7 +206,6 @@ func (c *UserController) DoRegister(ctx *gin.Context) {
 	user.Mobile = mobile
 	user.Salt = salt
 	user.Password = password
-	user.Salt = salt
 	ok := c.useService.CreateUser(user)
 	if !ok {
 		APIError(ctx, "注册失败")

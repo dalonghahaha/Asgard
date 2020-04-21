@@ -4,6 +4,7 @@ import (
 	"github.com/dalonghahaha/avenger/components/db"
 	"github.com/dalonghahaha/avenger/components/logger"
 
+	"Asgard/constants"
 	"Asgard/models"
 )
 
@@ -25,7 +26,7 @@ func (s *MonitorService) GetMonitorPageList(where map[string]interface{}, page i
 
 func (s *MonitorService) GetAgentMonitor(id int, size int) (list []models.Monitor) {
 	where := map[string]interface{}{
-		"type":       models.TYPE_AGENT,
+		"type":       constants.TYPE_AGENT,
 		"related_id": id,
 	}
 	err := db.Get(models.DB_NAME).Where(where).Limit(size).Order("created_at desc").Find(&list).Error
@@ -38,7 +39,7 @@ func (s *MonitorService) GetAgentMonitor(id int, size int) (list []models.Monito
 
 func (s *MonitorService) GetAppMonitor(id int, size int) (list []models.Monitor) {
 	where := map[string]interface{}{
-		"type":       models.TYPE_APP,
+		"type":       constants.TYPE_APP,
 		"related_id": id,
 	}
 	err := db.Get(models.DB_NAME).Where(where).Limit(size).Order("created_at desc").Find(&list).Error
@@ -51,7 +52,7 @@ func (s *MonitorService) GetAppMonitor(id int, size int) (list []models.Monitor)
 
 func (s *MonitorService) GetJobMonitor(id int, size int) (list []models.Monitor) {
 	where := map[string]interface{}{
-		"type":       models.TYPE_JOB,
+		"type":       constants.TYPE_JOB,
 		"related_id": id,
 	}
 	err := db.Get(models.DB_NAME).Where(where).Limit(size).Order("created_at desc").Find(&list).Error
@@ -64,7 +65,7 @@ func (s *MonitorService) GetJobMonitor(id int, size int) (list []models.Monitor)
 
 func (s *MonitorService) GetTimingMonitor(id int, size int) (list []models.Monitor) {
 	where := map[string]interface{}{
-		"type":       models.TYPE_TIMING,
+		"type":       constants.TYPE_TIMING,
 		"related_id": id,
 	}
 	err := db.Get(models.DB_NAME).Where(where).Limit(size).Order("created_at desc").Find(&list).Error

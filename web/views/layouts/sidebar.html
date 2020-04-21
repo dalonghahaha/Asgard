@@ -10,91 +10,43 @@
             <ul class="sidebar-nav">
                 <li class="sidebar-nav-item">
                     <a href="/" class="sidebar-nav-link">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="icon">
-                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                            <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                        </svg>
+                        {{include "partials/svg/home"}}
                         <span class="nav-text">首页</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
-                    <a href="/agent/list" class="sidebar-nav-link">
-                        <svg class="icon icon-md" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd"
-                                d="M6.887 9.2l-.964-.165A2.5 2.5 0 105.5 14h10a1.5 1.5 0 00.237-2.982l-1.038-.164.216-1.028a4 4 0 10-7.843-1.587l-.185.96zm9.084.341a5 5 0 00-9.88-1.492A3.5 3.5 0 105.5 15h9.999a2.5 2.5 0 00.394-4.968c.033-.16.06-.324.077-.49z"
-                                clip-rule="evenodd"></path>
-                        </svg>
-                        <span class="nav-text">实例管理</span>
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
                     <a href="/user/list" class="sidebar-nav-link">
-                        <svg class="icon icon-md" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd"
-                                d="M17 16s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1h8zm-7.995-.944v-.002zM9.022 15h7.956a.274.274 0 00.014-.002l.008-.002c-.002-.264-.167-1.03-.76-1.72C15.688 12.629 14.718 12 13 12c-1.717 0-2.687.63-3.24 1.276-.593.69-.759 1.457-.76 1.72a1.05 1.05 0 00.022.004zm7.973.056v-.002zM13 9a2 2 0 100-4 2 2 0 000 4zm3-2a3 3 0 11-6 0 3 3 0 016 0zm-7.064 4.28a5.873 5.873 0 00-1.23-.247A7.334 7.334 0 007 11c-4 0-5 3-5 4 0 .667.333 1 1 1h4.216A2.238 2.238 0 017 15c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816zM6.92 12c-1.668.02-2.615.64-3.16 1.276C3.163 13.97 3 14.739 3 15h3c0-1.045.323-2.086.92-3zM3.5 7.5a3 3 0 116 0 3 3 0 01-6 0zm3-2a2 2 0 100 4 2 2 0 000-4z"
-                                clip-rule="evenodd"></path>
-                        </svg>
+                        {{include "partials/svg/user"}}
                         <span class="nav-text">用户管理</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
+                    <a href="/agent/list" class="sidebar-nav-link">
+                        {{include "partials/svg/agent"}}
+                        <span class="nav-text">实例管理</span>
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
                     <a href="/group/list" class="sidebar-nav-link">
-                        <svg class="icon icon-md" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd"
-                                d="M9.5 4.5a1 1 0 00-1-1h-4a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1v-4zm-1 7h-4v4h4v-4zm7 0h-4v4h4v-4zm0-7h-4v4h4v-4zm-7 0h-4v4h4v-4zm2 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4zm-6 6a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1v-4a1 1 0 00-1-1h-4zm7 0a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1v-4a1 1 0 00-1-1h-4z"
-                                clip-rule="evenodd"></path>
-                        </svg>
+                        {{include "partials/svg/group"}}
                         <span class="nav-text">分组管理</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
                     <a href="/app/list" class="sidebar-nav-link">
-                        <svg class="icon icon-md" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd"
-                                d="M7.443 3.991a60.17 60.17 0 00-2.725.802.454.454 0 00-.315.366C3.87 9.056 5.1 11.9 6.567 13.773c.736.94 1.533 1.636 2.197 2.093.333.228.626.394.857.5.116.053.21.089.282.11A.73.73 0 0010 16.5a.774.774 0 00.097-.023c.072-.022.166-.058.282-.111a5.94 5.94 0 00.857-.5 10.198 10.198 0 002.197-2.093C14.9 11.9 16.13 9.056 15.597 5.159a.454.454 0 00-.315-.366c-.626-.2-1.682-.526-2.725-.802C11.491 3.71 10.51 3.5 10 3.5c-.51 0-1.49.21-2.557.491zm-.256-.966C8.23 2.749 9.337 2.5 10 2.5c.662 0 1.77.249 2.813.525 1.066.282 2.14.614 2.772.815.528.168.926.623 1.003 1.184.573 4.197-.756 7.307-2.367 9.365a11.192 11.192 0 01-2.418 2.3 6.942 6.942 0 01-1.007.586c-.27.124-.558.225-.796.225s-.526-.101-.796-.225a6.908 6.908 0 01-1.007-.586 11.192 11.192 0 01-2.418-2.3c-1.611-2.058-2.94-5.168-2.367-9.365A1.454 1.454 0 014.415 3.84a61.105 61.105 0 012.772-.815z"
-                                clip-rule="evenodd"></path>
-                            <path
-                                d="M10 4.25c.909 0 3.188.685 4.254 1.022a.94.94 0 01.656.773c.814 6.424-4.13 9.452-4.91 9.452V4.25z">
-                            </path>
-                        </svg>
+                        {{include "partials/svg/app"}}
                         <span class="nav-text">应用管理</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
                     <a href="/job/list" class="sidebar-nav-link">
-                        <svg class="icon icon-md" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd"
-                                d="M7 13.5a.5.5 0 01.5-.5h9a.5.5 0 010 1h-9a.5.5 0 01-.5-.5zm0-4a.5.5 0 01.5-.5h9a.5.5 0 010 1h-9a.5.5 0 01-.5-.5zm0-4a.5.5 0 01.5-.5h9a.5.5 0 010 1h-9a.5.5 0 01-.5-.5zm-3 1a1 1 0 100-2 1 1 0 000 2zm0 4a1 1 0 100-2 1 1 0 000 2zm0 4a1 1 0 100-2 1 1 0 000 2z"
-                                clip-rule="evenodd"></path>
-                        </svg>
+                        {{include "partials/svg/job"}}
                         <span class="nav-text">计划任务管理</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">
                     <a href="/timing/list" class="sidebar-nav-link">
-                        <svg class="icon icon-md" width="1em" height="1em" viewBox="0 0 20 20" fill="currentColor"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd"
-                                d="M10 17a6 6 0 100-12 6 6 0 000 12zm0 1a7 7 0 100-14 7 7 0 000 14z"
-                                clip-rule="evenodd"></path>
-                            <path fill-rule="evenodd"
-                                d="M10 6.5a.5.5 0 01.5.5v4a.5.5 0 01-.053.224l-1.5 3a.5.5 0 11-.894-.448L9.5 10.882V7a.5.5 0 01.5-.5z"
-                                clip-rule="evenodd"></path>
-                            <path
-                                d="M2.86 7.387A2.5 2.5 0 116.387 3.86 8.035 8.035 0 002.86 7.387zM13.613 3.86a2.5 2.5 0 113.527 3.527 8.035 8.035 0 00-3.527-3.527z">
-                            </path>
-                            <path fill-rule="evenodd"
-                                d="M13.646 16.146a.5.5 0 01.708 0l1 1a.5.5 0 01-.708.708l-1-1a.5.5 0 010-.708zm-7.292 0a.5.5 0 00-.708 0l-1 1a.5.5 0 00.708.708l1-1a.5.5 0 000-.708zM7.5 2.5A.5.5 0 018 2h4a.5.5 0 010 1H8a.5.5 0 01-.5-.5z"
-                                clip-rule="evenodd"></path>
-                            <path d="M9 3h2v2H9V3z"></path>
-                        </svg>
+                        {{include "partials/svg/timing"}}
                         <span class="nav-text">定时任务管理</span>
                     </a>
                 </li>
@@ -102,13 +54,7 @@
         </div>
         <div class="mt-auto">
             <a href="/logout" class="btn btn-primary btn-block">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                    class="icon dropdown-icon">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                    <polyline points="16 17 21 12 16 7"></polyline>
-                    <line x1="21" y1="12" x2="9" y2="12"></line>
-                </svg>
+                {{include "partials/svg/exit"}}
                 退出登录
             </a>
         </div>

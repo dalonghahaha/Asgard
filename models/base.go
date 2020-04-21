@@ -4,26 +4,7 @@ import (
 	"time"
 )
 
-const (
-	DB_NAME = "asgard"
-
-	TYPE_AGENT  = int64(1)
-	TYPE_APP    = int64(2)
-	TYPE_JOB    = int64(3)
-	TYPE_TIMING = int64(4)
-
-	AGENT_OFFLINE = int64(0)
-	AGENT_ONLINE  = int64(1)
-
-	STATUS_DELETED  = int64(-1)
-	STATUS_STOP     = int64(0)
-	STATUS_RUNNING  = int64(1)
-	STATUS_PAUSE    = int64(2)
-	STATUS_FINISHED = int64(3)
-
-	STATUS_UNUSAGE = int64(0)
-	STATUS_USAGE   = int64(1)
-)
+const DB_NAME = "asgard"
 
 //Model基类，定义通用属性
 type BaseModel struct {

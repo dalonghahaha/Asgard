@@ -9,7 +9,8 @@ func setupRouter() {
 	server.GET("/ping", controllers.Ping)
 	server.GET("/UI", controllers.UI)
 	server.GET("/", middlewares.Login, indexController.Index)
-	server.GET("/nologin", controllers.Nologin)
+	server.GET("/no_login", controllers.Nologin)
+	server.GET("/auth_fail", controllers.AuthFail)
 	server.GET("/error", controllers.Error)
 	server.GET("/register", useController.Register)
 	server.POST("/register", useController.DoRegister)
@@ -20,6 +21,8 @@ func setupRouter() {
 	{
 		user.GET("/info", useController.Info)
 		user.GET("/list", useController.List)
+		user.GET("/add", useController.Add)
+		user.POST("/create", useController.Create)
 		user.GET("/setting", useController.Setting)
 		user.POST("/setting", useController.Update)
 		user.GET("/change_password", useController.ChangePassword)

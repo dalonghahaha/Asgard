@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 
+	"Asgard/constants"
 	"Asgard/models"
 	"Asgard/services"
 )
@@ -46,9 +47,9 @@ func (c *GroupController) Create(ctx *gin.Context) {
 	group.Name = name
 	group.Creator = GetUserID(ctx)
 	if status != "" {
-		group.Status = models.STATUS_USAGE
+		group.Status = constants.GROUP_STATUS_USAGE
 	} else {
-		group.Status = models.STATUS_UNUSAGE
+		group.Status = constants.GROUP_STATUS_UNUSAGE
 	}
 	ok := c.groupService.CreateGroup(group)
 	if !ok {
@@ -76,18 +77,14 @@ func (c *GroupController) Edit(ctx *gin.Context) {
 }
 
 func (c *GroupController) Update(ctx *gin.Context) {
-	id := FormDefaultInt(ctx, "id", 0)
+	id := FormDefaultInt64(ctx, "id", 0)
 	name := ctx.PostForm("name")
 	status := ctx.PostForm("status")
 	if id == 0 {
 		APIBadRequest(ctx, "ID格式错误")
 		return
 	}
-	if name == "" && status == "" {
-		APIBadRequest(ctx, "请求数据格式错误")
-		return
-	}
-	group := c.groupService.GetGroupByID(int64(id))
+	group := c.groupService.GetGroupByID(id)
 	if group == nil {
 		APIBadRequest(ctx, "分组不存在")
 		return
@@ -95,9 +92,9 @@ func (c *GroupController) Update(ctx *gin.Context) {
 	group.Name = name
 	group.Updator = GetUserID(ctx)
 	if status != "" {
-		group.Status = models.STATUS_USAGE
+		group.Status = constants.GROUP_STATUS_USAGE
 	} else {
-		group.Status = models.STATUS_UNUSAGE
+		group.Status = constants.GROUP_STATUS_UNUSAGE
 	}
 	ok := c.groupService.UpdateGroup(group)
 	if !ok {
@@ -108,12 +105,17 @@ func (c *GroupController) Update(ctx *gin.Context) {
 }
 
 func (c *GroupController) Delete(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
+	id := DefaultInt64(ctx, "id", 0)
 	if id == 0 {
 		APIBadRequest(ctx, "ID格式错误")
 		return
 	}
-	ok := c.groupService.DeleteGroupByID(int64(id))
+	group := c.groupService.GetGroupByID(id)
+	if group == nil {
+		APIBadRequest(ctx, "分组不存在")
+		return
+	}
+	ok := c.groupService.DeleteGroupByID(id)
 	if !ok {
 		APIError(ctx, "删除分组失败")
 		return

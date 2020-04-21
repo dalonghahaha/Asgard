@@ -1,26 +1,5 @@
 package models
 
-import "github.com/dalonghahaha/avenger/structs"
-
-var APP_STATUS = []structs.M{
-	structs.M{
-		"ID":   STATUS_STOP,
-		"Name": "停止",
-	},
-	structs.M{
-		"ID":   STATUS_RUNNING,
-		"Name": "运行中",
-	},
-	structs.M{
-		"ID":   STATUS_PAUSE,
-		"Name": "暂停",
-	},
-	structs.M{
-		"ID":   STATUS_DELETED,
-		"Name": "已删除",
-	},
-}
-
 type App struct {
 	BaseModel
 	OperatorModel

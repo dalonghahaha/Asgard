@@ -85,8 +85,14 @@ func UI(c *gin.Context) {
 }
 
 func Nologin(c *gin.Context) {
-	c.HTML(StatusOK, "error/nologin.html", gin.H{
+	c.HTML(StatusOK, "error/no_login.html", gin.H{
 		"Subtitle": "未登录提示页",
+	})
+}
+
+func AuthFail(c *gin.Context) {
+	c.HTML(StatusOK, "error/auth_fail.html", gin.H{
+		"Subtitle": "登录验证失败页",
 	})
 }
 

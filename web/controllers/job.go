@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"Asgard/client"
+	"Asgard/constants"
 	"Asgard/models"
 	"Asgard/services"
 )
@@ -104,7 +105,7 @@ func (c *JobController) List(ctx *gin.Context) {
 		"Total":      total,
 		"GroupList":  c.groupService.GetUsageGroup(),
 		"AgentList":  c.agentService.GetUsageAgent(),
-		"StatusList": models.JOB_STATUS,
+		"StatusList": constants.JOB_STATUS,
 		"GroupID":    groupID,
 		"AgentID":    agentID,
 		"Name":       name,
@@ -114,12 +115,12 @@ func (c *JobController) List(ctx *gin.Context) {
 }
 
 func (c *JobController) Show(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
+	id := DefaultInt64(ctx, "id", 0)
 	if id == 0 {
 		JumpError(ctx)
 		return
 	}
-	job := c.jobService.GetJobByID(int64(id))
+	job := c.jobService.GetJobByID(id)
 	if job == nil {
 		JumpError(ctx)
 		return
@@ -158,7 +159,7 @@ func (c *JobController) Archive(ctx *gin.Context) {
 	id := DefaultInt(ctx, "id", 0)
 	page := DefaultInt(ctx, "page", 1)
 	where := map[string]interface{}{
-		"type":       models.TYPE_JOB,
+		"type":       constants.TYPE_JOB,
 		"related_id": id,
 	}
 	if id == 0 {
@@ -183,13 +184,13 @@ func (c *JobController) Archive(ctx *gin.Context) {
 }
 
 func (c *JobController) OutLog(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
-	lines := DefaultInt(ctx, "lines", 10)
+	id := DefaultInt64(ctx, "id", 0)
+	lines := DefaultInt64(ctx, "lines", 10)
 	if id == 0 {
 		JumpError(ctx)
 		return
 	}
-	job := c.jobService.GetJobByID(int64(id))
+	job := c.jobService.GetJobByID(id)
 	if job == nil {
 		JumpError(ctx)
 		return
@@ -199,7 +200,7 @@ func (c *JobController) OutLog(ctx *gin.Context) {
 		JumpError(ctx)
 		return
 	}
-	content, err := client.GetAgentLog(agent, job.StdOut, int64(lines))
+	content, err := client.GetAgentLog(agent, job.StdOut, lines)
 	if err != nil {
 		JumpError(ctx)
 		return
@@ -215,13 +216,13 @@ func (c *JobController) OutLog(ctx *gin.Context) {
 }
 
 func (c *JobController) ErrLog(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
-	lines := DefaultInt(ctx, "lines", 10)
+	id := DefaultInt64(ctx, "id", 0)
+	lines := DefaultInt64(ctx, "lines", 10)
 	if id == 0 {
 		JumpError(ctx)
 		return
 	}
-	job := c.jobService.GetJobByID(int64(id))
+	job := c.jobService.GetJobByID(id)
 	if job == nil {
 		JumpError(ctx)
 		return
@@ -231,7 +232,7 @@ func (c *JobController) ErrLog(ctx *gin.Context) {
 		JumpError(ctx)
 		return
 	}
-	content, err := client.GetAgentLog(agent, job.StdErr, int64(lines))
+	content, err := client.GetAgentLog(agent, job.StdErr, lines)
 	if err != nil {
 		JumpError(ctx)
 		return
@@ -256,16 +257,16 @@ func (c *JobController) Add(ctx *gin.Context) {
 }
 
 func (c *JobController) Create(ctx *gin.Context) {
-	groupID := FormDefaultInt(ctx, "group_id", 0)
+	groupID := FormDefaultInt64(ctx, "group_id", 0)
 	name := ctx.PostForm("name")
-	agentID := FormDefaultInt(ctx, "agent_id", 0)
+	agentID := FormDefaultInt64(ctx, "agent_id", 0)
 	dir := ctx.PostForm("dir")
 	program := ctx.PostForm("program")
 	args := ctx.PostForm("args")
 	stdOut := ctx.PostForm("std_out")
 	stdErr := ctx.PostForm("std_err")
 	spec := ctx.PostForm("spec")
-	timeout := FormDefaultInt(ctx, "timeout", 0)
+	timeout := FormDefaultInt64(ctx, "timeout", 0)
 	isMonitor := ctx.PostForm("is_monitor")
 	if !Required(ctx, &name, "名称不能为空") {
 		return
@@ -290,17 +291,17 @@ func (c *JobController) Create(ctx *gin.Context) {
 		return
 	}
 	job := new(models.Job)
-	job.GroupID = int64(groupID)
+	job.GroupID = groupID
 	job.Name = name
-	job.AgentID = int64(agentID)
+	job.AgentID = agentID
 	job.Dir = dir
 	job.Program = program
 	job.Args = args
 	job.StdOut = stdOut
 	job.StdErr = stdErr
 	job.Spec = spec
-	job.Timeout = int64(timeout)
-	job.Status = models.STATUS_STOP
+	job.Timeout = timeout
+	job.Status = constants.JOB_STATUS_STOP
 	job.Creator = GetUserID(ctx)
 	if isMonitor != "" {
 		job.IsMonitor = 1
@@ -314,12 +315,12 @@ func (c *JobController) Create(ctx *gin.Context) {
 }
 
 func (c *JobController) Edit(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
+	id := DefaultInt64(ctx, "id", 0)
 	if id == 0 {
 		JumpError(ctx)
 		return
 	}
-	job := c.jobService.GetJobByID(int64(id))
+	job := c.jobService.GetJobByID(id)
 	if job == nil {
 		JumpError(ctx)
 		return
@@ -333,17 +334,17 @@ func (c *JobController) Edit(ctx *gin.Context) {
 }
 
 func (c *JobController) Update(ctx *gin.Context) {
-	id := FormDefaultInt(ctx, "id", 0)
-	groupID := FormDefaultInt(ctx, "group_id", 0)
+	id := FormDefaultInt64(ctx, "id", 0)
+	groupID := FormDefaultInt64(ctx, "group_id", 0)
 	name := ctx.PostForm("name")
-	agentID := FormDefaultInt(ctx, "agent_id", 0)
+	agentID := FormDefaultInt64(ctx, "agent_id", 0)
 	dir := ctx.PostForm("dir")
 	program := ctx.PostForm("program")
 	args := ctx.PostForm("args")
 	stdOut := ctx.PostForm("std_out")
 	stdErr := ctx.PostForm("std_err")
 	spec := ctx.PostForm("spec")
-	timeout := FormDefaultInt(ctx, "timeout", 0)
+	timeout := FormDefaultInt64(ctx, "timeout", 0)
 	isMonitor := ctx.PostForm("is_monitor")
 	if id == 0 {
 		APIBadRequest(ctx, "ID格式错误")
@@ -371,21 +372,21 @@ func (c *JobController) Update(ctx *gin.Context) {
 		APIBadRequest(ctx, "运行实例不能为空")
 		return
 	}
-	job := c.jobService.GetJobByID(int64(id))
+	job := c.jobService.GetJobByID(id)
 	if job == nil {
 		APIBadRequest(ctx, "计划任务不存在")
 		return
 	}
-	job.GroupID = int64(groupID)
+	job.GroupID = groupID
 	job.Name = name
-	job.AgentID = int64(agentID)
+	job.AgentID = agentID
 	job.Dir = dir
 	job.Program = program
 	job.Args = args
 	job.StdOut = stdOut
 	job.StdErr = stdErr
 	job.Spec = spec
-	job.Timeout = int64(timeout)
+	job.Timeout = timeout
 	job.Updator = GetUserID(ctx)
 	if isMonitor != "" {
 		job.IsMonitor = 1
@@ -399,12 +400,12 @@ func (c *JobController) Update(ctx *gin.Context) {
 }
 
 func (c *JobController) Copy(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
+	id := DefaultInt64(ctx, "id", 0)
 	if id == 0 {
 		APIBadRequest(ctx, "ID格式错误")
 		return
 	}
-	job := c.jobService.GetJobByID(int64(id))
+	job := c.jobService.GetJobByID(id)
 	if job == nil {
 		APIError(ctx, "计划任务不存在")
 		return
@@ -421,7 +422,7 @@ func (c *JobController) Copy(ctx *gin.Context) {
 	_job.Spec = job.Spec
 	_job.Timeout = job.Timeout
 	_job.IsMonitor = job.IsMonitor
-	_job.Status = models.STATUS_STOP
+	_job.Status = constants.JOB_STATUS_STOP
 	_job.Creator = GetUserID(ctx)
 	ok := c.jobService.CreateJob(_job)
 	if !ok {
@@ -432,12 +433,12 @@ func (c *JobController) Copy(ctx *gin.Context) {
 }
 
 func (c *JobController) Delete(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
+	id := DefaultInt64(ctx, "id", 0)
 	if id == 0 {
 		APIBadRequest(ctx, "ID格式错误")
 		return
 	}
-	job := c.jobService.GetJobByID(int64(id))
+	job := c.jobService.GetJobByID(id)
 	if job == nil {
 		APIError(ctx, "计划任务不存在")
 		return
@@ -446,28 +447,28 @@ func (c *JobController) Delete(ctx *gin.Context) {
 		APIError(ctx, "计划任务正在运行不能删除")
 		return
 	}
-	job.Status = -1
+	job.Status = constants.JOB_STATUS_DELETED
 	job.Updator = GetUserID(ctx)
 	ok := c.jobService.UpdateJob(job)
 	if !ok {
-		APIError(ctx, "删除应用失败")
+		APIError(ctx, "删除计划任务失败")
 		return
 	}
 	APIOK(ctx)
 }
 
 func (c *JobController) Start(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
+	id := DefaultInt64(ctx, "id", 0)
 	if id == 0 {
 		APIBadRequest(ctx, "ID格式错误")
 		return
 	}
-	job := c.jobService.GetJobByID(int64(id))
+	job := c.jobService.GetJobByID(id)
 	if job == nil {
 		APIError(ctx, "计划任务不存在")
 		return
 	}
-	if job.Status == models.STATUS_RUNNING {
+	if job.Status == constants.JOB_STATUS_RUNNING {
 		APIError(ctx, "计划任务已经启动")
 		return
 	}
@@ -476,7 +477,7 @@ func (c *JobController) Start(ctx *gin.Context) {
 		APIError(ctx, "计划任务对应实例获取异常")
 		return
 	}
-	_job, err := client.GetAgentJob(agent, int64(id))
+	_job, err := client.GetAgentJob(agent, id)
 	if err != nil {
 		APIError(ctx, fmt.Sprintf("获取计划任务情况异常:%s", err.Error()))
 		return
@@ -487,24 +488,24 @@ func (c *JobController) Start(ctx *gin.Context) {
 			APIError(ctx, fmt.Sprintf("添加计划任务异常:%s", err.Error()))
 			return
 		}
-		job.Status = models.STATUS_RUNNING
+		job.Status = constants.JOB_STATUS_STOP
 		c.jobService.UpdateJob(job)
 		APIOK(ctx)
 		return
 	}
-	job.Status = models.STATUS_RUNNING
+	job.Status = constants.JOB_STATUS_RUNNING
 	job.Updator = GetUserID(ctx)
 	c.jobService.UpdateJob(job)
 	APIOK(ctx)
 }
 
 func (c *JobController) ReStart(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
+	id := DefaultInt64(ctx, "id", 0)
 	if id == 0 {
 		APIBadRequest(ctx, "ID格式错误")
 		return
 	}
-	job := c.jobService.GetJobByID(int64(id))
+	job := c.jobService.GetJobByID(id)
 	if job == nil {
 		APIError(ctx, "计划任务不存在")
 		return
@@ -514,7 +515,7 @@ func (c *JobController) ReStart(ctx *gin.Context) {
 		APIError(ctx, "计划任务对应实例获取异常")
 		return
 	}
-	_job, err := client.GetAgentJob(agent, int64(id))
+	_job, err := client.GetAgentJob(agent, id)
 	if err != nil {
 		APIError(ctx, fmt.Sprintf("获取计划任务情况异常:%s", err.Error()))
 		return
@@ -536,12 +537,12 @@ func (c *JobController) ReStart(ctx *gin.Context) {
 }
 
 func (c *JobController) Pause(ctx *gin.Context) {
-	id := DefaultInt(ctx, "id", 0)
+	id := DefaultInt64(ctx, "id", 0)
 	if id == 0 {
 		APIBadRequest(ctx, "ID格式错误")
 		return
 	}
-	job := c.jobService.GetJobByID(int64(id))
+	job := c.jobService.GetJobByID(id)
 	if job == nil {
 		APIError(ctx, "计划任务不存在")
 		return
@@ -551,7 +552,7 @@ func (c *JobController) Pause(ctx *gin.Context) {
 		APIError(ctx, "计划任务对应实例获取异常")
 		return
 	}
-	_job, err := client.GetAgentJob(agent, int64(id))
+	_job, err := client.GetAgentJob(agent, id)
 	if err != nil {
 		APIError(ctx, fmt.Sprintf("获取计划任务情况异常:%s", err.Error()))
 		return
@@ -565,7 +566,7 @@ func (c *JobController) Pause(ctx *gin.Context) {
 		APIError(ctx, fmt.Sprintf("停止计划任务异常:%s", err.Error()))
 		return
 	}
-	job.Status = models.STATUS_PAUSE
+	job.Status = constants.JOB_STATUS_PAUSE
 	job.Updator = GetUserID(ctx)
 	c.jobService.UpdateJob(job)
 	APIOK(ctx)

@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 
+	"Asgard/constants"
 	"Asgard/models"
 	"Asgard/rpc"
 	"Asgard/services"
@@ -91,7 +92,7 @@ func (s *MasterServer) AgentMonitorReport(ctx context.Context, request *rpc.Agen
 	if agent == nil {
 		return s.Error("no such agent!")
 	}
-	ok := s.monitorService.CreateMonitor(rpc.ParseMonitor(models.TYPE_AGENT, agent.ID, request.GetMonitor()))
+	ok := s.monitorService.CreateMonitor(rpc.ParseMonitor(constants.TYPE_AGENT, agent.ID, request.GetMonitor()))
 	if !ok {
 		return s.Error("add agent monitor failed")
 	}
@@ -99,7 +100,7 @@ func (s *MasterServer) AgentMonitorReport(ctx context.Context, request *rpc.Agen
 }
 
 func (s *MasterServer) AppMonitorReport(ctx context.Context, request *rpc.AppMonitor) (*rpc.Response, error) {
-	ok := s.monitorService.CreateMonitor(rpc.ParseMonitor(models.TYPE_APP, request.GetApp().GetId(), request.GetMonitor()))
+	ok := s.monitorService.CreateMonitor(rpc.ParseMonitor(constants.TYPE_APP, request.GetApp().GetId(), request.GetMonitor()))
 	if !ok {
 		return s.Error("add app monitor failed")
 	}
@@ -107,7 +108,7 @@ func (s *MasterServer) AppMonitorReport(ctx context.Context, request *rpc.AppMon
 }
 
 func (s *MasterServer) JobMoniorReport(ctx context.Context, request *rpc.JobMonior) (*rpc.Response, error) {
-	ok := s.monitorService.CreateMonitor(rpc.ParseMonitor(models.TYPE_JOB, request.GetJob().GetId(), request.GetMonitor()))
+	ok := s.monitorService.CreateMonitor(rpc.ParseMonitor(constants.TYPE_JOB, request.GetJob().GetId(), request.GetMonitor()))
 	if !ok {
 		return s.Error("add job monitor failed")
 	}
@@ -115,7 +116,7 @@ func (s *MasterServer) JobMoniorReport(ctx context.Context, request *rpc.JobMoni
 }
 
 func (s *MasterServer) TimingMoniorReport(ctx context.Context, request *rpc.TimingMonior) (*rpc.Response, error) {
-	ok := s.monitorService.CreateMonitor(rpc.ParseMonitor(models.TYPE_TIMING, request.GetTiming().GetId(), request.GetMonitor()))
+	ok := s.monitorService.CreateMonitor(rpc.ParseMonitor(constants.TYPE_TIMING, request.GetTiming().GetId(), request.GetMonitor()))
 	if !ok {
 		return s.Error("add timing monitor failed")
 	}
@@ -123,7 +124,7 @@ func (s *MasterServer) TimingMoniorReport(ctx context.Context, request *rpc.Timi
 }
 
 func (s *MasterServer) AppArchiveReport(ctx context.Context, request *rpc.AppArchive) (*rpc.Response, error) {
-	ok := s.archiveService.CreateArchive(rpc.ParseArchive(models.TYPE_APP, request.GetApp().GetId(), request.GetArchive()))
+	ok := s.archiveService.CreateArchive(rpc.ParseArchive(constants.TYPE_APP, request.GetApp().GetId(), request.GetArchive()))
 	if !ok {
 		return s.Error("add app archive failed")
 	}
@@ -131,7 +132,7 @@ func (s *MasterServer) AppArchiveReport(ctx context.Context, request *rpc.AppArc
 }
 
 func (s *MasterServer) JobArchiveReport(ctx context.Context, request *rpc.JobArchive) (*rpc.Response, error) {
-	ok := s.archiveService.CreateArchive(rpc.ParseArchive(models.TYPE_JOB, request.GetJob().GetId(), request.GetArchive()))
+	ok := s.archiveService.CreateArchive(rpc.ParseArchive(constants.TYPE_JOB, request.GetJob().GetId(), request.GetArchive()))
 	if !ok {
 		return s.Error("add job archive failed")
 	}
@@ -139,13 +140,13 @@ func (s *MasterServer) JobArchiveReport(ctx context.Context, request *rpc.JobArc
 }
 
 func (s *MasterServer) TimingArchiveReport(ctx context.Context, request *rpc.TimingArchive) (*rpc.Response, error) {
-	ok := s.archiveService.CreateArchive(rpc.ParseArchive(models.TYPE_TIMING, request.GetTiming().GetId(), request.GetArchive()))
+	ok := s.archiveService.CreateArchive(rpc.ParseArchive(constants.TYPE_TIMING, request.GetTiming().GetId(), request.GetArchive()))
 	if !ok {
 		return s.Error("add timing archive failed")
 	}
 	timing := s.timingService.GetTimingByID(request.GetTiming().GetId())
 	if timing != nil {
-		timing.Status = models.STATUS_FINISHED
+		timing.Status = constants.TIMING_STATUS_FINISHED
 		s.timingService.UpdateTiming(timing)
 	}
 	return s.OK()
