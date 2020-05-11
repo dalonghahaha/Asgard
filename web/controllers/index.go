@@ -27,7 +27,11 @@ func (c *IndexController) Index(ctx *gin.Context) {
 	agents := providers.AgentService.GetUsageAgent()
 	groups := providers.GroupService.GetUsageGroup()
 	for _, agent := range agents {
-		agentList = append(agentList, fmt.Sprintf("%s:%s", agent.IP, agent.Port))
+		if agent.Alias == "" {
+			agentList = append(agentList, fmt.Sprintf("%s:%s", agent.IP, agent.Port))
+		} else {
+			agentList = append(agentList, agent.Alias)
+		}
 		where := map[string]interface{}{"agent_id": agent.ID}
 		apps := providers.AppService.GetAppCount(where)
 		jobs := providers.JobService.GetJobCount(where)
