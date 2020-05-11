@@ -1,5 +1,13 @@
 {{define "content"}}
-{{template "page_title" .}}
+<div class="page-title-box">
+    <div class="row align-items-center">
+        <div class="col-auto">
+            <h2 class="page-title">
+                {{.Subtitle}}-{{.Name}}-{{.Agent.Alias}}({{.Agent.IP}}:{{.Agent.Port}})
+            </h2>
+        </div>
+    </div>
+</div>
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -21,7 +29,7 @@
                 {{- range .Content}}
                 <div class="list-item">
                     <div><span class="badge"></span></div>
-                    <div class="text-truncate">
+                    <div>
                         {{.}}
                     </div>
                 </div>

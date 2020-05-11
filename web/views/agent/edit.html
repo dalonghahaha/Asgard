@@ -15,7 +15,6 @@
                         <div class="mb-2">
                             <label class="form-label">别名</label>
                             <input name="alias" type="text" class="form-control" placeholder="请输入名称" value="{{.Agent.Alias}}" required>
-                            <input name="id" type="hidden" value="{{.Agent.ID}}">
                         </div>
                     </div>
                 </div>
@@ -31,8 +30,9 @@
                 </div>
             </div>
             <div class="card-footer text-right">
+                <input name="id" type="hidden" value="{{.Agent.ID}}">
                 <button type="submit" class="btn btn-primary">提交</button>
-                <a href="/agent/list" class="btn btn-danger ml-2">返回</a>
+                <a href="{{.BackUrl}}" class="btn btn-danger ml-2">返回</a>
             </div>
         </form>
     </div>

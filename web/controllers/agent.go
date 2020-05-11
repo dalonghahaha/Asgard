@@ -76,11 +76,12 @@ func (c *AgentController) Edit(ctx *gin.Context) {
 	ctx.HTML(StatusOK, "agent/edit", gin.H{
 		"Subtitle": "编辑别名",
 		"Agent":    agent,
+		"BackUrl":  GetReferer(ctx),
 	})
 }
 
 func (c *AgentController) Update(ctx *gin.Context) {
-	id := utils.DefaultInt64(ctx, "id", 0)
+	id := utils.FormDefaultInt64(ctx, "id", 0)
 	alias := ctx.PostForm("alias")
 	status := ctx.PostForm("status")
 	if id == 0 {

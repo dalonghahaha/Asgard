@@ -32,7 +32,7 @@ func Server() *gin.Engine {
 }
 
 func Init() error {
-	if viper.GetString("server.mode") == "release" {
+	if viper.GetString("system.mode") == "release" {
 		gin.SetMode(gin.ReleaseMode)
 	}
 	server = gin.New()

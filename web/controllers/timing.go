@@ -45,7 +45,11 @@ func (c *TimingController) formatTiming(info *models.Timing) map[string]interfac
 	}
 	agent := providers.AgentService.GetAgentByID(info.AgentID)
 	if agent != nil {
-		data["AgentName"] = fmt.Sprintf("%s:%s(%s)", agent.IP, agent.Port, agent.Alias)
+		if agent.Alias != "" {
+			data["AgentName"] = agent.Alias
+		} else {
+			data["AgentName"] = fmt.Sprintf("%s:%s", agent.IP, agent.Port)
+		}
 	} else {
 		data["AgentName"] = ""
 	}
@@ -117,8 +121,8 @@ func (c *TimingController) Monitor(ctx *gin.Context) {
 	moniters := providers.MoniterService.GetTimingMonitor(timing.ID, 100)
 	cpus, memorys, times := utils.MonitorFormat(moniters)
 	ctx.HTML(StatusOK, "monitor/list", gin.H{
-		"Subtitle": "定时任务监控信息",
-		"BackUrl":  "/timing/list",
+		"Subtitle": "定时任务监控信息——" + timing.Name,
+		"BackUrl":  GetReferer(ctx),
 		"CPU":      cpus,
 		"Memory":   memorys,
 		"Time":     times,
@@ -142,7 +146,8 @@ func (c *TimingController) Archive(ctx *gin.Context) {
 	}
 	mpurl := fmt.Sprintf("/timing/archive?id=%d", timing.ID)
 	ctx.HTML(StatusOK, "archive/list", gin.H{
-		"Subtitle":   "定时任务归档列表",
+		"Subtitle":   "定时任务归档列表——" + timing.Name,
+		"BackUrl":    GetReferer(ctx),
 		"List":       list,
 		"Total":      total,
 		"Pagination": utils.PagerHtml(total, page, mpurl),
@@ -150,7 +155,7 @@ func (c *TimingController) Archive(ctx *gin.Context) {
 }
 
 func (c *TimingController) OutLog(ctx *gin.Context) {
-	lines := utils.DefaultInt64(ctx, "lines", 10)
+	lines := utils.DefaultInt64(ctx, "lines", LogSize)
 	timing := utils.GetTiming(ctx)
 	agent := utils.GetAgent(ctx)
 	content, err := client.GetAgentLog(agent, timing.StdOut, lines)
@@ -161,15 +166,17 @@ func (c *TimingController) OutLog(ctx *gin.Context) {
 	ctx.HTML(StatusOK, "log/list", gin.H{
 		"Subtitle": "定时任务日志查看",
 		"Path":     "/timing/out_log",
-		"BackUrl":  "/timing/list",
+		"BackUrl":  GetReferer(ctx),
 		"ID":       timing.ID,
+		"Name":     timing.Name,
+		"Agent":    agent,
 		"Lines":    lines,
 		"Content":  content,
 	})
 }
 
 func (c *TimingController) ErrLog(ctx *gin.Context) {
-	lines := utils.DefaultInt64(ctx, "lines", 10)
+	lines := utils.DefaultInt64(ctx, "lines", LogSize)
 	timing := utils.GetTiming(ctx)
 	agent := utils.GetAgent(ctx)
 	content, err := client.GetAgentLog(agent, timing.StdErr, lines)
@@ -180,8 +187,10 @@ func (c *TimingController) ErrLog(ctx *gin.Context) {
 	ctx.HTML(StatusOK, "log/list", gin.H{
 		"Subtitle": "定时任务错误日志查看",
 		"Path":     "/timing/err_log",
-		"BackUrl":  "/timing/list",
+		"BackUrl":  GetReferer(ctx),
 		"ID":       timing.ID,
+		"Name":     timing.Name,
+		"Agent":    agent,
 		"Lines":    lines,
 		"Type":     "err_log",
 		"Content":  content,
@@ -226,6 +235,7 @@ func (c *TimingController) Edit(ctx *gin.Context) {
 	timing := utils.GetTiming(ctx)
 	ctx.HTML(StatusOK, "timing/edit", gin.H{
 		"Subtitle":  "编辑定时任务",
+		"BackUrl":   GetReferer(ctx),
 		"Info":      c.formatTiming(timing),
 		"GroupList": providers.GroupService.GetUsageGroup(),
 		"AgentList": providers.AgentService.GetUsageAgent(),

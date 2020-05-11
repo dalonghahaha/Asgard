@@ -75,7 +75,7 @@ func (c *GroupController) Edit(ctx *gin.Context) {
 }
 
 func (c *GroupController) Update(ctx *gin.Context) {
-	id := utils.DefaultInt64(ctx, "id", 0)
+	id := utils.FormDefaultInt64(ctx, "id", 0)
 	name := ctx.PostForm("name")
 	status := ctx.PostForm("status")
 	if id == 0 {

@@ -13,11 +13,16 @@ var (
 	StatusOK     = http.StatusOK
 	StatusFound  = http.StatusFound
 	PageSize     = 10
+	LogSize      = int64(20)
 	CookieSalt   = "sdswqeqx"
 	Domain       = "localhost"
 	TimeLocation = "Asia/Shanghai"
 	TimeLayout   = "2006-01-02 15:04"
 )
+
+func GetReferer(ctx *gin.Context) string {
+	return ctx.Request.Header.Get("Referer")
+}
 
 func GetUserID(ctx *gin.Context) int64 {
 	token, err := ctx.Cookie("token")

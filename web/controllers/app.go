@@ -44,7 +44,11 @@ func (c *AppController) formatApp(info *models.App) map[string]interface{} {
 	}
 	agent := providers.AgentService.GetAgentByID(info.AgentID)
 	if agent != nil {
-		data["AgentName"] = fmt.Sprintf("%s:%s(%s)", agent.IP, agent.Port, agent.Alias)
+		if agent.Alias != "" {
+			data["AgentName"] = agent.Alias
+		} else {
+			data["AgentName"] = fmt.Sprintf("%s:%s", agent.IP, agent.Port)
+		}
 	} else {
 		data["AgentName"] = ""
 	}
@@ -116,8 +120,8 @@ func (c *AppController) Monitor(ctx *gin.Context) {
 	moniters := providers.MoniterService.GetAppMonitor(app.ID, 100)
 	cpus, memorys, times := utils.MonitorFormat(moniters)
 	ctx.HTML(StatusOK, "monitor/list", gin.H{
-		"Subtitle": "应用监控信息",
-		"BackUrl":  "/app/list",
+		"Subtitle": "应用监控信息——" + app.Name,
+		"BackUrl":  GetReferer(ctx),
 		"CPU":      cpus,
 		"Memory":   memorys,
 		"Time":     times,
@@ -141,7 +145,8 @@ func (c *AppController) Archive(ctx *gin.Context) {
 	}
 	mpurl := fmt.Sprintf("/app/archive?id=%d", app.ID)
 	ctx.HTML(StatusOK, "archive/list", gin.H{
-		"Subtitle":   "应用归档列表",
+		"Subtitle":   "应用归档列表——" + app.Name,
+		"BackUrl":    GetReferer(ctx),
 		"List":       list,
 		"Total":      total,
 		"Pagination": utils.PagerHtml(total, page, mpurl),
@@ -149,7 +154,7 @@ func (c *AppController) Archive(ctx *gin.Context) {
 }
 
 func (c *AppController) OutLog(ctx *gin.Context) {
-	lines := utils.DefaultInt64(ctx, "lines", 10)
+	lines := utils.DefaultInt64(ctx, "lines", LogSize)
 	app := utils.GetApp(ctx)
 	agent := utils.GetAgent(ctx)
 	content, err := client.GetAgentLog(agent, app.StdOut, lines)
@@ -160,15 +165,17 @@ func (c *AppController) OutLog(ctx *gin.Context) {
 	ctx.HTML(StatusOK, "log/list", gin.H{
 		"Subtitle": "应用正常日志查看",
 		"Path":     "/app/out_log",
-		"BackUrl":  "/app/list",
+		"BackUrl":  GetReferer(ctx),
 		"ID":       app.ID,
+		"Name":     app.Name,
+		"Agent":    agent,
 		"Lines":    lines,
 		"Content":  content,
 	})
 }
 
 func (c *AppController) ErrLog(ctx *gin.Context) {
-	lines := utils.DefaultInt64(ctx, "lines", 10)
+	lines := utils.DefaultInt64(ctx, "lines", LogSize)
 	app := utils.GetApp(ctx)
 	agent := utils.GetAgent(ctx)
 	content, err := client.GetAgentLog(agent, app.StdErr, lines)
@@ -179,8 +186,10 @@ func (c *AppController) ErrLog(ctx *gin.Context) {
 	ctx.HTML(StatusOK, "log/list", gin.H{
 		"Subtitle": "应用错误日志查看",
 		"Path":     "/app/err_log",
-		"BackUrl":  "/app/list",
+		"BackUrl":  GetReferer(ctx),
 		"ID":       app.ID,
+		"Name":     app.Name,
+		"Agent":    agent,
 		"Lines":    lines,
 		"Content":  content,
 	})
@@ -225,6 +234,7 @@ func (c *AppController) Edit(ctx *gin.Context) {
 	app := utils.GetApp(ctx)
 	ctx.HTML(StatusOK, "app/edit", gin.H{
 		"Subtitle":  "编辑应用",
+		"BackUrl":   GetReferer(ctx),
 		"Info":      c.formatApp(app),
 		"GroupList": providers.GroupService.GetUsageGroup(),
 		"AgentList": providers.AgentService.GetUsageAgent(),

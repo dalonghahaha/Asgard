@@ -45,7 +45,11 @@ func (c *JobController) formatJob(info *models.Job) map[string]interface{} {
 	}
 	agent := providers.AgentService.GetAgentByID(info.AgentID)
 	if agent != nil {
-		data["AgentName"] = fmt.Sprintf("%s:%s(%s)", agent.IP, agent.Port, agent.Alias)
+		if agent.Alias != "" {
+			data["AgentName"] = agent.Alias
+		} else {
+			data["AgentName"] = fmt.Sprintf("%s:%s", agent.IP, agent.Port)
+		}
 	} else {
 		data["AgentName"] = ""
 	}
@@ -117,8 +121,8 @@ func (c *JobController) Monitor(ctx *gin.Context) {
 	moniters := providers.MoniterService.GetJobMonitor(job.ID, 100)
 	cpus, memorys, times := utils.MonitorFormat(moniters)
 	ctx.HTML(StatusOK, "monitor/list", gin.H{
-		"Subtitle": "计划任务监控信息",
-		"BackUrl":  "/job/list",
+		"Subtitle": "计划任务监控信息——" + job.Name,
+		"BackUrl":  GetReferer(ctx),
 		"CPU":      cpus,
 		"Memory":   memorys,
 		"Time":     times,
@@ -142,7 +146,8 @@ func (c *JobController) Archive(ctx *gin.Context) {
 	}
 	mpurl := fmt.Sprintf("/job/archive?id=%d", job.ID)
 	ctx.HTML(StatusOK, "archive/list", gin.H{
-		"Subtitle":   "计划任务归档列表",
+		"Subtitle":   "计划任务归档列表——" + job.Name,
+		"BackUrl":    GetReferer(ctx),
 		"List":       list,
 		"Total":      total,
 		"Pagination": utils.PagerHtml(total, page, mpurl),
@@ -150,7 +155,7 @@ func (c *JobController) Archive(ctx *gin.Context) {
 }
 
 func (c *JobController) OutLog(ctx *gin.Context) {
-	lines := utils.DefaultInt64(ctx, "lines", 10)
+	lines := utils.DefaultInt64(ctx, "lines", LogSize)
 	job := utils.GetJob(ctx)
 	agent := utils.GetAgent(ctx)
 	content, err := client.GetAgentLog(agent, job.StdOut, lines)
@@ -161,15 +166,17 @@ func (c *JobController) OutLog(ctx *gin.Context) {
 	ctx.HTML(StatusOK, "log/list", gin.H{
 		"Subtitle": "计划任务日志查看",
 		"Path":     "/job/out_log",
-		"BackUrl":  "/job/list",
+		"BackUrl":  GetReferer(ctx),
 		"ID":       job.ID,
+		"Name":     job.Name,
+		"Agent":    agent,
 		"Lines":    lines,
 		"Content":  content,
 	})
 }
 
 func (c *JobController) ErrLog(ctx *gin.Context) {
-	lines := utils.DefaultInt64(ctx, "lines", 10)
+	lines := utils.DefaultInt64(ctx, "lines", LogSize)
 	job := utils.GetJob(ctx)
 	agent := utils.GetAgent(ctx)
 	content, err := client.GetAgentLog(agent, job.StdErr, lines)
@@ -180,8 +187,10 @@ func (c *JobController) ErrLog(ctx *gin.Context) {
 	ctx.HTML(StatusOK, "log/list", gin.H{
 		"Subtitle": "计划任务错误日志查看",
 		"Path":     "/job/err_log",
-		"BackUrl":  "/job/list",
+		"BackUrl":  GetReferer(ctx),
 		"ID":       job.ID,
+		"Name":     job.Name,
+		"Agent":    agent,
 		"Lines":    lines,
 		"Content":  content,
 	})
@@ -228,6 +237,7 @@ func (c *JobController) Edit(ctx *gin.Context) {
 	job := utils.GetJob(ctx)
 	ctx.HTML(StatusOK, "job/edit", gin.H{
 		"Subtitle":  "编辑计划任务",
+		"BackUrl":   GetReferer(ctx),
 		"Info":      c.formatJob(job),
 		"GroupList": providers.GroupService.GetUsageGroup(),
 		"AgentList": providers.AgentService.GetUsageAgent(),
