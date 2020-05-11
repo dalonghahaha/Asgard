@@ -14,5 +14,6 @@ type Monitor struct {
 }
 
 func (m *Monitor) TableName() string {
-	return "monitors"
+	suffix := time.Now().Format("200601")
+	return "monitors_" + suffix
 }
