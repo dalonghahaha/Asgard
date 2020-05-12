@@ -16,13 +16,23 @@ func AppInit(ctx *gin.Context) {
 		ctx.Abort()
 		return
 	}
-	app := providers.AppService.GetAppByID(id)
-	if app == nil {
-		utils.JumpWarning(ctx, "应用不存在")
-		ctx.Abort()
-		return
+	if id != 0 {
+		app := providers.AppService.GetAppByID(id)
+		if app == nil {
+			utils.JumpWarning(ctx, "应用不存在")
+			ctx.Abort()
+			return
+		}
+		ctx.Set("app", app)
+	} else {
+		app := providers.AppService.GetAppByID(_id)
+		if app == nil {
+			utils.JumpWarning(ctx, "应用不存在")
+			ctx.Abort()
+			return
+		}
+		ctx.Set("job", app)
 	}
-	ctx.Set("app", app)
 	ctx.Next()
 }
 
