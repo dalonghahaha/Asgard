@@ -10,6 +10,7 @@ require (
 	github.com/foolin/goview v0.2.0
 	github.com/gin-gonic/gin v1.5.0
 	github.com/go-ole/go-ole v1.2.4 // indirect
+	github.com/go-redis/redis/v7 v7.2.0 // indirect
 	github.com/golang/protobuf v1.3.2
 	github.com/jinzhu/gorm v1.9.11
 	github.com/kr/pretty v0.2.0 // indirect
@@ -25,5 +26,6 @@ require (
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.3.2
 	github.com/tidwall/gjson v1.3.5 // indirect
+	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550 // indirect
 	google.golang.org/grpc v1.26.0
 )

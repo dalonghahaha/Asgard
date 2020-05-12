@@ -1,9 +1,13 @@
 package services
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/dalonghahaha/avenger/components/logger"
 	"github.com/jinzhu/gorm"
 
+	"Asgard/constants"
 	"Asgard/models"
 )
 
@@ -12,6 +16,10 @@ type UserService struct {
 
 func NewUserService() *UserService {
 	return &UserService{}
+}
+
+func (s *UserService) buidCacheKey(id int64) string {
+	return fmt.Sprintf("%s:%d", constants.CACHE_KEY_USER, id)
 }
 
 func (s *UserService) GetUserPageList(where map[string]interface{}, page int, pageSize int) (list []models.User, count int) {
@@ -25,6 +33,13 @@ func (s *UserService) GetUserPageList(where map[string]interface{}, page int, pa
 
 func (s *UserService) GetUserByID(id int64) *models.User {
 	var user models.User
+	data := GetCache(s.buidCacheKey(id))
+	if len(data) > 0 {
+		err := json.Unmarshal([]byte(data), &user)
+		if err == nil {
+			return &user
+		}
+	}
 	err := models.Get(id, &user)
 	if err != nil {
 		if err != gorm.ErrRecordNotFound {
@@ -32,6 +47,8 @@ func (s *UserService) GetUserByID(id int64) *models.User {
 		}
 		return nil
 	}
+	info, _ := json.Marshal(user)
+	SetCache(s.buidCacheKey(id), string(info))
 	return &user
 }
 
@@ -95,16 +112,16 @@ func (s *UserService) UpdateUser(user *models.User) bool {
 		logger.Error("UpdateUser Error:", err)
 		return false
 	}
+	DelCache(s.buidCacheKey(user.ID))
 	return true
 }
 
-func (s *UserService) DeleteUserByID(id int64) bool {
-	user := new(models.User)
-	user.ID = id
+func (s *UserService) DeleteUserByID(user *models.User) bool {
 	err := models.Delete(user)
 	if err != nil {
 		logger.Error("DeleteUserByID Error:", err)
 		return false
 	}
+	DelCache(s.buidCacheKey(user.ID))
 	return true
 }

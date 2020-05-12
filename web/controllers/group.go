@@ -113,7 +113,7 @@ func (c *GroupController) Delete(ctx *gin.Context) {
 		utils.APIBadRequest(ctx, "分组不存在")
 		return
 	}
-	ok := providers.GroupService.DeleteGroupByID(id)
+	ok := providers.GroupService.DeleteGroupByID(group)
 	if !ok {
 		utils.APIError(ctx, "删除分组失败")
 		return

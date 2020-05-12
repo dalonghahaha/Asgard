@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/dalonghahaha/avenger/components/cache"
 	"github.com/dalonghahaha/avenger/components/db"
 	"github.com/dalonghahaha/avenger/components/logger"
 	"github.com/spf13/cobra"
@@ -38,6 +39,10 @@ var masterCmd = &cobra.Command{
 	PreRun: PreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		err := db.Register()
+		if err != nil {
+			panic(err)
+		}
+		err = cache.Register()
 		if err != nil {
 			panic(err)
 		}

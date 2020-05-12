@@ -1,9 +1,13 @@
 package services
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/dalonghahaha/avenger/components/logger"
 	"github.com/jinzhu/gorm"
 
+	"Asgard/constants"
 	"Asgard/models"
 )
 
@@ -12,6 +16,10 @@ type GroupService struct {
 
 func NewGroupService() *GroupService {
 	return &GroupService{}
+}
+
+func (s *GroupService) buidCacheKey(id int64) string {
+	return fmt.Sprintf("%s:%d", constants.CACHE_KEY_GROUP, id)
 }
 
 func (s *GroupService) GetUsageGroup() (list []models.Group) {
@@ -34,6 +42,13 @@ func (s *GroupService) GetGroupPageList(where map[string]interface{}, page int, 
 
 func (s *GroupService) GetGroupByID(id int64) *models.Group {
 	var group models.Group
+	data := GetCache(s.buidCacheKey(id))
+	if len(data) > 0 {
+		err := json.Unmarshal([]byte(data), &group)
+		if err == nil {
+			return &group
+		}
+	}
 	err := models.Get(id, &group)
 	if err != nil {
 		if err != gorm.ErrRecordNotFound {
@@ -41,6 +56,8 @@ func (s *GroupService) GetGroupByID(id int64) *models.Group {
 		}
 		return nil
 	}
+	info, _ := json.Marshal(group)
+	SetCache(s.buidCacheKey(id), string(info))
 	return &group
 }
 
@@ -59,16 +76,16 @@ func (s *GroupService) UpdateGroup(group *models.Group) bool {
 		logger.Error("UpdateGroup Error:", err)
 		return false
 	}
+	DelCache(s.buidCacheKey(group.ID))
 	return true
 }
 
-func (s *GroupService) DeleteGroupByID(id int64) bool {
-	group := new(models.Group)
-	group.ID = id
+func (s *GroupService) DeleteGroupByID(group *models.Group) bool {
 	err := models.Delete(group)
 	if err != nil {
 		logger.Error("DeleteGroupByID Error:", err)
 		return false
 	}
+	DelCache(s.buidCacheKey(group.ID))
 	return true
 }

@@ -54,7 +54,7 @@ func (s *JobService) GetJobByID(id int64) *models.Job {
 	err := models.Get(id, &job)
 	if err != nil {
 		if err != gorm.ErrRecordNotFound {
-			logger.Error("GetAppByID Error:", err)
+			logger.Error("GetJobByID Error:", err)
 		}
 		return nil
 	}

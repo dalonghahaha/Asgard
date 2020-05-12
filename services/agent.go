@@ -1,9 +1,13 @@
 package services
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/dalonghahaha/avenger/components/logger"
 	"github.com/jinzhu/gorm"
 
+	"Asgard/constants"
 	"Asgard/models"
 )
 
@@ -12,6 +16,14 @@ type AgentService struct {
 
 func NewAgentService() *AgentService {
 	return &AgentService{}
+}
+
+func (s *AgentService) buidCacheKey(id int64) string {
+	return fmt.Sprintf("%s:%d", constants.CACHE_KEY_AGENT, id)
+}
+
+func (s *AgentService) buidCacheKeyIpPort(ip, port string) string {
+	return fmt.Sprintf("%s:%s:%s", constants.CACHE_KEY_AGENT_IP_PORT, ip, port)
 }
 
 func (s *AgentService) GetUsageAgent() (list []models.Agent) {
@@ -61,6 +73,13 @@ func (s *AgentService) GetAgentPageList(where map[string]interface{}, page int, 
 
 func (s *AgentService) GetAgentByID(id int64) *models.Agent {
 	var agent models.Agent
+	data := GetCache(s.buidCacheKey(id))
+	if len(data) > 0 {
+		err := json.Unmarshal([]byte(data), &agent)
+		if err == nil {
+			return &agent
+		}
+	}
 	err := models.Get(id, &agent)
 	if err != nil && err != gorm.ErrRecordNotFound {
 		if err != gorm.ErrRecordNotFound {
@@ -68,6 +87,8 @@ func (s *AgentService) GetAgentByID(id int64) *models.Agent {
 		}
 		return nil
 	}
+	info, _ := json.Marshal(agent)
+	SetCache(s.buidCacheKey(id), string(info))
 	return &agent
 }
 
@@ -77,6 +98,14 @@ func (s *AgentService) GetAgentByIPAndPort(ip, port string) *models.Agent {
 		"port": port,
 	}
 	var agent models.Agent
+	data := GetCache(s.buidCacheKeyIpPort(ip, port))
+	if len(data) > 0 {
+		err := json.Unmarshal([]byte(data), &agent)
+		if err == nil {
+			return &agent
+		}
+	}
+
 	err := models.Find(where, &agent)
 	if err != nil {
 		if err != gorm.ErrRecordNotFound {
@@ -84,6 +113,8 @@ func (s *AgentService) GetAgentByIPAndPort(ip, port string) *models.Agent {
 		}
 		return nil
 	}
+	info, _ := json.Marshal(agent)
+	SetCache(s.buidCacheKeyIpPort(ip, port), string(info))
 	return &agent
 }
 
@@ -102,16 +133,18 @@ func (s *AgentService) UpdateAgent(agent *models.Agent) bool {
 		logger.Error("UpdateAgent Error:", err)
 		return false
 	}
+	DelCache(s.buidCacheKey(agent.ID))
+	DelCache(s.buidCacheKeyIpPort(agent.IP, agent.Port))
 	return true
 }
 
-func (s *AgentService) DeleteAgentByID(id int64) bool {
-	agent := new(models.Agent)
-	agent.ID = id
+func (s *AgentService) DeleteAgentByID(agent *models.Agent) bool {
 	err := models.Delete(agent)
 	if err != nil {
 		logger.Error("DeleteAgentByID Error:", err)
 		return false
 	}
+	DelCache(s.buidCacheKey(agent.ID))
+	DelCache(s.buidCacheKeyIpPort(agent.IP, agent.Port))
 	return true
 }
