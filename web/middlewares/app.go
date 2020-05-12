@@ -31,7 +31,7 @@ func AppInit(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-		ctx.Set("job", app)
+		ctx.Set("app", app)
 	}
 	ctx.Next()
 }
