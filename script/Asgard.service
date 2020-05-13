@@ -1,0 +1,15 @@
+[Unit]
+Description=Asgard Framework
+Documentation=https://github.com/dalonghahaha/Asgard
+After=network.target
+
+[Service]
+ExecStart=/etc/init.d/Asgard start
+ExecStop=/etc/init.d/Asgard stop
+ExecReload=/etc/init.d/Asgard restart
+KillMode=process
+Restart=on-failure
+RestartSec=50s
+
+[Install]
+WantedBy=multi-user.target

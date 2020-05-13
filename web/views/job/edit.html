@@ -38,7 +38,7 @@
             <div class="card-footer">
                 <input name="id" type="hidden" value="{{.Info.ID}}">
                 <button type="submit" class="btn btn-primary">提交</button>
-                <a href="{{.BackUrl}}" class="btn btn-danger ml-2">返回</a>
+                <a id="back" href="{{.BackUrl}}" class="btn btn-danger ml-2">返回</a>
             </div>
         </form>
     </div>
@@ -56,7 +56,7 @@
                 timeout: 60000,
                 success: function (data) {
                     if (data.code == 200) {
-                        window.location.href = "/job/list";
+                        window.location.href = $("#back").attr("href");
                     } else {
                         alert(data.message);
                     }
