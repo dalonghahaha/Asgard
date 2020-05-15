@@ -70,6 +70,21 @@ func (s *JobService) GetJobByAgentID(id int64) (list []models.Job) {
 	return
 }
 
+func (s *JobService) GetUsageJobByAgentID(id int64) (list []models.Job) {
+	err := models.Where(
+		&list,
+		"agent_id = ? and status in (?,?,?)",
+		id,
+		constants.JOB_STATUS_UNKNOWN,
+		constants.JOB_STATUS_RUNNING,
+		constants.JOB_STATUS_STOP)
+	if err != nil {
+		logger.Error("GetUsageJobByAgentID Error:", err)
+		return nil
+	}
+	return
+}
+
 func (s *JobService) CreateJob(job *models.Job) bool {
 	err := models.Create(job)
 	if err != nil {

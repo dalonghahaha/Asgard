@@ -21,40 +21,6 @@ func NewAppController() *AppController {
 	return &AppController{}
 }
 
-func (c *AppController) formatApp(info *models.App) map[string]interface{} {
-	data := map[string]interface{}{
-		"ID":          info.ID,
-		"Name":        info.Name,
-		"GroupID":     info.GroupID,
-		"AgentID":     info.AgentID,
-		"Dir":         info.Dir,
-		"Program":     info.Program,
-		"Args":        info.Args,
-		"StdOut":      info.StdOut,
-		"StdErr":      info.StdErr,
-		"AutoRestart": info.AutoRestart,
-		"IsMonitor":   info.IsMonitor,
-		"Status":      info.Status,
-	}
-	group := providers.GroupService.GetGroupByID(info.GroupID)
-	if group != nil {
-		data["GroupName"] = group.Name
-	} else {
-		data["GroupName"] = ""
-	}
-	agent := providers.AgentService.GetAgentByID(info.AgentID)
-	if agent != nil {
-		if agent.Alias != "" {
-			data["AgentName"] = agent.Alias
-		} else {
-			data["AgentName"] = fmt.Sprintf("%s:%s", agent.IP, agent.Port)
-		}
-	} else {
-		data["AgentName"] = ""
-	}
-	return data
-}
-
 func (c *AppController) List(ctx *gin.Context) {
 	groupID := utils.DefaultInt(ctx, "group_id", 0)
 	agentID := utils.DefaultInt(ctx, "agent_id", 0)
@@ -84,9 +50,9 @@ func (c *AppController) List(ctx *gin.Context) {
 	if appList == nil {
 		utils.APIError(ctx, "获取应用列表失败")
 	}
-	list := []map[string]interface{}{}
+	list := []gin.H{}
 	for _, app := range appList {
-		list = append(list, c.formatApp(&app))
+		list = append(list, utils.AppFormat(&app))
 	}
 	mpurl := "/app/list"
 	if len(querys) > 0 {
@@ -111,7 +77,7 @@ func (c *AppController) Show(ctx *gin.Context) {
 	app := utils.GetApp(ctx)
 	ctx.HTML(StatusOK, "app/show", gin.H{
 		"Subtitle": "查看应用",
-		"App":      c.formatApp(app),
+		"App":      utils.AppFormat(app),
 	})
 }
 
@@ -235,7 +201,7 @@ func (c *AppController) Edit(ctx *gin.Context) {
 	ctx.HTML(StatusOK, "app/edit", gin.H{
 		"Subtitle":  "编辑应用",
 		"BackUrl":   GetReferer(ctx),
-		"Info":      c.formatApp(app),
+		"Info":      utils.AppFormat(app),
 		"GroupList": providers.GroupService.GetUsageGroup(),
 		"AgentList": providers.AgentService.GetUsageAgent(),
 	})
@@ -323,7 +289,8 @@ func (c *AppController) Start(ctx *gin.Context) {
 			utils.APIError(ctx, fmt.Sprintf("添加应用异常:%s", err.Error()))
 			return
 		}
-		app.Status = constants.APP_STATUS_STOP
+		app.Status = constants.APP_STATUS_RUNNING
+		app.Updator = GetUserID(ctx)
 		providers.AppService.UpdateApp(app)
 		utils.APIOK(ctx)
 		return

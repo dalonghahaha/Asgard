@@ -21,41 +21,6 @@ func NewJobController() *JobController {
 	return &JobController{}
 }
 
-func (c *JobController) formatJob(info *models.Job) map[string]interface{} {
-	data := map[string]interface{}{
-		"ID":        info.ID,
-		"Name":      info.Name,
-		"GroupID":   info.GroupID,
-		"AgentID":   info.AgentID,
-		"Dir":       info.Dir,
-		"Program":   info.Program,
-		"Args":      info.Args,
-		"StdOut":    info.StdOut,
-		"StdErr":    info.StdErr,
-		"Spec":      info.Spec,
-		"Timeout":   info.Timeout,
-		"IsMonitor": info.IsMonitor,
-		"Status":    info.Status,
-	}
-	group := providers.GroupService.GetGroupByID(info.GroupID)
-	if group != nil {
-		data["GroupName"] = group.Name
-	} else {
-		data["GroupName"] = ""
-	}
-	agent := providers.AgentService.GetAgentByID(info.AgentID)
-	if agent != nil {
-		if agent.Alias != "" {
-			data["AgentName"] = agent.Alias
-		} else {
-			data["AgentName"] = fmt.Sprintf("%s:%s", agent.IP, agent.Port)
-		}
-	} else {
-		data["AgentName"] = ""
-	}
-	return data
-}
-
 func (c *JobController) List(ctx *gin.Context) {
 	groupID := utils.DefaultInt(ctx, "group_id", 0)
 	agentID := utils.DefaultInt(ctx, "agent_id", 0)
@@ -85,9 +50,9 @@ func (c *JobController) List(ctx *gin.Context) {
 	if jobList == nil {
 		utils.APIError(ctx, "获取计划任务列表失败")
 	}
-	list := []map[string]interface{}{}
+	list := []gin.H{}
 	for _, job := range jobList {
-		list = append(list, c.formatJob(&job))
+		list = append(list, utils.JobFormat(&job))
 	}
 	mpurl := "/job/list"
 	if len(querys) > 0 {
@@ -112,7 +77,7 @@ func (c *JobController) Show(ctx *gin.Context) {
 	job := utils.GetJob(ctx)
 	ctx.HTML(StatusOK, "job/show", gin.H{
 		"Subtitle": "查看计划任务",
-		"Job":      c.formatJob(job),
+		"Job":      utils.JobFormat(job),
 	})
 }
 
@@ -238,7 +203,7 @@ func (c *JobController) Edit(ctx *gin.Context) {
 	ctx.HTML(StatusOK, "job/edit", gin.H{
 		"Subtitle":  "编辑计划任务",
 		"BackUrl":   GetReferer(ctx),
-		"Info":      c.formatJob(job),
+		"Info":      utils.JobFormat(job),
 		"GroupList": providers.GroupService.GetUsageGroup(),
 		"AgentList": providers.AgentService.GetUsageAgent(),
 	})
@@ -329,7 +294,8 @@ func (c *JobController) Start(ctx *gin.Context) {
 			utils.APIError(ctx, fmt.Sprintf("添加计划任务异常:%s", err.Error()))
 			return
 		}
-		job.Status = constants.JOB_STATUS_STOP
+		job.Status = constants.JOB_STATUS_RUNNING
+		job.Updator = GetUserID(ctx)
 		providers.JobService.UpdateJob(job)
 		utils.APIOK(ctx)
 		return

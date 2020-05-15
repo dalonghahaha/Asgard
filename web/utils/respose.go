@@ -30,12 +30,22 @@ func APIError(ctx *gin.Context, message string) {
 	ctx.JSON(StatusOK, gin.H{"code": StatusError, "message": message})
 }
 
+func APIErrorByCode(ctx *gin.Context, code int) {
+	ctx.JSON(StatusOK, gin.H{"code": code, "message": GetErrorMessage(code)})
+}
+
 func JumpWarning(ctx *gin.Context, message string) {
 	ctx.HTML(StatusOK, "warning", gin.H{
 		"Message": message,
 	})
 }
 
+func JumpWarningByCode(ctx *gin.Context, code int) {
+	ctx.HTML(StatusOK, "warning", gin.H{
+		"Message": GetErrorMessage(code),
+	})
+}
+
 func JumpError(ctx *gin.Context) {
-	ctx.Redirect(http.StatusFound, ErrorUrl)
+	ctx.Redirect(StatusError, ErrorUrl)
 }

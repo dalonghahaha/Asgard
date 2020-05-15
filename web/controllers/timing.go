@@ -21,41 +21,6 @@ func NewTimingController() *TimingController {
 	return &TimingController{}
 }
 
-func (c *TimingController) formatTiming(info *models.Timing) map[string]interface{} {
-	data := map[string]interface{}{
-		"ID":        info.ID,
-		"Name":      info.Name,
-		"GroupID":   info.GroupID,
-		"AgentID":   info.AgentID,
-		"Dir":       info.Dir,
-		"Program":   info.Program,
-		"Args":      info.Args,
-		"StdOut":    info.StdOut,
-		"StdErr":    info.StdErr,
-		"Time":      info.Time.Format(TimeLayout),
-		"Timeout":   info.Timeout,
-		"IsMonitor": info.IsMonitor,
-		"Status":    info.Status,
-	}
-	group := providers.GroupService.GetGroupByID(info.GroupID)
-	if group != nil {
-		data["GroupName"] = group.Name
-	} else {
-		data["GroupName"] = ""
-	}
-	agent := providers.AgentService.GetAgentByID(info.AgentID)
-	if agent != nil {
-		if agent.Alias != "" {
-			data["AgentName"] = agent.Alias
-		} else {
-			data["AgentName"] = fmt.Sprintf("%s:%s", agent.IP, agent.Port)
-		}
-	} else {
-		data["AgentName"] = ""
-	}
-	return data
-}
-
 func (c *TimingController) List(ctx *gin.Context) {
 	groupID := utils.DefaultInt(ctx, "group_id", 0)
 	agentID := utils.DefaultInt(ctx, "agent_id", 0)
@@ -87,7 +52,7 @@ func (c *TimingController) List(ctx *gin.Context) {
 	}
 	list := []map[string]interface{}{}
 	for _, timing := range timingList {
-		list = append(list, c.formatTiming(&timing))
+		list = append(list, utils.TimingFormat(&timing))
 	}
 	mpurl := "/timing/list"
 	if len(querys) > 0 {
@@ -112,7 +77,7 @@ func (c *TimingController) Show(ctx *gin.Context) {
 	timing := utils.GetTiming(ctx)
 	ctx.HTML(StatusOK, "timing/show", gin.H{
 		"Subtitle": "查看定时任务",
-		"Timing":   c.formatTiming(timing),
+		"Timing":   utils.TimingFormat(timing),
 	})
 }
 
@@ -236,7 +201,7 @@ func (c *TimingController) Edit(ctx *gin.Context) {
 	ctx.HTML(StatusOK, "timing/edit", gin.H{
 		"Subtitle":  "编辑定时任务",
 		"BackUrl":   GetReferer(ctx),
-		"Info":      c.formatTiming(timing),
+		"Info":      utils.TimingFormat(timing),
 		"GroupList": providers.GroupService.GetUsageGroup(),
 		"AgentList": providers.AgentService.GetUsageAgent(),
 	})
@@ -326,6 +291,7 @@ func (c *TimingController) Start(ctx *gin.Context) {
 			return
 		}
 		timing.Status = constants.TIMING_STATUS_RUNNING
+		timing.Updator = GetUserID(ctx)
 		providers.TimingService.UpdateTiming(timing)
 		utils.APIOK(ctx)
 		return

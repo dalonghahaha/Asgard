@@ -1,10 +1,15 @@
 package utils
 
 import (
-	"Asgard/models"
 	"fmt"
 	"regexp"
 	"time"
+
+	"Asgard/constants"
+	"Asgard/models"
+	"Asgard/providers"
+
+	"github.com/gin-gonic/gin"
 )
 
 var (
@@ -42,11 +47,116 @@ func MobileFormat(mobileNum string) bool {
 	return reg.MatchString(mobileNum)
 }
 
+func AppFormat(info *models.App) gin.H {
+	data := gin.H{
+		"ID":          info.ID,
+		"Name":        info.Name,
+		"GroupID":     info.GroupID,
+		"AgentID":     info.AgentID,
+		"Dir":         info.Dir,
+		"Program":     info.Program,
+		"Args":        info.Args,
+		"StdOut":      info.StdOut,
+		"StdErr":      info.StdErr,
+		"AutoRestart": info.AutoRestart,
+		"IsMonitor":   info.IsMonitor,
+		"Status":      info.Status,
+	}
+	group := providers.GroupService.GetGroupByID(info.GroupID)
+	data["GroupName"] = GroupNameFormat(group)
+	agent := providers.AgentService.GetAgentByID(info.AgentID)
+	data["AgentName"] = AgentNameFormat(agent)
+	return data
+}
+
+func JobFormat(info *models.Job) gin.H {
+	data := gin.H{
+		"ID":        info.ID,
+		"Name":      info.Name,
+		"GroupID":   info.GroupID,
+		"AgentID":   info.AgentID,
+		"Dir":       info.Dir,
+		"Program":   info.Program,
+		"Args":      info.Args,
+		"StdOut":    info.StdOut,
+		"StdErr":    info.StdErr,
+		"Spec":      info.Spec,
+		"Timeout":   info.Timeout,
+		"IsMonitor": info.IsMonitor,
+		"Status":    info.Status,
+	}
+	group := providers.GroupService.GetGroupByID(info.GroupID)
+	data["GroupName"] = GroupNameFormat(group)
+	agent := providers.AgentService.GetAgentByID(info.AgentID)
+	data["AgentName"] = AgentNameFormat(agent)
+	return data
+}
+
+func TimingFormat(info *models.Timing) gin.H {
+	data := gin.H{
+		"ID":        info.ID,
+		"Name":      info.Name,
+		"GroupID":   info.GroupID,
+		"AgentID":   info.AgentID,
+		"Dir":       info.Dir,
+		"Program":   info.Program,
+		"Args":      info.Args,
+		"StdOut":    info.StdOut,
+		"StdErr":    info.StdErr,
+		"Time":      info.Time.Format(TimeLayout),
+		"Timeout":   info.Timeout,
+		"IsMonitor": info.IsMonitor,
+		"Status":    info.Status,
+	}
+	group := providers.GroupService.GetGroupByID(info.GroupID)
+	data["GroupName"] = GroupNameFormat(group)
+	agent := providers.AgentService.GetAgentByID(info.AgentID)
+	data["AgentName"] = AgentNameFormat(agent)
+	return data
+}
+
+func GroupNameFormat(group *models.Group) string {
+	if group != nil {
+		return group.Name
+	} else {
+		return ""
+	}
+}
+
+func AgentNameFormat(agent *models.Agent) string {
+	if agent != nil {
+		if agent.Alias != "" {
+			return agent.Alias
+		} else {
+			return fmt.Sprintf("%s:%s", agent.IP, agent.Port)
+		}
+	} else {
+		return ""
+	}
+}
+
 func MonitorFormat(moniters []models.Monitor) (cpus []string, memorys []string, times []string) {
 	for _, moniter := range moniters {
 		cpus = append(cpus, FormatFloat(moniter.CPU))
 		memorys = append(memorys, FormatFloat(moniter.Memory))
 		times = append(times, FormatTime(moniter.CreatedAt))
+	}
+	return
+}
+
+func GetErrorMessage(code int) (message string) {
+	var ok bool
+	if constants.Lang == "cn" {
+		message, ok = constants.ERROR_CN[code]
+	} else {
+		message, ok = constants.ERROR_EN[code]
+	}
+	if !ok {
+		if constants.Lang == "cn" {
+			return constants.ERROR_CN_NOFUND
+		} else {
+			return constants.ERROR_EN_NOFUND
+		}
 	}
 	return
 }

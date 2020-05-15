@@ -70,6 +70,20 @@ func (s *AppService) GetAppByAgentID(id int64) (list []models.App) {
 	return
 }
 
+func (s *AppService) GetUsageAppByAgentID(id int64) (list []models.App) {
+	err := models.Where(&list,
+		"agent_id = ? and status in (?,?,?)",
+		id,
+		constants.APP_STATUS_UNKNOWN,
+		constants.APP_STATUS_RUNNING,
+		constants.APP_STATUS_STOP)
+	if err != nil {
+		logger.Error("GetUsageAppByAgentID Error:", err)
+		return nil
+	}
+	return
+}
+
 func (s *AppService) CreateApp(app *models.App) bool {
 	err := models.Create(app)
 	if err != nil {

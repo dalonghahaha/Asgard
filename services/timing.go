@@ -70,6 +70,21 @@ func (s *TimingService) GetTimingByAgentID(id int64) (list []models.Timing) {
 	return
 }
 
+func (s *TimingService) GetUsageTimingByAgentID(id int64) (list []models.Timing) {
+	err := models.Where(
+		&list,
+		"agent_id = ? and status in (?,?,?)",
+		id,
+		constants.TIMING_STATUS_UNKNOWN,
+		constants.TIMING_STATUS_RUNNING,
+		constants.TIMING_STATUS_STOP)
+	if err != nil {
+		logger.Error("GetUsageTimingByAgentID Error:", err)
+		return nil
+	}
+	return
+}
+
 func (s *TimingService) CreateTiming(timing *models.Timing) bool {
 	err := models.Create(timing)
 	if err != nil {

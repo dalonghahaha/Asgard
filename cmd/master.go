@@ -14,24 +14,18 @@ import (
 
 	"Asgard/client"
 	"Asgard/constants"
+	"Asgard/models"
+	"Asgard/providers"
 	"Asgard/rpc"
 	"Asgard/server"
-	"Asgard/services"
-	"Asgard/web"
-)
-
-var (
-	agentService        *services.AgentService
-	appService          *services.AppService
-	jobService          *services.JobService
-	timingService       *services.TimingService
-	masterMoniterTicker *time.Ticker
 )
 
 func init() {
 	masterCmd.PersistentFlags().StringP("conf", "c", "conf", "config path")
 	rootCmd.AddCommand(masterCmd)
 }
+
+var masterMoniterTicker *time.Ticker
 
 var masterCmd = &cobra.Command{
 	Use:    "master",
@@ -46,24 +40,10 @@ var masterCmd = &cobra.Command{
 		if err != nil {
 			panic(err)
 		}
-		agentService = services.NewAgentService()
-		appService = services.NewAppService()
-		jobService = services.NewJobService()
-		timingService = services.NewTimingService()
-		go StartWebServer()
 		go StartMasterRpcServer()
 		go MoniterMaster()
 		NotityKill(StopMaster)
 	},
-}
-
-func StartWebServer() {
-	err := web.Init()
-	if err != nil {
-		logger.Error("web init error:", err)
-		os.Exit(1)
-	}
-	web.Run()
 }
 
 func StartMasterRpcServer() {
@@ -76,6 +56,7 @@ func StartMasterRpcServer() {
 	s := server.NewRPCServer()
 	rpc.RegisterMasterServer(s, &server.MasterServer{})
 	reflection.Register(s)
+	logger.Info("Master Rpc Server Started! Pid:", os.Getpid())
 	err = s.Serve(listen)
 	if err != nil {
 		logger.Error("failed to serve:", err)
@@ -84,6 +65,7 @@ func StartMasterRpcServer() {
 }
 
 func StopMaster() {
+	logger.Info("Master Rpc Server Stop!")
 	masterMoniterTicker.Stop()
 }
 
@@ -94,85 +76,98 @@ func MoniterMaster() {
 	}
 	masterMoniterTicker = time.NewTicker(time.Second * time.Duration(duration))
 	for range masterMoniterTicker.C {
-		CheckOnlineAgent()
-		CheckOfflineAgent()
+		agentList := providers.AgentService.GetUsageAgent()
+		for _, agent := range agentList {
+			go checkAgent(agent)
+		}
 	}
 }
 
-func CheckOnlineAgent() {
-	agentList := agentService.GetOnlineAgent()
-	for _, agent := range agentList {
+func checkAgent(agent models.Agent) {
+	usageApps := providers.AppService.GetAppByAgentID(agent.ID)
+	usageJobs := providers.JobService.GetJobByAgentID(agent.ID)
+	usageTimings := providers.TimingService.GetUsageTimingByAgentID(agent.ID)
+	_, err := client.GetAgentStat(&agent)
+	if err != nil {
+		//标记实例状态为离线
+		agent.Status = constants.AGENT_OFFLINE
+		providers.AgentService.UpdateAgent(&agent)
+		//标记应用状态为未知
+		for _, app := range usageApps {
+			app.Status = constants.APP_STATUS_UNKNOWN
+			providers.AppService.UpdateApp(&app)
+		}
+		//标记计划任务状态为未知
+		for _, job := range usageJobs {
+			job.Status = constants.APP_STATUS_UNKNOWN
+			providers.JobService.UpdateJob(&job)
+		}
+		//标记定时任务状态为未知
+		for _, timing := range usageTimings {
+			timing.Status = constants.APP_STATUS_UNKNOWN
+			providers.TimingService.UpdateTiming(&timing)
+		}
+		return
+	} else {
+		//标记实例状态为在线
+		agent.Status = constants.AGENT_ONLINE
+		providers.AgentService.UpdateAgent(&agent)
+		//更新实例应用运行状态
 		apps, err := client.GetAgentAppList(&agent)
 		if err != nil {
-			agent.Status = constants.AGENT_OFFLINE
-			agentService.UpdateAgent(&agent)
-		} else {
+			runningApps := map[int64]string{}
 			for _, app := range apps {
-				_app := appService.GetAppByID(app.GetId())
-				if _app != nil {
-					_app.Status = constants.APP_STATUS_RUNNING
-					appService.UpdateApp(_app)
-				}
+				runningApps[app.GetId()] = app.GetName()
 			}
+			for _, app := range usageApps {
+				_, ok := runningApps[app.ID]
+				if ok {
+					app.Status = constants.APP_STATUS_RUNNING
+				} else {
+					app.Status = constants.APP_STATUS_STOP
+				}
+				providers.AppService.UpdateApp(&app)
+			}
+		} else {
+			logger.Error("checkOnlineAgent GetAgentAppList Error:", err)
 		}
+		//更新实例计划任务运行状态
 		jobs, err := client.GetAgentJobList(&agent)
 		if err != nil {
-			agent.Status = constants.AGENT_OFFLINE
-			agentService.UpdateAgent(&agent)
-		} else {
+			runningJobs := map[int64]string{}
 			for _, job := range jobs {
-				_job := jobService.GetJobByID(job.GetId())
-				if _job != nil {
-					_job.Status = constants.JOB_STATUS_RUNNING
-					jobService.UpdateJob(_job)
-				}
+				runningJobs[job.GetId()] = job.GetName()
 			}
+			for _, job := range usageJobs {
+				_, ok := runningJobs[job.ID]
+				if ok {
+					job.Status = constants.JOB_STATUS_RUNNING
+				} else {
+					job.Status = constants.JOB_STATUS_STOP
+				}
+				providers.JobService.UpdateJob(&job)
+			}
+		} else {
+			logger.Error("checkOnlineAgent GetAgentJobList Error:", err)
 		}
+		//更新实例计划任务运行状态
 		timings, err := client.GetAgentTimingList(&agent)
 		if err != nil {
-			agent.Status = constants.AGENT_OFFLINE
-			agentService.UpdateAgent(&agent)
-		} else {
+			runningTimings := map[int64]string{}
 			for _, timing := range timings {
-				_timing := timingService.GetTimingByID(timing.GetId())
-				if _timing != nil {
-					_timing.Status = constants.TIMING_STATUS_RUNNING
-					timingService.UpdateTiming(_timing)
-				}
+				runningTimings[timing.GetId()] = timing.GetName()
 			}
-		}
-	}
-}
-
-func CheckOfflineAgent() {
-	agentList := agentService.GetOfflineAgent()
-	for _, agent := range agentList {
-		_, err := client.GetAgentStat(&agent)
-		if err == nil {
-			agent.Status = constants.AGENT_ONLINE
-			agentService.UpdateAgent(&agent)
+			for _, timing := range usageTimings {
+				_, ok := runningTimings[timing.ID]
+				if ok {
+					timing.Status = constants.JOB_STATUS_RUNNING
+				} else {
+					timing.Status = constants.JOB_STATUS_STOP
+				}
+				providers.TimingService.UpdateTiming(&timing)
+			}
 		} else {
-			apps := appService.GetAppByAgentID(agent.ID)
-			for _, app := range apps {
-				if app.Status != constants.APP_STATUS_PAUSE && app.Status != constants.APP_STATUS_DELETED {
-					app.Status = constants.APP_STATUS_STOP
-					appService.UpdateApp(&app)
-				}
-			}
-			jobs := jobService.GetJobByAgentID(agent.ID)
-			for _, job := range jobs {
-				if job.Status != constants.JOB_STATUS_PAUSE && job.Status != constants.JOB_STATUS_DELETED {
-					job.Status = constants.JOB_STATUS_STOP
-					jobService.UpdateJob(&job)
-				}
-			}
-			timings := timingService.GetTimingByAgentID(agent.ID)
-			for _, timing := range timings {
-				if timing.Status != constants.TIMING_STATUS_PAUSE && timing.Status != constants.TIMING_STATUS_DELETED && timing.Status != constants.TIMING_STATUS_FINISHED {
-					timing.Status = constants.TIMING_STATUS_STOP
-					timingService.UpdateTiming(&timing)
-				}
-			}
+			logger.Error("checkOnlineAgent GetAgentTimingList Error:", err)
 		}
 	}
 }

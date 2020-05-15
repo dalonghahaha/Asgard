@@ -1,0 +1,25 @@
+package constants
+
+const (
+	ERROR_CODE_COMMON = 10000
+
+	ERROR_CODE_USER = 20000
+
+	ERROR_CODE_AGENT = 30000
+
+	ERROR_CODE_GROUP = 40000
+
+	ERROR_CODE_APP = 50000
+
+	ERROR_CODE_JOB = 60000
+
+	ERROR_CODE_TIMING = 70000
+
+	ERROR_CN_NOFUND = "系统错误"
+
+	ERROR_EN_NOFUND = "System Error"
+)
+
+var ERROR_CN = map[int]string{}
+
+var ERROR_EN = map[int]string{}

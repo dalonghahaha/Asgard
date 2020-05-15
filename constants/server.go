@@ -6,6 +6,7 @@ var (
 	StatusOK        = http.StatusOK
 	StatusFound     = http.StatusFound
 	StatusForbidden = http.StatusForbidden
+	Lang            = "cn"
 	Domain          = "localhost"
 	CookieSalt      = "sdswqeqx"
 	TimeLocation    = "Asia/Shanghai"
