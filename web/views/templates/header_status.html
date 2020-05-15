@@ -9,7 +9,7 @@
 </h3>
 {{if eq .Status -1}}
     {{include "partials/badge/deleted"}}
-{{if eq .Status -2}}
+{{else if eq .Status -2}}
     {{include "partials/badge/unknow"}}
 {{else if eq .Status 0}}
     {{include "partials/badge/stop"}}
@@ -19,5 +19,4 @@
     {{include "partials/badge/pause"}}
 {{else if eq .Status 3}}
     {{include "partials/badge/finished"}}
-{{end}}
 {{end}}
