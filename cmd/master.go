@@ -115,6 +115,8 @@ func checkAgent(agent models.Agent) {
 		//更新实例应用运行状态
 		apps, err := client.GetAgentAppList(&agent)
 		if err != nil {
+			logger.Error("checkOnlineAgent GetAgentAppList Error:", err)
+		} else {
 			runningApps := map[int64]string{}
 			for _, app := range apps {
 				runningApps[app.GetId()] = app.GetName()
@@ -128,12 +130,12 @@ func checkAgent(agent models.Agent) {
 				}
 				providers.AppService.UpdateApp(&app)
 			}
-		} else {
-			logger.Error("checkOnlineAgent GetAgentAppList Error:", err)
 		}
 		//更新实例计划任务运行状态
 		jobs, err := client.GetAgentJobList(&agent)
 		if err != nil {
+			logger.Error("checkOnlineAgent GetAgentJobList Error:", err)
+		} else {
 			runningJobs := map[int64]string{}
 			for _, job := range jobs {
 				runningJobs[job.GetId()] = job.GetName()
@@ -147,12 +149,12 @@ func checkAgent(agent models.Agent) {
 				}
 				providers.JobService.UpdateJob(&job)
 			}
-		} else {
-			logger.Error("checkOnlineAgent GetAgentJobList Error:", err)
 		}
 		//更新实例计划任务运行状态
 		timings, err := client.GetAgentTimingList(&agent)
 		if err != nil {
+			logger.Error("checkOnlineAgent GetAgentTimingList Error:", err)
+		} else {
 			runningTimings := map[int64]string{}
 			for _, timing := range timings {
 				runningTimings[timing.GetId()] = timing.GetName()
@@ -166,8 +168,6 @@ func checkAgent(agent models.Agent) {
 				}
 				providers.TimingService.UpdateTiming(&timing)
 			}
-		} else {
-			logger.Error("checkOnlineAgent GetAgentTimingList Error:", err)
 		}
 	}
 }
