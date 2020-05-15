@@ -84,8 +84,8 @@ func MoniterMaster() {
 }
 
 func checkAgent(agent models.Agent) {
-	usageApps := providers.AppService.GetAppByAgentID(agent.ID)
-	usageJobs := providers.JobService.GetJobByAgentID(agent.ID)
+	usageApps := providers.AppService.GetUsageAppByAgentID(agent.ID)
+	usageJobs := providers.JobService.GetUsageJobByAgentID(agent.ID)
 	usageTimings := providers.TimingService.GetUsageTimingByAgentID(agent.ID)
 	_, err := client.GetAgentStat(&agent)
 	if err != nil {
