@@ -185,7 +185,7 @@ func (c *JobController) Create(ctx *gin.Context) {
 	job.StdErr = ctx.PostForm("std_err")
 	job.Spec = ctx.PostForm("spec")
 	job.Timeout = utils.FormDefaultInt64(ctx, "timeout", -1)
-	job.Status = constants.JOB_STATUS_STOP
+	job.Status = constants.JOB_STATUS_PAUSE
 	job.Creator = GetUserID(ctx)
 	if ctx.PostForm("is_monitor") != "" {
 		job.IsMonitor = 1
@@ -250,7 +250,7 @@ func (c *JobController) Copy(ctx *gin.Context) {
 	_job.Spec = job.Spec
 	_job.Timeout = job.Timeout
 	_job.IsMonitor = job.IsMonitor
-	_job.Status = constants.JOB_STATUS_STOP
+	_job.Status = constants.JOB_STATUS_PAUSE
 	_job.Creator = GetUserID(ctx)
 	ok := providers.JobService.CreateJob(_job)
 	if !ok {
@@ -262,13 +262,11 @@ func (c *JobController) Copy(ctx *gin.Context) {
 
 func (c *JobController) Delete(ctx *gin.Context) {
 	job := utils.GetJob(ctx)
-	if job.Status == 1 {
-		utils.APIError(ctx, "计划任务正在运行不能删除")
+	if job.Status != constants.JOB_STATUS_PAUSE {
+		utils.APIError(ctx, "计划任不能删除")
 		return
 	}
-	job.Status = constants.JOB_STATUS_DELETED
-	job.Updator = GetUserID(ctx)
-	ok := providers.JobService.UpdateJob(job)
+	ok := providers.JobService.ChangeJobStatus(job, constants.JOB_STATUS_DELETED, GetUserID(ctx))
 	if !ok {
 		utils.APIError(ctx, "删除计划任务失败")
 		return
@@ -294,15 +292,11 @@ func (c *JobController) Start(ctx *gin.Context) {
 			utils.APIError(ctx, fmt.Sprintf("添加计划任务异常:%s", err.Error()))
 			return
 		}
-		job.Status = constants.JOB_STATUS_RUNNING
-		job.Updator = GetUserID(ctx)
-		providers.JobService.UpdateJob(job)
+		providers.JobService.ChangeJobStatus(job, constants.JOB_STATUS_RUNNING, GetUserID(ctx))
 		utils.APIOK(ctx)
 		return
 	}
-	job.Status = constants.JOB_STATUS_RUNNING
-	job.Updator = GetUserID(ctx)
-	providers.JobService.UpdateJob(job)
+	providers.JobService.ChangeJobStatus(job, constants.JOB_STATUS_RUNNING, GetUserID(ctx))
 	utils.APIOK(ctx)
 }
 
@@ -347,8 +341,6 @@ func (c *JobController) Pause(ctx *gin.Context) {
 		utils.APIError(ctx, fmt.Sprintf("停止计划任务异常:%s", err.Error()))
 		return
 	}
-	job.Status = constants.JOB_STATUS_PAUSE
-	job.Updator = GetUserID(ctx)
-	providers.JobService.UpdateJob(job)
+	providers.JobService.ChangeJobStatus(job, constants.JOB_STATUS_PAUSE, GetUserID(ctx))
 	utils.APIOK(ctx)
 }

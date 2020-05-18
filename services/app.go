@@ -112,3 +112,16 @@ func (s *AppService) DeleteAppByID(id int64) bool {
 	}
 	return true
 }
+
+func (s *AppService) ChangeAPPStatus(app *models.App, status int64, updator int64) bool {
+	values := map[string]interface{}{
+		"status":  status,
+		"updator": updator,
+	}
+	err := models.UpdateColumns(app, values)
+	if err != nil {
+		logger.Error("ChangeAPPStatus Error:", err)
+		return false
+	}
+	return true
+}

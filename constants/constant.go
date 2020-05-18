@@ -56,6 +56,10 @@ var APP_STATUS = []structs.M{
 		"Name": "暂停",
 	},
 	{
+		"ID":   APP_STATUS_UNKNOWN,
+		"Name": "未知",
+	},
+	{
 		"ID":   APP_STATUS_DELETED,
 		"Name": "已删除",
 	},
@@ -70,9 +74,14 @@ var JOB_STATUS = []structs.M{
 		"ID":   JOB_STATUS_RUNNING,
 		"Name": "运行中",
 	},
+
 	{
 		"ID":   JOB_STATUS_PAUSE,
 		"Name": "暂停",
+	},
+	{
+		"ID":   JOB_STATUS_UNKNOWN,
+		"Name": "未知",
 	},
 	{
 		"ID":   JOB_STATUS_DELETED,
@@ -92,6 +101,10 @@ var TIMING_STATUS = []structs.M{
 	{
 		"ID":   TIMING_STATUS_PAUSE,
 		"Name": "暂停",
+	},
+	{
+		"ID":   TIMING_STATUS_UNKNOWN,
+		"Name": "未知",
 	},
 	{
 		"ID":   TIMING_STATUS_FINISHED,

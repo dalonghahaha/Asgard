@@ -23,7 +23,7 @@
         {{include "partials/svg/pause"}}
     </button>
     {{end}}
-    {{if or (eq .Status 0) (eq .Status 2)}}
+    {{if eq .Status 2}}
     <button action="start" class="btn btn-success btn-icon" title="启动">
         {{include "partials/svg/start"}}
     </button>

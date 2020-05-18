@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"net"
 	"os"
 	"time"
@@ -25,30 +26,39 @@ func init() {
 	rootCmd.AddCommand(masterCmd)
 }
 
-var masterMoniterTicker *time.Ticker
-
 var masterCmd = &cobra.Command{
 	Use:    "master",
 	Short:  "run as master",
 	PreRun: PreRun,
 	Run: func(cmd *cobra.Command, args []string) {
-		err := db.Register()
-		if err != nil {
-			panic(err)
-		}
-		err = cache.Register()
-		if err != nil {
-			panic(err)
-		}
+		InitMaster()
 		go StartMasterRpcServer()
 		go MoniterMaster()
 		NotityKill(StopMaster)
 	},
 }
 
+func InitMaster() {
+	err := db.Register()
+	if err != nil {
+		panic(err)
+	}
+	err = cache.Register()
+	if err != nil {
+		panic(err)
+	}
+	port := viper.GetInt("master.port")
+	if port != 0 {
+		constants.MASTER_PORT = port
+	}
+	moniter := viper.GetInt("master.moniter")
+	if moniter != 0 {
+		constants.MASTER_MONITER = moniter
+	}
+}
+
 func StartMasterRpcServer() {
-	port := viper.GetString("master.rpc.port")
-	listen, err := net.Listen("tcp", ":"+port)
+	listen, err := net.Listen("tcp", fmt.Sprintf(":%d", constants.MASTER_PORT))
 	if err != nil {
 		logger.Error("failed to listen:", err)
 		panic(err)
@@ -56,7 +66,10 @@ func StartMasterRpcServer() {
 	s := server.NewRPCServer()
 	rpc.RegisterMasterServer(s, &server.MasterServer{})
 	reflection.Register(s)
-	logger.Info("Master Rpc Server Started! Pid:", os.Getpid())
+	logger.Info("Master Rpc Server Started!")
+	logger.Debug(fmt.Sprintf("Server Port:%d", constants.MASTER_PORT))
+	logger.Debug(fmt.Sprintf("Server Pid:%d", os.Getpid()))
+	logger.Debug(fmt.Sprintf("Moniter Loop:%d", constants.MASTER_MONITER))
 	err = s.Serve(listen)
 	if err != nil {
 		logger.Error("failed to serve:", err)
@@ -66,16 +79,12 @@ func StartMasterRpcServer() {
 
 func StopMaster() {
 	logger.Info("Master Rpc Server Stop!")
-	masterMoniterTicker.Stop()
+	constants.MASTER_TICKER.Stop()
 }
 
 func MoniterMaster() {
-	duration := viper.GetInt("system.moniter")
-	if duration == 0 {
-		duration = 10
-	}
-	masterMoniterTicker = time.NewTicker(time.Second * time.Duration(duration))
-	for range masterMoniterTicker.C {
+	constants.MASTER_TICKER = time.NewTicker(time.Second * time.Duration(constants.MASTER_MONITER))
+	for range constants.MASTER_TICKER.C {
 		agentList := providers.AgentService.GetUsageAgent()
 		for _, agent := range agentList {
 			go checkAgent(agent)
@@ -94,18 +103,15 @@ func checkAgent(agent models.Agent) {
 		providers.AgentService.UpdateAgent(&agent)
 		//标记应用状态为未知
 		for _, app := range usageApps {
-			app.Status = constants.APP_STATUS_UNKNOWN
-			providers.AppService.UpdateApp(&app)
+			providers.AppService.ChangeAPPStatus(&app, constants.APP_STATUS_UNKNOWN, 0)
 		}
 		//标记计划任务状态为未知
 		for _, job := range usageJobs {
-			job.Status = constants.APP_STATUS_UNKNOWN
-			providers.JobService.UpdateJob(&job)
+			providers.JobService.ChangeJobStatus(&job, constants.JOB_STATUS_UNKNOWN, 0)
 		}
 		//标记定时任务状态为未知
 		for _, timing := range usageTimings {
-			timing.Status = constants.APP_STATUS_UNKNOWN
-			providers.TimingService.UpdateTiming(&timing)
+			providers.TimingService.ChangeTimingStatus(&timing, constants.TIMING_STATUS_UNKNOWN, 0)
 		}
 		return
 	} else {
@@ -124,11 +130,10 @@ func checkAgent(agent models.Agent) {
 			for _, app := range usageApps {
 				_, ok := runningApps[app.ID]
 				if ok {
-					app.Status = constants.APP_STATUS_RUNNING
+					providers.AppService.ChangeAPPStatus(&app, constants.APP_STATUS_RUNNING, 0)
 				} else {
-					app.Status = constants.APP_STATUS_STOP
+					providers.AppService.ChangeAPPStatus(&app, constants.APP_STATUS_STOP, 0)
 				}
-				providers.AppService.UpdateApp(&app)
 			}
 		}
 		//更新实例计划任务运行状态
@@ -143,11 +148,10 @@ func checkAgent(agent models.Agent) {
 			for _, job := range usageJobs {
 				_, ok := runningJobs[job.ID]
 				if ok {
-					job.Status = constants.JOB_STATUS_RUNNING
+					providers.JobService.ChangeJobStatus(&job, constants.JOB_STATUS_RUNNING, 0)
 				} else {
-					job.Status = constants.JOB_STATUS_STOP
+					providers.JobService.ChangeJobStatus(&job, constants.JOB_STATUS_STOP, 0)
 				}
-				providers.JobService.UpdateJob(&job)
 			}
 		}
 		//更新实例计划任务运行状态
@@ -162,11 +166,10 @@ func checkAgent(agent models.Agent) {
 			for _, timing := range usageTimings {
 				_, ok := runningTimings[timing.ID]
 				if ok {
-					timing.Status = constants.JOB_STATUS_RUNNING
+					providers.TimingService.ChangeTimingStatus(&timing, constants.TIMING_STATUS_RUNNING, 0)
 				} else {
-					timing.Status = constants.JOB_STATUS_STOP
+					providers.TimingService.ChangeTimingStatus(&timing, constants.TIMING_STATUS_STOP, 0)
 				}
-				providers.TimingService.UpdateTiming(&timing)
 			}
 		}
 	}

@@ -113,3 +113,16 @@ func (s *TimingService) DeleteJobByID(id int64) bool {
 	}
 	return true
 }
+
+func (s *TimingService) ChangeTimingStatus(timing *models.Timing, status int64, updator int64) bool {
+	values := map[string]interface{}{
+		"status":  status,
+		"updator": updator,
+	}
+	err := models.UpdateColumns(timing, values)
+	if err != nil {
+		logger.Error("ChangeTimingStatus Error:", err)
+		return false
+	}
+	return true
+}

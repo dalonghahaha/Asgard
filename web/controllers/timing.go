@@ -183,7 +183,7 @@ func (c *TimingController) Create(ctx *gin.Context) {
 	timing.StdErr = ctx.PostForm("std_err")
 	timing.Time, _ = utils.ParseTime(ctx.PostForm("time"))
 	timing.Timeout = utils.FormDefaultInt64(ctx, "timeout", -1)
-	timing.Status = constants.TIMING_STATUS_STOP
+	timing.Status = constants.TIMING_STATUS_PAUSE
 	timing.Creator = GetUserID(ctx)
 	if ctx.PostForm("is_monitor") != "" {
 		timing.IsMonitor = 1
@@ -219,7 +219,6 @@ func (c *TimingController) Update(ctx *gin.Context) {
 	timing.StdErr = ctx.PostForm("std_err")
 	timing.Time, _ = utils.ParseTime(ctx.PostForm("time"))
 	timing.Timeout = utils.FormDefaultInt64(ctx, "timeout", -1)
-	timing.Status = constants.TIMING_STATUS_STOP
 	timing.Creator = GetUserID(ctx)
 	if ctx.PostForm("is_monitor") != "" {
 		timing.IsMonitor = 1
@@ -246,7 +245,7 @@ func (c *TimingController) Copy(ctx *gin.Context) {
 	_timing.Time = timing.Time
 	_timing.Timeout = timing.Timeout
 	_timing.IsMonitor = timing.IsMonitor
-	_timing.Status = constants.TIMING_STATUS_STOP
+	_timing.Status = constants.TIMING_STATUS_PAUSE
 	_timing.Creator = GetUserID(ctx)
 	ok := providers.TimingService.CreateTiming(_timing)
 	if !ok {
@@ -258,13 +257,11 @@ func (c *TimingController) Copy(ctx *gin.Context) {
 
 func (c *TimingController) Delete(ctx *gin.Context) {
 	timing := utils.GetTiming(ctx)
-	if timing.Status == 1 {
+	if timing.Status != constants.TIMING_STATUS_PAUSE {
 		utils.APIError(ctx, "定时任务正在运行不能删除")
 		return
 	}
-	timing.Status = -1
-	timing.Updator = GetUserID(ctx)
-	ok := providers.TimingService.UpdateTiming(timing)
+	ok := providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_DELETED, GetUserID(ctx))
 	if !ok {
 		utils.APIError(ctx, "删除定时任务失败")
 		return
@@ -290,15 +287,11 @@ func (c *TimingController) Start(ctx *gin.Context) {
 			utils.APIError(ctx, fmt.Sprintf("添加计划任务异常:%s", err.Error()))
 			return
 		}
-		timing.Status = constants.TIMING_STATUS_RUNNING
-		timing.Updator = GetUserID(ctx)
-		providers.TimingService.UpdateTiming(timing)
+		providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_RUNNING, GetUserID(ctx))
 		utils.APIOK(ctx)
 		return
 	}
-	timing.Status = constants.TIMING_STATUS_RUNNING
-	timing.Updator = GetUserID(ctx)
-	providers.TimingService.UpdateTiming(timing)
+	providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_RUNNING, GetUserID(ctx))
 	utils.APIOK(ctx)
 }
 
@@ -343,8 +336,6 @@ func (c *TimingController) Pause(ctx *gin.Context) {
 		utils.APIError(ctx, fmt.Sprintf("停止定时任务异常:%s", err.Error()))
 		return
 	}
-	timing.Status = constants.TIMING_STATUS_PAUSE
-	timing.Updator = GetUserID(ctx)
-	providers.TimingService.UpdateTiming(timing)
+	providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_PAUSE, GetUserID(ctx))
 	utils.APIOK(ctx)
 }

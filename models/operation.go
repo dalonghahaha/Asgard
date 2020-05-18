@@ -62,6 +62,14 @@ func Update(object interface{}) (err error) {
 	return db.Get(DB_NAME).Save(object).Error
 }
 
+func UpdateColumn(object interface{}, column string, value interface{}) (err error) {
+	return db.Get(DB_NAME).Model(object).UpdateColumn(column, value).Error
+}
+
+func UpdateColumns(object interface{}, values map[string]interface{}) (err error) {
+	return db.Get(DB_NAME).Model(object).UpdateColumns(values).Error
+}
+
 func Delete(object interface{}) (err error) {
 	return db.Get(DB_NAME).Delete(object).Error
 }

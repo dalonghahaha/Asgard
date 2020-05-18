@@ -180,7 +180,7 @@ func (c *AppController) Create(ctx *gin.Context) {
 	app.Args = ctx.PostForm("args")
 	app.StdOut = ctx.PostForm("std_out")
 	app.StdErr = ctx.PostForm("std_err")
-	app.Status = constants.APP_STATUS_STOP
+	app.Status = constants.APP_STATUS_PAUSE
 	app.Creator = GetUserID(ctx)
 	if ctx.PostForm("auto_restart") != "" {
 		app.AutoRestart = 1
@@ -245,7 +245,7 @@ func (c *AppController) Copy(ctx *gin.Context) {
 	_app.StdErr = app.StdErr
 	_app.AutoRestart = app.AutoRestart
 	_app.IsMonitor = app.IsMonitor
-	_app.Status = constants.APP_STATUS_STOP
+	_app.Status = constants.APP_STATUS_PAUSE
 	_app.Creator = GetUserID(ctx)
 	ok := providers.AppService.CreateApp(_app)
 	if !ok {
@@ -257,12 +257,11 @@ func (c *AppController) Copy(ctx *gin.Context) {
 
 func (c *AppController) Delete(ctx *gin.Context) {
 	app := utils.GetApp(ctx)
-	if app.Status == constants.APP_STATUS_RUNNING {
-		utils.APIError(ctx, "应用正在运行不能删除")
+	if app.Status == constants.APP_STATUS_PAUSE {
+		utils.APIError(ctx, "该应用不能删除")
 		return
 	}
-	app.Status = constants.APP_STATUS_DELETED
-	app.Updator = GetUserID(ctx)
+	providers.AppService.ChangeAPPStatus(app, constants.APP_STATUS_DELETED, GetUserID(ctx))
 	ok := providers.AppService.UpdateApp(app)
 	if !ok {
 		utils.APIError(ctx, "删除应用失败")
@@ -289,15 +288,11 @@ func (c *AppController) Start(ctx *gin.Context) {
 			utils.APIError(ctx, fmt.Sprintf("添加应用异常:%s", err.Error()))
 			return
 		}
-		app.Status = constants.APP_STATUS_RUNNING
-		app.Updator = GetUserID(ctx)
-		providers.AppService.UpdateApp(app)
+		providers.AppService.ChangeAPPStatus(app, constants.APP_STATUS_RUNNING, GetUserID(ctx))
 		utils.APIOK(ctx)
 		return
 	}
-	app.Status = constants.APP_STATUS_RUNNING
-	app.Updator = GetUserID(ctx)
-	providers.AppService.UpdateApp(app)
+	providers.AppService.ChangeAPPStatus(app, constants.APP_STATUS_RUNNING, GetUserID(ctx))
 	utils.APIOK(ctx)
 }
 
@@ -343,8 +338,6 @@ func (c *AppController) Pause(ctx *gin.Context) {
 		utils.APIError(ctx, fmt.Sprintf("停止应用异常:%s", err.Error()))
 		return
 	}
-	app.Status = constants.APP_STATUS_PAUSE
-	app.Updator = GetUserID(ctx)
-	providers.AppService.UpdateApp(app)
+	providers.AppService.ChangeAPPStatus(app, constants.APP_STATUS_PAUSE, GetUserID(ctx))
 	utils.APIOK(ctx)
 }

@@ -6,6 +6,8 @@ import (
 
 	"github.com/dalonghahaha/avenger/tools/coding"
 	"github.com/gin-gonic/gin"
+
+	"Asgard/constants"
 )
 
 var (
@@ -14,8 +16,6 @@ var (
 	StatusFound  = http.StatusFound
 	PageSize     = 10
 	LogSize      = int64(20)
-	CookieSalt   = "sdswqeqx"
-	Domain       = "localhost"
 	TimeLocation = "Asia/Shanghai"
 	TimeLayout   = "2006-01-02 15:04"
 )
@@ -29,7 +29,7 @@ func GetUserID(ctx *gin.Context) int64 {
 	if err != nil {
 		return 0
 	}
-	_token, err := coding.DesDecrypt(token, CookieSalt)
+	_token, err := coding.DesDecrypt(token, constants.WEB_COOKIE_SALT)
 	if err != nil {
 		return 0
 	}

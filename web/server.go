@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 
+	"Asgard/constants"
 	"Asgard/web/controllers"
 	"Asgard/web/utils"
 )
@@ -32,7 +33,7 @@ func Server() *gin.Engine {
 }
 
 func Init() error {
-	if viper.GetString("system.mode") == "release" {
+	if constants.WEB_MODE == "release" {
 		gin.SetMode(gin.ReleaseMode)
 	}
 	server = gin.New()
@@ -62,14 +63,6 @@ func Init() error {
 }
 
 func setupController() {
-	cookieSalt := viper.GetString("server.cookie_salt")
-	if cookieSalt != "" {
-		controllers.CookieSalt = cookieSalt
-	}
-	domain := viper.GetString("server.domain")
-	if cookieSalt != "" {
-		controllers.Domain = domain
-	}
 	outDir := viper.GetString("log.dir")
 	if outDir != "" {
 		controllers.OutDir = outDir
@@ -86,7 +79,7 @@ func setupController() {
 func Run() {
 	setupController()
 	setupRouter()
-	addr := fmt.Sprintf(":%s", viper.GetString("master.web.port"))
+	addr := fmt.Sprintf(":%d", constants.WEB_PORT)
 	err := server.Run(addr)
 	if err != nil {
 		panic("web服务启动失败!")

@@ -113,3 +113,16 @@ func (s *JobService) DeleteJobByID(id int64) bool {
 	}
 	return true
 }
+
+func (s *JobService) ChangeJobStatus(job *models.Job, status int64, updator int64) bool {
+	values := map[string]interface{}{
+		"status":  status,
+		"updator": updator,
+	}
+	err := models.UpdateColumns(job, values)
+	if err != nil {
+		logger.Error("ChangeJobStatus Error:", err)
+		return false
+	}
+	return true
+}

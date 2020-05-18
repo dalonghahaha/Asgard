@@ -15,7 +15,7 @@ func GetUserID(ctx *gin.Context) int64 {
 	if err != nil {
 		return 0
 	}
-	id, err := coding.DesDecrypt(token, constants.CookieSalt)
+	id, err := coding.DesDecrypt(token, constants.WEB_COOKIE_SALT)
 	if err != nil {
 		return 0
 	}

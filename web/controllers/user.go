@@ -364,7 +364,7 @@ func (c *UserController) DoChangePassword(ctx *gin.Context) {
 		utils.APIError(ctx, "修改密码失败")
 		return
 	}
-	ctx.SetCookie("token", "", 0, "/", Domain, false, true)
+	utils.CleanTokenCookie(ctx)
 	utils.APIOK(ctx)
 }
 
@@ -480,17 +480,16 @@ func (c *UserController) DoLogin(ctx *gin.Context) {
 		utils.APIError(ctx, "密码不正确")
 		return
 	}
-	cookie, err := coding.DesEncrypt(strconv.Itoa(int(user.ID)), CookieSalt)
+	cookie, err := coding.DesEncrypt(strconv.Itoa(int(user.ID)), constants.WEB_COOKIE_SALT)
 	if err != nil {
 		utils.APIError(ctx, "登录失败")
 	}
 	//add cookie
-	ctx.SetCookie("token", cookie, 3600, "/", Domain, false, true)
+	utils.SetTokenCookie(ctx, cookie)
 	utils.APIOK(ctx)
 }
 
 func (c *UserController) Logout(ctx *gin.Context) {
-	//remove cookie
-	ctx.SetCookie("token", "", 0, "/", Domain, false, true)
+	utils.CleanTokenCookie(ctx)
 	ctx.Redirect(StatusFound, "/login")
 }
