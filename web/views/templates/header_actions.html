@@ -23,10 +23,12 @@
         {{include "partials/svg/pause"}}
     </button>
     {{end}}
-    {{if eq .Status 2}}
+    {{if or (eq .Status 0) (eq .Status 2)}}
     <button action="start" class="btn btn-success btn-icon" title="启动">
         {{include "partials/svg/start"}}
     </button>
+    {{end}}
+    {{if eq .Status 2}}
     <button action="delete" class="btn btn-danger btn-icon" title="删除">
         {{include "partials/svg/delete"}}
     </button>
