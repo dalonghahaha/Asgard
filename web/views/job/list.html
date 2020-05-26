@@ -1,16 +1,15 @@
 {{define "content"}}
 {{template "page_title" .}}
-<div id="main" class="row">
+<div id="main" class="row" data-mod="job">
     <div class="col-12">
         {{template "search_bar" .}}
         {{- range .List}}
-        <div class="cmd-info card mb-2" data-mod="job" data-bind= {{.ID}}>
+        <div class="cmd-info card mb-2" data-bind= {{.ID}}>
             <div class="ribbon ribbon-left ribbon-bookmark bg-orange">
                 <b>{{.ID}}</b>
             </div>
             <div class="card-header">
                 {{template "header_status" .}}
-                {{template "header_actions" .}}
             </div>
             <div class="card-body" style="display:none;">
                 <dl class="row">
@@ -34,6 +33,9 @@
                         </span>
                     </dd>
                 </dl>
+            </div>
+            <div class="card-header">
+                {{template "header_actions" .}}
             </div>
         </div>
         {{end}}

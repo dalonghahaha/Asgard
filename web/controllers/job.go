@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/dalonghahaha/avenger/components/logger"
 	"github.com/gin-gonic/gin"
 
 	"Asgard/client"
@@ -78,86 +79,6 @@ func (c *JobController) Show(ctx *gin.Context) {
 	ctx.HTML(StatusOK, "job/show", gin.H{
 		"Subtitle": "查看计划任务",
 		"Job":      utils.JobFormat(job),
-	})
-}
-
-func (c *JobController) Monitor(ctx *gin.Context) {
-	job := utils.GetJob(ctx)
-	moniters := providers.MoniterService.GetJobMonitor(job.ID, 100)
-	cpus, memorys, times := utils.MonitorFormat(moniters)
-	ctx.HTML(StatusOK, "monitor/list", gin.H{
-		"Subtitle": "计划任务监控信息——" + job.Name,
-		"BackUrl":  GetReferer(ctx),
-		"CPU":      cpus,
-		"Memory":   memorys,
-		"Time":     times,
-	})
-}
-
-func (c *JobController) Archive(ctx *gin.Context) {
-	page := utils.DefaultInt(ctx, "page", 1)
-	job := utils.GetJob(ctx)
-	where := map[string]interface{}{
-		"type":       constants.TYPE_JOB,
-		"related_id": job.ID,
-	}
-	archiveList, total := providers.ArchiveService.GetArchivePageList(where, page, PageSize)
-	if archiveList == nil {
-		utils.APIError(ctx, "获取归档列表失败")
-	}
-	list := []map[string]interface{}{}
-	for _, archive := range archiveList {
-		list = append(list, formatArchive(&archive))
-	}
-	mpurl := fmt.Sprintf("/job/archive?id=%d", job.ID)
-	ctx.HTML(StatusOK, "archive/list", gin.H{
-		"Subtitle":   "计划任务归档列表——" + job.Name,
-		"BackUrl":    GetReferer(ctx),
-		"List":       list,
-		"Total":      total,
-		"Pagination": utils.PagerHtml(total, page, mpurl),
-	})
-}
-
-func (c *JobController) OutLog(ctx *gin.Context) {
-	lines := utils.DefaultInt64(ctx, "lines", LogSize)
-	job := utils.GetJob(ctx)
-	agent := utils.GetAgent(ctx)
-	content, err := client.GetAgentLog(agent, job.StdOut, lines)
-	if err != nil {
-		utils.JumpWarning(ctx, "获取失败:"+err.Error())
-		return
-	}
-	ctx.HTML(StatusOK, "log/list", gin.H{
-		"Subtitle": "计划任务日志查看",
-		"Path":     "/job/out_log",
-		"BackUrl":  GetReferer(ctx),
-		"ID":       job.ID,
-		"Name":     job.Name,
-		"Agent":    agent,
-		"Lines":    lines,
-		"Content":  content,
-	})
-}
-
-func (c *JobController) ErrLog(ctx *gin.Context) {
-	lines := utils.DefaultInt64(ctx, "lines", LogSize)
-	job := utils.GetJob(ctx)
-	agent := utils.GetAgent(ctx)
-	content, err := client.GetAgentLog(agent, job.StdErr, lines)
-	if err != nil {
-		utils.JumpWarning(ctx, "获取失败:"+err.Error())
-		return
-	}
-	ctx.HTML(StatusOK, "log/list", gin.H{
-		"Subtitle": "计划任务错误日志查看",
-		"Path":     "/job/err_log",
-		"BackUrl":  GetReferer(ctx),
-		"ID":       job.ID,
-		"Name":     job.Name,
-		"Agent":    agent,
-		"Lines":    lines,
-		"Content":  content,
 	})
 }
 
@@ -260,20 +181,6 @@ func (c *JobController) Copy(ctx *gin.Context) {
 	utils.APIOK(ctx)
 }
 
-func (c *JobController) Delete(ctx *gin.Context) {
-	job := utils.GetJob(ctx)
-	if job.Status != constants.JOB_STATUS_PAUSE {
-		utils.APIError(ctx, "计划任不能删除")
-		return
-	}
-	ok := providers.JobService.ChangeJobStatus(job, constants.JOB_STATUS_DELETED, GetUserID(ctx))
-	if !ok {
-		utils.APIError(ctx, "删除计划任务失败")
-		return
-	}
-	utils.APIOK(ctx)
-}
-
 func (c *JobController) Start(ctx *gin.Context) {
 	job := utils.GetJob(ctx)
 	agent := utils.GetAgent(ctx)
@@ -292,11 +199,12 @@ func (c *JobController) Start(ctx *gin.Context) {
 			utils.APIError(ctx, fmt.Sprintf("添加计划任务异常:%s", err.Error()))
 			return
 		}
-		providers.JobService.ChangeJobStatus(job, constants.JOB_STATUS_RUNNING, GetUserID(ctx))
-		utils.APIOK(ctx)
+	}
+	ok := providers.JobService.ChangeJobStatus(job, constants.JOB_STATUS_RUNNING, GetUserID(ctx))
+	if !ok {
+		utils.APIError(ctx, "更新计划任务状态失败")
 		return
 	}
-	providers.JobService.ChangeJobStatus(job, constants.JOB_STATUS_RUNNING, GetUserID(ctx))
 	utils.APIOK(ctx)
 }
 
@@ -311,15 +219,15 @@ func (c *JobController) ReStart(ctx *gin.Context) {
 	if _job == nil {
 		err = client.AddAgentJob(agent, job)
 		if err != nil {
-			utils.APIError(ctx, fmt.Sprintf("重启异常:%s", err.Error()))
+			utils.APIError(ctx, fmt.Sprintf("重启计划任务异常:%s", err.Error()))
 			return
 		}
-		utils.APIOK(ctx)
-	}
-	err = client.UpdateAgentJob(agent, job)
-	if err != nil {
-		utils.APIError(ctx, fmt.Sprintf("重启异常:%s", err.Error()))
-		return
+	} else {
+		err = client.UpdateAgentJob(agent, job)
+		if err != nil {
+			utils.APIError(ctx, fmt.Sprintf("重启计划任务异常:%s", err.Error()))
+			return
+		}
 	}
 	utils.APIOK(ctx)
 }
@@ -332,15 +240,132 @@ func (c *JobController) Pause(ctx *gin.Context) {
 		utils.APIError(ctx, fmt.Sprintf("获取计划任务情况异常:%s", err.Error()))
 		return
 	}
-	if _job == nil {
-		utils.APIOK(ctx)
+	if _job != nil {
+		err = client.RemoveAgentJob(agent, job.ID)
+		if err != nil {
+			utils.APIError(ctx, fmt.Sprintf("停止计划任务异常:%s", err.Error()))
+			return
+		}
+	}
+	ok := providers.JobService.ChangeJobStatus(job, constants.JOB_STATUS_PAUSE, GetUserID(ctx))
+	if !ok {
+		utils.APIError(ctx, "更新计划任务状态失败")
 		return
 	}
-	err = client.RemoveAgentJob(agent, job.ID)
+	utils.APIOK(ctx)
+}
+
+func (c *JobController) Delete(ctx *gin.Context) {
+	job := utils.GetJob(ctx)
+	agent := utils.GetAgent(ctx)
+	if job.Status != constants.JOB_STATUS_PAUSE {
+		utils.APIError(ctx, "计划任务启动状态不能删除")
+		return
+	}
+	_job, err := client.GetAgentJob(agent, job.ID)
 	if err != nil {
-		utils.APIError(ctx, fmt.Sprintf("停止计划任务异常:%s", err.Error()))
+		utils.APIError(ctx, fmt.Sprintf("获取计划任务情况异常:%s", err.Error()))
 		return
 	}
-	providers.JobService.ChangeJobStatus(job, constants.JOB_STATUS_PAUSE, GetUserID(ctx))
+	if _job != nil {
+		err = client.RemoveAgentJob(agent, job.ID)
+		if err != nil {
+			utils.APIError(ctx, fmt.Sprintf("停止计划任务异常:%s", err.Error()))
+			return
+		}
+	}
+	ok := providers.JobService.ChangeJobStatus(job, constants.JOB_STATUS_DELETED, GetUserID(ctx))
+	if !ok {
+		utils.APIError(ctx, "更新计划任务状态失败")
+		return
+	}
+	utils.APIOK(ctx)
+}
+
+func (c *JobController) BatchStart(ctx *gin.Context) {
+	jobAgent := utils.GetJobAgent(ctx)
+	for job, agent := range jobAgent {
+		if job.Status == constants.JOB_STATUS_RUNNING {
+			continue
+		}
+		_job, err := client.GetAgentJob(agent, job.ID)
+		if err != nil {
+			logger.Error(fmt.Sprintf("Job BatchStart GetAgentJob Error:[%d][%s]", job.ID, err.Error()))
+			continue
+		}
+		if _job == nil {
+			err = client.AddAgentJob(agent, job)
+			if err != nil {
+				logger.Error(fmt.Sprintf("App BatchStart AddAgentJob Error:%s", err.Error()))
+			}
+		}
+		providers.JobService.ChangeJobStatus(job, constants.JOB_STATUS_RUNNING, GetUserID(ctx))
+	}
+	utils.APIOK(ctx)
+}
+
+func (c *JobController) BatchReStart(ctx *gin.Context) {
+	jobAgent := utils.GetJobAgent(ctx)
+	for job, agent := range jobAgent {
+		_job, err := client.GetAgentJob(agent, job.ID)
+		if err != nil {
+			logger.Error(fmt.Sprintf("Job BatchReStart GetAgentJob Error:[%d][%s]", job.ID, err.Error()))
+			continue
+		}
+		if _job == nil {
+			err = client.AddAgentJob(agent, job)
+			if err != nil {
+				logger.Error(fmt.Sprintf("Job BatchReStart AddAgentJob Error:[%d][%s]", job.ID, err.Error()))
+			}
+		} else {
+			err = client.UpdateAgentJob(agent, job)
+			if err != nil {
+				logger.Error(fmt.Sprintf("Job BatchReStart UpdateAgentJob Error:[%d][%s]", job.ID, err.Error()))
+			}
+		}
+	}
+	utils.APIOK(ctx)
+}
+
+func (c *JobController) BatchPause(ctx *gin.Context) {
+	jobAgent := utils.GetJobAgent(ctx)
+	for job, agent := range jobAgent {
+		_job, err := client.GetAgentJob(agent, job.ID)
+		if err != nil {
+			logger.Error(fmt.Sprintf("Job BatchPause GetAgentJob Error:[%d][%s]", job.ID, err.Error()))
+			continue
+		}
+		if _job != nil {
+			err = client.RemoveAgentJob(agent, job.ID)
+			if err != nil {
+				logger.Error(fmt.Sprintf("Job BatchPause RemoveAgentJob Error:[%d][%s]", job.ID, err.Error()))
+				return
+			}
+		}
+		providers.JobService.ChangeJobStatus(job, constants.JOB_STATUS_PAUSE, GetUserID(ctx))
+	}
+	utils.APIOK(ctx)
+}
+
+func (c *JobController) BatchDelete(ctx *gin.Context) {
+	jobAgent := utils.GetJobAgent(ctx)
+	for job, agent := range jobAgent {
+		if job.Status == constants.JOB_STATUS_RUNNING {
+			continue
+		}
+		_job, err := client.GetAgentJob(agent, job.ID)
+		if err != nil {
+			logger.Error(fmt.Sprintf("Job BatchDelete GetAgentApp Error:[%d][%s]", job.ID, err.Error()))
+			continue
+		}
+		if _job != nil {
+			err = client.RemoveAgentJob(agent, job.ID)
+			if err != nil {
+				logger.Error(fmt.Sprintf("Job BatchDelete RemoveAgentApp Error:[%d][%s]", job.ID, err.Error()))
+				return
+			}
+		}
+		providers.JobService.ChangeJobStatus(job, constants.JOB_STATUS_DELETED, GetUserID(ctx))
+	}
 	utils.APIOK(ctx)
 }

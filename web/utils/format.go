@@ -144,6 +144,19 @@ func MonitorFormat(moniters []models.Monitor) (cpus []string, memorys []string, 
 	return
 }
 
+func ArchiveFormat(info *models.Archive) gin.H {
+	data := gin.H{
+		"ID":        info.ID,
+		"UUID":      info.UUID,
+		"PID":       info.PID,
+		"BeginTime": FormatTime(info.BeginTime),
+		"EndTime":   FormatTime(info.EndTime),
+		"Status":    info.Status,
+		"Signal":    info.Signal,
+	}
+	return data
+}
+
 func GetErrorMessage(code int) (message string) {
 	var ok bool
 	if constants.Lang == "cn" {

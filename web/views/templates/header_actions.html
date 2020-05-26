@@ -1,36 +1,47 @@
 {{define "header_actions"}}
 <div class="card-actions btn-list">
-    <button action="show" class="btn btn-secondary btn-icon ml-auto" title="查看配置详情">
+    <button action="show" class="btn btn-secondary ml-auto" title="查看配置详情">
         {{include "partials/svg/show"}}
+        配置详情
     </button>
-    <button action="edit" class="btn btn-secondary btn-icon" title="编辑">
+    <button action="edit" class="btn btn-secondary " title="编辑">
         {{include "partials/svg/edit"}}
+        编辑
     </button>
-    <button action="copy" class="btn btn-secondary btn-icon" title="复制">
+    <button action="copy" class="btn btn-secondary" title="复制">
         {{include "partials/svg/copy"}}
+        复制
     </button>
-    <button action="monitor" class="btn btn-info btn-icon" title="查看监控信息">
+    <button action="monitor" class="btn btn-info" title="查看监控信息">
         {{include "partials/svg/monitor"}}
+        监控信息
     </button>
-    <button action="archive" class="btn btn-info btn-icon" title="查看归档信息">
+    <button action="archive" class="btn btn-info" title="查看归档信息">
         {{include "partials/svg/archive"}}
+        归档信息
     </button>
     {{if eq .Status 1}}
-    <button action="restart" class="btn btn-success btn-icon" title="重启">
+    <button action="restart" class="btn btn-success" title="重启">
         {{include "partials/svg/restart"}}
+        重启
     </button>
-    <button action="pause" class="btn btn-warning btn-icon" title="暂停">
+    {{end}}
+    {{if or (eq .Status 0) (eq .Status 1)}}
+    <button action="pause" class="btn btn-warning" title="暂停">
         {{include "partials/svg/pause"}}
+        暂停
     </button>
     {{end}}
     {{if or (eq .Status 0) (eq .Status 2)}}
-    <button action="start" class="btn btn-success btn-icon" title="启动">
+    <button action="start" class="btn btn-success" title="启动">
         {{include "partials/svg/start"}}
+        启动
     </button>
     {{end}}
     {{if eq .Status 2}}
-    <button action="delete" class="btn btn-danger btn-icon" title="删除">
+    <button action="delete" class="btn btn-danger" title="删除">
         {{include "partials/svg/delete"}}
+        删除
     </button>
     {{end}}
 </div>

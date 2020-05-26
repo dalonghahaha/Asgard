@@ -14,17 +14,36 @@
             {{include "partials/select/status"}}
         </div>
         <div class="col btn-list">
-            <button action="submit" type="button" class="btn btn-primary ml-auto">
+            <button action="submit" type="button" class="btn btn-primary">
                 {{include "partials/svg/search"}}
                 查询
             </button>
-            <button action="reset" type="button" class="btn btn-info">
+            <button action="list" type="button" class="btn btn-info">
                 {{include "partials/svg/reset"}}
                 重置
             </button>
             <button action="add" type="button" class="btn btn-success">
                 {{include "partials/svg/add"}}
                 新增
+            </button>
+            <button action="batch" type="button" class="btn btn-dark ml-auto">
+               批量操作
+            </button>
+            <button action="batch-start" type="button" class="btn btn-success" title="启动">
+                {{include "partials/svg/start"}}
+                启动
+            </button>
+            <button action="batch-restart" type="button" class="btn btn-success" title="重启">
+                {{include "partials/svg/restart"}}
+                重启
+            </button>
+            <button action="batch-pause" type="button" class="btn btn-warning" title="暂停">
+                {{include "partials/svg/pause"}}
+                暂停
+            </button>
+            <button action="batch-delete" type="button" class="btn btn-danger" title="删除">
+                {{include "partials/svg/delete"}}
+                删除
             </button>
         </div>
     </div>

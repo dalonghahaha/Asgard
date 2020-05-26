@@ -61,16 +61,17 @@ func setupRouter() {
 		app.POST("/create", middlewares.CmdConfigVerify, appController.Create)
 		app.GET("/edit", middlewares.AppInit, appController.Edit)
 		app.POST("/update", middlewares.AppInit, middlewares.CmdConfigVerify, appController.Update)
-		app.GET("/monitor", middlewares.AppInit, appController.Monitor)
-		app.GET("/archive", middlewares.AppInit, appController.Archive)
-		app.GET("/copy", middlewares.AppInit, appController.Copy)
-		app.GET("/delete", middlewares.AppInit, appController.Delete)
-
-		app.GET("/start", middlewares.AppAgentInit, appController.Start)
-		app.GET("/restart", middlewares.AppAgentInit, appController.ReStart)
-		app.GET("/pause", middlewares.AppAgentInit, appController.Pause)
-		app.GET("/out_log", middlewares.AppAgentInit, appController.OutLog)
-		app.GET("/err_log", middlewares.AppAgentInit, appController.ErrLog)
+		app.POST("/copy", middlewares.AppInit, appController.Copy)
+		//control
+		app.POST("/start", middlewares.AppAgentInit, appController.Start)
+		app.POST("/restart", middlewares.AppAgentInit, appController.ReStart)
+		app.POST("/pause", middlewares.AppAgentInit, appController.Pause)
+		app.POST("/delete", middlewares.AppInit, appController.Delete)
+		//batch-control
+		app.POST("/batch-start", middlewares.BatchAppAgentInit, appController.BatchStart)
+		app.POST("/batch-restart", middlewares.BatchAppAgentInit, appController.BatchReStart)
+		app.POST("/batch-pause", middlewares.BatchAppAgentInit, appController.BatchPause)
+		app.POST("/batch-delete", middlewares.BatchAppAgentInit, appController.BatchDelete)
 	}
 	job := server.Group("/job")
 	job.Use(middlewares.Login)
@@ -81,16 +82,17 @@ func setupRouter() {
 		job.POST("/create", middlewares.CmdConfigVerify, jobController.Create)
 		job.GET("/edit", middlewares.JobInit, jobController.Edit)
 		job.POST("/update", middlewares.JobInit, middlewares.CmdConfigVerify, jobController.Update)
-		job.GET("/monitor", middlewares.JobInit, jobController.Monitor)
-		job.GET("/archive", middlewares.JobInit, jobController.Archive)
-		job.GET("/copy", middlewares.JobInit, jobController.Copy)
-		job.GET("/delete", middlewares.JobInit, jobController.Delete)
-
-		job.GET("/start", middlewares.JobAgentInit, jobController.Start)
-		job.GET("/restart", middlewares.JobAgentInit, jobController.ReStart)
-		job.GET("/pause", middlewares.JobAgentInit, jobController.Pause)
-		job.GET("/out_log", middlewares.JobAgentInit, jobController.OutLog)
-		job.GET("/err_log", middlewares.JobAgentInit, jobController.ErrLog)
+		job.POST("/copy", middlewares.JobInit, jobController.Copy)
+		//control
+		job.POST("/start", middlewares.JobAgentInit, jobController.Start)
+		job.POST("/restart", middlewares.JobAgentInit, jobController.ReStart)
+		job.POST("/pause", middlewares.JobAgentInit, jobController.Pause)
+		job.POST("/delete", middlewares.JobInit, jobController.Delete)
+		//batch-control
+		job.POST("/batch-start", middlewares.BatchJobAgentInit, jobController.BatchStart)
+		job.POST("/batch-restart", middlewares.BatchJobAgentInit, jobController.BatchReStart)
+		job.POST("/batch-pause", middlewares.BatchJobAgentInit, jobController.BatchPause)
+		job.POST("/batch-delete", middlewares.BatchJobAgentInit, jobController.BatchDelete)
 	}
 	timing := server.Group("/timing")
 	timing.Use(middlewares.Login)
@@ -101,15 +103,50 @@ func setupRouter() {
 		timing.POST("/create", middlewares.CmdConfigVerify, timingController.Create)
 		timing.GET("/edit", middlewares.TimingInit, timingController.Edit)
 		timing.POST("/update", middlewares.TimingInit, middlewares.CmdConfigVerify, timingController.Update)
-		timing.GET("/monitor", middlewares.TimingInit, timingController.Monitor)
-		timing.GET("/archive", middlewares.TimingInit, timingController.Archive)
-		timing.GET("/copy", middlewares.TimingInit, timingController.Copy)
-		timing.GET("/delete", middlewares.TimingInit, timingController.Delete)
-
-		timing.GET("/start", middlewares.TimingAgentInit, timingController.Start)
-		timing.GET("/restart", middlewares.TimingAgentInit, timingController.ReStart)
-		timing.GET("/pause", middlewares.TimingAgentInit, timingController.Pause)
-		timing.GET("/out_log", middlewares.TimingAgentInit, timingController.OutLog)
-		timing.GET("/err_log", middlewares.TimingAgentInit, timingController.ErrLog)
+		timing.POST("/copy", middlewares.TimingInit, timingController.Copy)
+		//control
+		timing.POST("/start", middlewares.TimingAgentInit, timingController.Start)
+		timing.POST("/restart", middlewares.TimingAgentInit, timingController.ReStart)
+		timing.POST("/pause", middlewares.TimingAgentInit, timingController.Pause)
+		timing.POST("/delete", middlewares.TimingInit, timingController.Delete)
+		//batch-control
+		timing.POST("/batch-start", middlewares.BatchTimingAgentInit, timingController.BatchStart)
+		timing.POST("/batch-restart", middlewares.BatchTimingAgentInit, timingController.BatchReStart)
+		timing.POST("/batch-pause", middlewares.BatchTimingAgentInit, timingController.BatchPause)
+		timing.POST("/batch-delete", middlewares.BatchTimingAgentInit, timingController.BatchDelete)
+	}
+	monitor := server.Group("/monitor")
+	monitor.Use(middlewares.Login)
+	{
+		monitor.GET("/app", middlewares.AppInit, monitorController.App)
+		monitor.GET("/job", middlewares.JobInit, monitorController.Job)
+		monitor.GET("/timing", middlewares.TimingInit, monitorController.Timing)
+	}
+	archive := server.Group("/archive")
+	archive.Use(middlewares.Login)
+	{
+		archive.GET("/app", middlewares.AppInit, archiveController.App)
+		archive.GET("/job", middlewares.JobInit, archiveController.Job)
+		archive.GET("/timing", middlewares.TimingInit, archiveController.Timing)
+	}
+	outLog := server.Group("/out_log")
+	outLog.Use(middlewares.Login)
+	{
+		outLog.GET("/app", middlewares.AppAgentInit, logController.AppOutLog)
+		outLog.GET("/job", middlewares.JobAgentInit, logController.JobOutLog)
+		outLog.GET("/timing", middlewares.TimingAgentInit, logController.TimingOutLog)
+		outLog.GET("/app/data", middlewares.AppAgentInit, logController.AppOutLogData)
+		outLog.GET("/job/data", middlewares.JobAgentInit, logController.JobOutLogData)
+		outLog.GET("/timing/data", middlewares.TimingAgentInit, logController.TimingOutLogData)
+	}
+	errLog := server.Group("/err_log")
+	errLog.Use(middlewares.Login)
+	{
+		errLog.GET("/app", middlewares.AppAgentInit, logController.AppErrLog)
+		errLog.GET("/job", middlewares.JobAgentInit, logController.JobErrLog)
+		errLog.GET("/timing", middlewares.TimingAgentInit, logController.TimingErrLog)
+		errLog.GET("/app/data", middlewares.AppAgentInit, logController.AppErrLogData)
+		errLog.GET("/job/data", middlewares.JobAgentInit, logController.JobErrLogData)
+		errLog.GET("/timing/data", middlewares.TimingAgentInit, logController.TimingErrLogData)
 	}
 }

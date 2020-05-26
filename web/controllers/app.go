@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/dalonghahaha/avenger/components/logger"
 	"github.com/gin-gonic/gin"
 
 	"Asgard/client"
@@ -78,86 +79,6 @@ func (c *AppController) Show(ctx *gin.Context) {
 	ctx.HTML(StatusOK, "app/show", gin.H{
 		"Subtitle": "查看应用",
 		"App":      utils.AppFormat(app),
-	})
-}
-
-func (c *AppController) Monitor(ctx *gin.Context) {
-	app := utils.GetApp(ctx)
-	moniters := providers.MoniterService.GetAppMonitor(app.ID, 100)
-	cpus, memorys, times := utils.MonitorFormat(moniters)
-	ctx.HTML(StatusOK, "monitor/list", gin.H{
-		"Subtitle": "应用监控信息——" + app.Name,
-		"BackUrl":  GetReferer(ctx),
-		"CPU":      cpus,
-		"Memory":   memorys,
-		"Time":     times,
-	})
-}
-
-func (c *AppController) Archive(ctx *gin.Context) {
-	page := utils.DefaultInt(ctx, "page", 1)
-	app := utils.GetApp(ctx)
-	where := map[string]interface{}{
-		"type":       constants.TYPE_APP,
-		"related_id": app.ID,
-	}
-	archiveList, total := providers.ArchiveService.GetArchivePageList(where, page, PageSize)
-	if archiveList == nil {
-		utils.APIError(ctx, "获取归档列表失败")
-	}
-	list := []map[string]interface{}{}
-	for _, archive := range archiveList {
-		list = append(list, formatArchive(&archive))
-	}
-	mpurl := fmt.Sprintf("/app/archive?id=%d", app.ID)
-	ctx.HTML(StatusOK, "archive/list", gin.H{
-		"Subtitle":   "应用归档列表——" + app.Name,
-		"BackUrl":    GetReferer(ctx),
-		"List":       list,
-		"Total":      total,
-		"Pagination": utils.PagerHtml(total, page, mpurl),
-	})
-}
-
-func (c *AppController) OutLog(ctx *gin.Context) {
-	lines := utils.DefaultInt64(ctx, "lines", LogSize)
-	app := utils.GetApp(ctx)
-	agent := utils.GetAgent(ctx)
-	content, err := client.GetAgentLog(agent, app.StdOut, lines)
-	if err != nil {
-		utils.JumpWarning(ctx, "获取失败:"+err.Error())
-		return
-	}
-	ctx.HTML(StatusOK, "log/list", gin.H{
-		"Subtitle": "应用正常日志查看",
-		"Path":     "/app/out_log",
-		"BackUrl":  GetReferer(ctx),
-		"ID":       app.ID,
-		"Name":     app.Name,
-		"Agent":    agent,
-		"Lines":    lines,
-		"Content":  content,
-	})
-}
-
-func (c *AppController) ErrLog(ctx *gin.Context) {
-	lines := utils.DefaultInt64(ctx, "lines", LogSize)
-	app := utils.GetApp(ctx)
-	agent := utils.GetAgent(ctx)
-	content, err := client.GetAgentLog(agent, app.StdErr, lines)
-	if err != nil {
-		utils.JumpWarning(ctx, "获取失败:"+err.Error())
-		return
-	}
-	ctx.HTML(StatusOK, "log/list", gin.H{
-		"Subtitle": "应用错误日志查看",
-		"Path":     "/app/err_log",
-		"BackUrl":  GetReferer(ctx),
-		"ID":       app.ID,
-		"Name":     app.Name,
-		"Agent":    agent,
-		"Lines":    lines,
-		"Content":  content,
 	})
 }
 
@@ -255,21 +176,6 @@ func (c *AppController) Copy(ctx *gin.Context) {
 	utils.APIOK(ctx)
 }
 
-func (c *AppController) Delete(ctx *gin.Context) {
-	app := utils.GetApp(ctx)
-	if app.Status == constants.APP_STATUS_PAUSE {
-		utils.APIError(ctx, "该应用不能删除")
-		return
-	}
-	providers.AppService.ChangeAPPStatus(app, constants.APP_STATUS_DELETED, GetUserID(ctx))
-	ok := providers.AppService.UpdateApp(app)
-	if !ok {
-		utils.APIError(ctx, "删除应用失败")
-		return
-	}
-	utils.APIOK(ctx)
-}
-
 func (c *AppController) Start(ctx *gin.Context) {
 	app := utils.GetApp(ctx)
 	agent := utils.GetAgent(ctx)
@@ -288,11 +194,12 @@ func (c *AppController) Start(ctx *gin.Context) {
 			utils.APIError(ctx, fmt.Sprintf("添加应用异常:%s", err.Error()))
 			return
 		}
-		providers.AppService.ChangeAPPStatus(app, constants.APP_STATUS_RUNNING, GetUserID(ctx))
-		utils.APIOK(ctx)
+	}
+	ok := providers.AppService.ChangeAPPStatus(app, constants.APP_STATUS_RUNNING, GetUserID(ctx))
+	if !ok {
+		utils.APIError(ctx, "更新应用状态失败")
 		return
 	}
-	providers.AppService.ChangeAPPStatus(app, constants.APP_STATUS_RUNNING, GetUserID(ctx))
 	utils.APIOK(ctx)
 }
 
@@ -307,16 +214,15 @@ func (c *AppController) ReStart(ctx *gin.Context) {
 	if _app == nil {
 		err = client.AddAgentApp(agent, app)
 		if err != nil {
-			utils.APIError(ctx, fmt.Sprintf("重启异常:%s", err.Error()))
+			utils.APIError(ctx, fmt.Sprintf("重启应用异常:%s", err.Error()))
 			return
 		}
-		utils.APIOK(ctx)
-		return
-	}
-	err = client.UpdateAgentApp(agent, app)
-	if err != nil {
-		utils.APIError(ctx, fmt.Sprintf("重启异常:%s", err.Error()))
-		return
+	} else {
+		err = client.UpdateAgentApp(agent, app)
+		if err != nil {
+			utils.APIError(ctx, fmt.Sprintf("重启应用异常:%s", err.Error()))
+			return
+		}
 	}
 	utils.APIOK(ctx)
 }
@@ -329,15 +235,132 @@ func (c *AppController) Pause(ctx *gin.Context) {
 		utils.APIError(ctx, fmt.Sprintf("获取应用情况异常:%s", err.Error()))
 		return
 	}
-	if _app == nil {
-		utils.APIOK(ctx)
+	if _app != nil {
+		err = client.RemoveAgentApp(agent, app.ID)
+		if err != nil {
+			utils.APIError(ctx, fmt.Sprintf("停止应用异常:%s", err.Error()))
+			return
+		}
+	}
+	ok := providers.AppService.ChangeAPPStatus(app, constants.APP_STATUS_PAUSE, GetUserID(ctx))
+	if !ok {
+		utils.APIError(ctx, "更新应用状态失败")
 		return
 	}
-	err = client.RemoveAgentApp(agent, app.ID)
+	utils.APIOK(ctx)
+}
+
+func (c *AppController) Delete(ctx *gin.Context) {
+	app := utils.GetApp(ctx)
+	agent := utils.GetAgent(ctx)
+	if app.Status != constants.APP_STATUS_PAUSE {
+		utils.APIError(ctx, "应用启动状态不能删除")
+		return
+	}
+	_app, err := client.GetAgentApp(agent, app.ID)
 	if err != nil {
-		utils.APIError(ctx, fmt.Sprintf("停止应用异常:%s", err.Error()))
+		utils.APIError(ctx, fmt.Sprintf("获取应用情况异常:%s", err.Error()))
 		return
 	}
-	providers.AppService.ChangeAPPStatus(app, constants.APP_STATUS_PAUSE, GetUserID(ctx))
+	if _app != nil {
+		err = client.RemoveAgentApp(agent, app.ID)
+		if err != nil {
+			utils.APIError(ctx, fmt.Sprintf("停止应用异常:%s", err.Error()))
+			return
+		}
+	}
+	ok := providers.AppService.ChangeAPPStatus(app, constants.APP_STATUS_DELETED, GetUserID(ctx))
+	if !ok {
+		utils.APIError(ctx, "删除应用失败")
+		return
+	}
+	utils.APIOK(ctx)
+}
+
+func (c *AppController) BatchStart(ctx *gin.Context) {
+	appAgent := utils.GetAppAgent(ctx)
+	for app, agent := range appAgent {
+		if app.Status == constants.APP_STATUS_RUNNING {
+			continue
+		}
+		_app, err := client.GetAgentApp(agent, app.ID)
+		if err != nil {
+			logger.Error(fmt.Sprintf("App BatchStart GetAgentApp Error:[%d][%s]", app.ID, err.Error()))
+			continue
+		}
+		if _app == nil {
+			err = client.AddAgentApp(agent, app)
+			if err != nil {
+				logger.Error(fmt.Sprintf("App BatchStart AddAgentApp Error:%s", err.Error()))
+			}
+		}
+		providers.AppService.ChangeAPPStatus(app, constants.APP_STATUS_RUNNING, GetUserID(ctx))
+	}
+	utils.APIOK(ctx)
+}
+
+func (c *AppController) BatchReStart(ctx *gin.Context) {
+	appAgent := utils.GetAppAgent(ctx)
+	for app, agent := range appAgent {
+		_app, err := client.GetAgentApp(agent, app.ID)
+		if err != nil {
+			logger.Error(fmt.Sprintf("App BatchReStart GetAgentApp Error:[%d][%s]", app.ID, err.Error()))
+			continue
+		}
+		if _app == nil {
+			err = client.AddAgentApp(agent, app)
+			if err != nil {
+				logger.Error(fmt.Sprintf("App BatchReStart AddAgentApp Error:[%d][%s]", app.ID, err.Error()))
+			}
+		} else {
+			err = client.UpdateAgentApp(agent, app)
+			if err != nil {
+				logger.Error(fmt.Sprintf("App BatchReStart UpdateAgentApp Error:[%d][%s]", app.ID, err.Error()))
+			}
+		}
+	}
+	utils.APIOK(ctx)
+}
+
+func (c *AppController) BatchPause(ctx *gin.Context) {
+	appAgent := utils.GetAppAgent(ctx)
+	for app, agent := range appAgent {
+		_app, err := client.GetAgentApp(agent, app.ID)
+		if err != nil {
+			logger.Error(fmt.Sprintf("App BatchPause GetAgentApp Error:[%d][%s]", app.ID, err.Error()))
+			continue
+		}
+		if _app != nil {
+			err = client.RemoveAgentApp(agent, app.ID)
+			if err != nil {
+				logger.Error(fmt.Sprintf("App BatchPause RemoveAgentApp Error:[%d][%s]", app.ID, err.Error()))
+				return
+			}
+		}
+		providers.AppService.ChangeAPPStatus(app, constants.APP_STATUS_PAUSE, GetUserID(ctx))
+	}
+	utils.APIOK(ctx)
+}
+
+func (c *AppController) BatchDelete(ctx *gin.Context) {
+	appAgent := utils.GetAppAgent(ctx)
+	for app, agent := range appAgent {
+		if app.Status == constants.APP_STATUS_RUNNING {
+			continue
+		}
+		_app, err := client.GetAgentApp(agent, app.ID)
+		if err != nil {
+			logger.Error(fmt.Sprintf("App BatchDelete GetAgentApp Error:[%d][%s]", app.ID, err.Error()))
+			continue
+		}
+		if _app != nil {
+			err = client.RemoveAgentApp(agent, app.ID)
+			if err != nil {
+				logger.Error(fmt.Sprintf("App BatchDelete RemoveAgentApp Error:[%d][%s]", app.ID, err.Error()))
+				return
+			}
+		}
+		providers.AppService.ChangeAPPStatus(app, constants.APP_STATUS_DELETED, GetUserID(ctx))
+	}
 	utils.APIOK(ctx)
 }

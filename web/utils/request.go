@@ -110,3 +110,39 @@ func GetTiming(ctx *gin.Context) *models.Timing {
 	}
 	return _timing
 }
+
+func GetAppAgent(ctx *gin.Context) map[*models.App]*models.Agent {
+	appAgents, ok := ctx.Get("app_agent")
+	if !ok {
+		return map[*models.App]*models.Agent{}
+	}
+	_appAgents, ok := appAgents.(map[*models.App]*models.Agent)
+	if !ok {
+		return map[*models.App]*models.Agent{}
+	}
+	return _appAgents
+}
+
+func GetJobAgent(ctx *gin.Context) map[*models.Job]*models.Agent {
+	jobAgents, ok := ctx.Get("job_agent")
+	if !ok {
+		return map[*models.Job]*models.Agent{}
+	}
+	_jobAgents, ok := jobAgents.(map[*models.Job]*models.Agent)
+	if !ok {
+		return map[*models.Job]*models.Agent{}
+	}
+	return _jobAgents
+}
+
+func GetTimingAgent(ctx *gin.Context) map[*models.Timing]*models.Agent {
+	timingAgents, ok := ctx.Get("timing_agent")
+	if !ok {
+		return map[*models.Timing]*models.Agent{}
+	}
+	_timingAgents, ok := timingAgents.(map[*models.Timing]*models.Agent)
+	if !ok {
+		return map[*models.Timing]*models.Agent{}
+	}
+	return _timingAgents
+}

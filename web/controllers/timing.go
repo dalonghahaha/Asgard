@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/dalonghahaha/avenger/components/logger"
 	"github.com/gin-gonic/gin"
 
 	"Asgard/client"
@@ -78,87 +79,6 @@ func (c *TimingController) Show(ctx *gin.Context) {
 	ctx.HTML(StatusOK, "timing/show", gin.H{
 		"Subtitle": "查看定时任务",
 		"Timing":   utils.TimingFormat(timing),
-	})
-}
-
-func (c *TimingController) Monitor(ctx *gin.Context) {
-	timing := utils.GetTiming(ctx)
-	moniters := providers.MoniterService.GetTimingMonitor(timing.ID, 100)
-	cpus, memorys, times := utils.MonitorFormat(moniters)
-	ctx.HTML(StatusOK, "monitor/list", gin.H{
-		"Subtitle": "定时任务监控信息——" + timing.Name,
-		"BackUrl":  GetReferer(ctx),
-		"CPU":      cpus,
-		"Memory":   memorys,
-		"Time":     times,
-	})
-}
-
-func (c *TimingController) Archive(ctx *gin.Context) {
-	page := utils.DefaultInt(ctx, "page", 1)
-	timing := utils.GetTiming(ctx)
-	where := map[string]interface{}{
-		"type":       constants.TYPE_TIMING,
-		"related_id": timing.ID,
-	}
-	archiveList, total := providers.ArchiveService.GetArchivePageList(where, page, PageSize)
-	if archiveList == nil {
-		utils.APIError(ctx, "获取归档列表失败")
-	}
-	list := []map[string]interface{}{}
-	for _, archive := range archiveList {
-		list = append(list, formatArchive(&archive))
-	}
-	mpurl := fmt.Sprintf("/timing/archive?id=%d", timing.ID)
-	ctx.HTML(StatusOK, "archive/list", gin.H{
-		"Subtitle":   "定时任务归档列表——" + timing.Name,
-		"BackUrl":    GetReferer(ctx),
-		"List":       list,
-		"Total":      total,
-		"Pagination": utils.PagerHtml(total, page, mpurl),
-	})
-}
-
-func (c *TimingController) OutLog(ctx *gin.Context) {
-	lines := utils.DefaultInt64(ctx, "lines", LogSize)
-	timing := utils.GetTiming(ctx)
-	agent := utils.GetAgent(ctx)
-	content, err := client.GetAgentLog(agent, timing.StdOut, lines)
-	if err != nil {
-		utils.JumpError(ctx)
-		return
-	}
-	ctx.HTML(StatusOK, "log/list", gin.H{
-		"Subtitle": "定时任务日志查看",
-		"Path":     "/timing/out_log",
-		"BackUrl":  GetReferer(ctx),
-		"ID":       timing.ID,
-		"Name":     timing.Name,
-		"Agent":    agent,
-		"Lines":    lines,
-		"Content":  content,
-	})
-}
-
-func (c *TimingController) ErrLog(ctx *gin.Context) {
-	lines := utils.DefaultInt64(ctx, "lines", LogSize)
-	timing := utils.GetTiming(ctx)
-	agent := utils.GetAgent(ctx)
-	content, err := client.GetAgentLog(agent, timing.StdErr, lines)
-	if err != nil {
-		utils.JumpError(ctx)
-		return
-	}
-	ctx.HTML(StatusOK, "log/list", gin.H{
-		"Subtitle": "定时任务错误日志查看",
-		"Path":     "/timing/err_log",
-		"BackUrl":  GetReferer(ctx),
-		"ID":       timing.ID,
-		"Name":     timing.Name,
-		"Agent":    agent,
-		"Lines":    lines,
-		"Type":     "err_log",
-		"Content":  content,
 	})
 }
 
@@ -255,20 +175,6 @@ func (c *TimingController) Copy(ctx *gin.Context) {
 	utils.APIOK(ctx)
 }
 
-func (c *TimingController) Delete(ctx *gin.Context) {
-	timing := utils.GetTiming(ctx)
-	if timing.Status != constants.TIMING_STATUS_PAUSE {
-		utils.APIError(ctx, "定时任务正在运行不能删除")
-		return
-	}
-	ok := providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_DELETED, GetUserID(ctx))
-	if !ok {
-		utils.APIError(ctx, "删除定时任务失败")
-		return
-	}
-	utils.APIOK(ctx)
-}
-
 func (c *TimingController) Start(ctx *gin.Context) {
 	timing := utils.GetTiming(ctx)
 	agent := utils.GetAgent(ctx)
@@ -284,14 +190,17 @@ func (c *TimingController) Start(ctx *gin.Context) {
 	if _timing == nil {
 		err = client.AddAgentTiming(agent, timing)
 		if err != nil {
-			utils.APIError(ctx, fmt.Sprintf("添加计划任务异常:%s", err.Error()))
+			utils.APIError(ctx, fmt.Sprintf("添加定时任务异常:%s", err.Error()))
 			return
 		}
-		providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_RUNNING, GetUserID(ctx))
 		utils.APIOK(ctx)
 		return
 	}
-	providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_RUNNING, GetUserID(ctx))
+	ok := providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_RUNNING, GetUserID(ctx))
+	if !ok {
+		utils.APIError(ctx, "更新定时任务状态失败")
+		return
+	}
 	utils.APIOK(ctx)
 }
 
@@ -309,12 +218,12 @@ func (c *TimingController) ReStart(ctx *gin.Context) {
 			utils.APIError(ctx, fmt.Sprintf("重启定时任务异常:%s", err.Error()))
 			return
 		}
-		utils.APIOK(ctx)
-	}
-	err = client.UpdateAgentTiming(agent, timing)
-	if err != nil {
-		utils.APIError(ctx, fmt.Sprintf("重启定时任务异常:%s", err.Error()))
-		return
+	} else {
+		err = client.UpdateAgentTiming(agent, timing)
+		if err != nil {
+			utils.APIError(ctx, fmt.Sprintf("重启定时任务异常:%s", err.Error()))
+			return
+		}
 	}
 	utils.APIOK(ctx)
 }
@@ -327,15 +236,132 @@ func (c *TimingController) Pause(ctx *gin.Context) {
 		utils.APIError(ctx, fmt.Sprintf("获取定时任务情况异常:%s", err.Error()))
 		return
 	}
-	if _timing == nil {
-		utils.APIOK(ctx)
+	if _timing != nil {
+		err = client.RemoveAgentTiming(agent, timing.ID)
+		if err != nil {
+			utils.APIError(ctx, fmt.Sprintf("停止定时任务异常:%s", err.Error()))
+			return
+		}
+	}
+	ok := providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_PAUSE, GetUserID(ctx))
+	if !ok {
+		utils.APIError(ctx, "更新定时任务状态失败")
 		return
 	}
-	err = client.RemoveAgentTiming(agent, timing.ID)
+	utils.APIOK(ctx)
+}
+
+func (c *TimingController) Delete(ctx *gin.Context) {
+	timing := utils.GetTiming(ctx)
+	agent := utils.GetAgent(ctx)
+	if timing.Status != constants.TIMING_STATUS_PAUSE {
+		utils.APIError(ctx, "定时任务启动状态不能删除")
+		return
+	}
+	_timing, err := client.GetAgentTiming(agent, timing.ID)
 	if err != nil {
-		utils.APIError(ctx, fmt.Sprintf("停止定时任务异常:%s", err.Error()))
+		utils.APIError(ctx, fmt.Sprintf("获取定时任务情况异常:%s", err.Error()))
 		return
 	}
-	providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_PAUSE, GetUserID(ctx))
+	if _timing != nil {
+		err = client.RemoveAgentTiming(agent, timing.ID)
+		if err != nil {
+			utils.APIError(ctx, fmt.Sprintf("停止定时任务异常:%s", err.Error()))
+			return
+		}
+	}
+	ok := providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_DELETED, GetUserID(ctx))
+	if !ok {
+		utils.APIError(ctx, "更新定时任务状态失败")
+		return
+	}
+	utils.APIOK(ctx)
+}
+
+func (c *TimingController) BatchStart(ctx *gin.Context) {
+	timingAgent := utils.GetTimingAgent(ctx)
+	for timing, agent := range timingAgent {
+		if timing.Status == constants.TIMING_STATUS_RUNNING {
+			continue
+		}
+		_timing, err := client.GetAgentTiming(agent, timing.ID)
+		if err != nil {
+			logger.Error(fmt.Sprintf("Timing BatchStart GetAgentTiming Error:[%d][%s]", timing.ID, err.Error()))
+			continue
+		}
+		if _timing == nil {
+			err = client.AddAgentTiming(agent, timing)
+			if err != nil {
+				logger.Error(fmt.Sprintf("Timing BatchStart AddAgentTiming Error:%s", err.Error()))
+			}
+		}
+		providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_RUNNING, GetUserID(ctx))
+	}
+	utils.APIOK(ctx)
+}
+
+func (c *TimingController) BatchReStart(ctx *gin.Context) {
+	timingAgent := utils.GetTimingAgent(ctx)
+	for timing, agent := range timingAgent {
+		_timing, err := client.GetAgentTiming(agent, timing.ID)
+		if err != nil {
+			logger.Error(fmt.Sprintf("Timing BatchReStart GetAgentTiming Error:[%d][%s]", timing.ID, err.Error()))
+			continue
+		}
+		if _timing == nil {
+			err = client.AddAgentTiming(agent, timing)
+			if err != nil {
+				logger.Error(fmt.Sprintf("Timing BatchReStart AddAgentTiming Error:[%d][%s]", timing.ID, err.Error()))
+			}
+		} else {
+			err = client.UpdateAgentTiming(agent, timing)
+			if err != nil {
+				logger.Error(fmt.Sprintf("Timing BatchReStart UpdateAgentJob Error:[%d][%s]", timing.ID, err.Error()))
+			}
+		}
+	}
+	utils.APIOK(ctx)
+}
+
+func (c *TimingController) BatchPause(ctx *gin.Context) {
+	timingAgent := utils.GetTimingAgent(ctx)
+	for timing, agent := range timingAgent {
+		_timing, err := client.GetAgentTiming(agent, timing.ID)
+		if err != nil {
+			logger.Error(fmt.Sprintf("Timing BatchPause GetAgentTiming Error:[%d][%s]", timing.ID, err.Error()))
+			continue
+		}
+		if _timing != nil {
+			err = client.RemoveAgentTiming(agent, timing.ID)
+			if err != nil {
+				logger.Error(fmt.Sprintf("Timing BatchPause RemoveAgentTiming Error:[%d][%s]", timing.ID, err.Error()))
+				return
+			}
+		}
+		providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_PAUSE, GetUserID(ctx))
+	}
+	utils.APIOK(ctx)
+}
+
+func (c *TimingController) BatchDelete(ctx *gin.Context) {
+	timingAgent := utils.GetTimingAgent(ctx)
+	for timing, agent := range timingAgent {
+		if timing.Status == constants.TIMING_STATUS_RUNNING {
+			continue
+		}
+		_timing, err := client.GetAgentTiming(agent, timing.ID)
+		if err != nil {
+			logger.Error(fmt.Sprintf("Timing BatchDelete GetAgentTiming Error:[%d][%s]", timing.ID, err.Error()))
+			continue
+		}
+		if _timing != nil {
+			err = client.RemoveAgentTiming(agent, timing.ID)
+			if err != nil {
+				logger.Error(fmt.Sprintf("Timing BatchDelete RemoveAgentTiming Error:[%d][%s]", timing.ID, err.Error()))
+				return
+			}
+		}
+		providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_DELETED, GetUserID(ctx))
+	}
 	utils.APIOK(ctx)
 }
