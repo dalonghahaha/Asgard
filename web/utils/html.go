@@ -1,18 +1,17 @@
 package utils
 
 import (
+	"Asgard/constants"
 	"html/template"
 	"strconv"
 	"strings"
 )
 
-var PageSize = 10
-
 func totalPage(total int) int {
-	if (total % PageSize) != 0 {
-		return (total / PageSize) + 1
+	if (total % constants.WEB_LIST_PAGE_SIZE) != 0 {
+		return (total / constants.WEB_LIST_PAGE_SIZE) + 1
 	} else {
-		return total / PageSize
+		return total / constants.WEB_LIST_PAGE_SIZE
 	}
 }
 
