@@ -47,7 +47,7 @@ func (c *JobController) List(ctx *gin.Context) {
 		where["name"] = name
 		querys = append(querys, "name="+name)
 	}
-	jobList, total := providers.JobService.GetJobPageList(where, page, PageSize)
+	jobList, total := providers.JobService.GetJobPageList(where, page, constants.WEB_LIST_PAGE_SIZE)
 	if jobList == nil {
 		utils.APIError(ctx, "获取计划任务列表失败")
 	}
@@ -59,7 +59,7 @@ func (c *JobController) List(ctx *gin.Context) {
 	if len(querys) > 0 {
 		mpurl = "/job/list?" + strings.Join(querys, "&")
 	}
-	ctx.HTML(StatusOK, "job/list", gin.H{
+	utils.Render(ctx, "job/list", gin.H{
 		"Subtitle":   "计划任务列表",
 		"List":       list,
 		"Total":      total,
@@ -76,16 +76,16 @@ func (c *JobController) List(ctx *gin.Context) {
 
 func (c *JobController) Show(ctx *gin.Context) {
 	job := utils.GetJob(ctx)
-	ctx.HTML(StatusOK, "job/show", gin.H{
+	utils.Render(ctx, "job/show", gin.H{
 		"Subtitle": "查看计划任务",
 		"Job":      utils.JobFormat(job),
 	})
 }
 
 func (c *JobController) Add(ctx *gin.Context) {
-	ctx.HTML(StatusOK, "job/add", gin.H{
+	utils.Render(ctx, "job/add", gin.H{
 		"Subtitle":   "添加计划任务",
-		"OutBaseDir": OutDir + "cron/",
+		"OutBaseDir": constants.WEB_OUT_DIR + "cron/",
 		"GroupList":  providers.GroupService.GetUsageGroup(),
 		"AgentList":  providers.AgentService.GetUsageAgent(),
 	})
@@ -107,7 +107,7 @@ func (c *JobController) Create(ctx *gin.Context) {
 	job.Spec = ctx.PostForm("spec")
 	job.Timeout = utils.FormDefaultInt64(ctx, "timeout", -1)
 	job.Status = constants.JOB_STATUS_PAUSE
-	job.Creator = GetUserID(ctx)
+	job.Creator = utils.GetUserID(ctx)
 	if ctx.PostForm("is_monitor") != "" {
 		job.IsMonitor = 1
 	}
@@ -121,9 +121,9 @@ func (c *JobController) Create(ctx *gin.Context) {
 
 func (c *JobController) Edit(ctx *gin.Context) {
 	job := utils.GetJob(ctx)
-	ctx.HTML(StatusOK, "job/edit", gin.H{
+	utils.Render(ctx, "job/edit", gin.H{
 		"Subtitle":  "编辑计划任务",
-		"BackUrl":   GetReferer(ctx),
+		"BackUrl":   utils.GetReferer(ctx),
 		"Info":      utils.JobFormat(job),
 		"GroupList": providers.GroupService.GetUsageGroup(),
 		"AgentList": providers.AgentService.GetUsageAgent(),
@@ -145,7 +145,7 @@ func (c *JobController) Update(ctx *gin.Context) {
 	job.StdErr = ctx.PostForm("std_err")
 	job.Spec = ctx.PostForm("spec")
 	job.Timeout = utils.FormDefaultInt64(ctx, "timeout", -1)
-	job.Updator = GetUserID(ctx)
+	job.Updator = utils.GetUserID(ctx)
 	if ctx.PostForm("is_monitor") != "" {
 		job.IsMonitor = 1
 	}
@@ -172,7 +172,7 @@ func (c *JobController) Copy(ctx *gin.Context) {
 	_job.Timeout = job.Timeout
 	_job.IsMonitor = job.IsMonitor
 	_job.Status = constants.JOB_STATUS_PAUSE
-	_job.Creator = GetUserID(ctx)
+	_job.Creator = utils.GetUserID(ctx)
 	ok := providers.JobService.CreateJob(_job)
 	if !ok {
 		utils.APIError(ctx, "复制计划任务失败")
@@ -200,7 +200,7 @@ func (c *JobController) Start(ctx *gin.Context) {
 			return
 		}
 	}
-	ok := providers.JobService.ChangeJobStatus(job, constants.JOB_STATUS_RUNNING, GetUserID(ctx))
+	ok := providers.JobService.ChangeJobStatus(job, constants.JOB_STATUS_RUNNING, utils.GetUserID(ctx))
 	if !ok {
 		utils.APIError(ctx, "更新计划任务状态失败")
 		return
@@ -247,7 +247,7 @@ func (c *JobController) Pause(ctx *gin.Context) {
 			return
 		}
 	}
-	ok := providers.JobService.ChangeJobStatus(job, constants.JOB_STATUS_PAUSE, GetUserID(ctx))
+	ok := providers.JobService.ChangeJobStatus(job, constants.JOB_STATUS_PAUSE, utils.GetUserID(ctx))
 	if !ok {
 		utils.APIError(ctx, "更新计划任务状态失败")
 		return
@@ -274,7 +274,7 @@ func (c *JobController) Delete(ctx *gin.Context) {
 			return
 		}
 	}
-	ok := providers.JobService.ChangeJobStatus(job, constants.JOB_STATUS_DELETED, GetUserID(ctx))
+	ok := providers.JobService.ChangeJobStatus(job, constants.JOB_STATUS_DELETED, utils.GetUserID(ctx))
 	if !ok {
 		utils.APIError(ctx, "更新计划任务状态失败")
 		return
@@ -299,7 +299,7 @@ func (c *JobController) BatchStart(ctx *gin.Context) {
 				logger.Error(fmt.Sprintf("App BatchStart AddAgentJob Error:%s", err.Error()))
 			}
 		}
-		providers.JobService.ChangeJobStatus(job, constants.JOB_STATUS_RUNNING, GetUserID(ctx))
+		providers.JobService.ChangeJobStatus(job, constants.JOB_STATUS_RUNNING, utils.GetUserID(ctx))
 	}
 	utils.APIOK(ctx)
 }
@@ -342,7 +342,7 @@ func (c *JobController) BatchPause(ctx *gin.Context) {
 				return
 			}
 		}
-		providers.JobService.ChangeJobStatus(job, constants.JOB_STATUS_PAUSE, GetUserID(ctx))
+		providers.JobService.ChangeJobStatus(job, constants.JOB_STATUS_PAUSE, utils.GetUserID(ctx))
 	}
 	utils.APIOK(ctx)
 }
@@ -365,7 +365,7 @@ func (c *JobController) BatchDelete(ctx *gin.Context) {
 				return
 			}
 		}
-		providers.JobService.ChangeJobStatus(job, constants.JOB_STATUS_DELETED, GetUserID(ctx))
+		providers.JobService.ChangeJobStatus(job, constants.JOB_STATUS_DELETED, utils.GetUserID(ctx))
 	}
 	utils.APIOK(ctx)
 }

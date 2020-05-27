@@ -6,8 +6,6 @@ import (
 )
 
 func setupRouter() {
-	server.GET("/ping", controllers.Ping)
-	server.GET("/UI", controllers.UI)
 	server.GET("/", middlewares.Login, indexController.Index)
 	server.GET("/no_login", controllers.Nologin)
 	server.GET("/auth_fail", controllers.AuthFail)
@@ -39,9 +37,8 @@ func setupRouter() {
 	agent.Use(middlewares.Login)
 	{
 		agent.GET("/list", agentController.List)
-		agent.GET("/monitor", agentController.Monitor)
 		agent.GET("/edit", agentController.Edit)
-		agent.POST("/update", agentController.Update)
+		agent.POST("/update", middlewares.AgentInit, agentController.Update)
 	}
 	group := server.Group("/group")
 	group.Use(middlewares.Login)
@@ -50,7 +47,8 @@ func setupRouter() {
 		group.GET("/add", groupController.Add)
 		group.POST("/create", groupController.Create)
 		group.GET("/edit", groupController.Edit)
-		group.POST("/update", groupController.Update)
+		group.POST("/update", middlewares.GroupInit, groupController.Update)
+		group.POST("/delete", middlewares.GroupInit, groupController.Delete)
 	}
 	app := server.Group("/app")
 	app.Use(middlewares.Login)
@@ -118,6 +116,7 @@ func setupRouter() {
 	monitor := server.Group("/monitor")
 	monitor.Use(middlewares.Login)
 	{
+		monitor.GET("/agent", middlewares.AgentInit, monitorController.Agent)
 		monitor.GET("/app", middlewares.AppInit, monitorController.App)
 		monitor.GET("/job", middlewares.JobInit, monitorController.Job)
 		monitor.GET("/timing", middlewares.TimingInit, monitorController.Timing)

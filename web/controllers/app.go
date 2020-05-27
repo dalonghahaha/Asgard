@@ -47,7 +47,7 @@ func (c *AppController) List(ctx *gin.Context) {
 		where["name"] = name
 		querys = append(querys, "name="+name)
 	}
-	appList, total := providers.AppService.GetAppPageList(where, page, PageSize)
+	appList, total := providers.AppService.GetAppPageList(where, page, constants.WEB_LIST_PAGE_SIZE)
 	if appList == nil {
 		utils.APIError(ctx, "获取应用列表失败")
 	}
@@ -59,7 +59,7 @@ func (c *AppController) List(ctx *gin.Context) {
 	if len(querys) > 0 {
 		mpurl = "/app/list?" + strings.Join(querys, "&")
 	}
-	ctx.HTML(StatusOK, "app/list", gin.H{
+	utils.Render(ctx, "app/list", gin.H{
 		"Subtitle":   "应用列表",
 		"List":       list,
 		"Total":      total,
@@ -76,16 +76,16 @@ func (c *AppController) List(ctx *gin.Context) {
 
 func (c *AppController) Show(ctx *gin.Context) {
 	app := utils.GetApp(ctx)
-	ctx.HTML(StatusOK, "app/show", gin.H{
+	utils.Render(ctx, "app/show", gin.H{
 		"Subtitle": "查看应用",
 		"App":      utils.AppFormat(app),
 	})
 }
 
 func (c *AppController) Add(ctx *gin.Context) {
-	ctx.HTML(StatusOK, "app/add", gin.H{
+	utils.Render(ctx, "app/add", gin.H{
 		"Subtitle":   "添加应用",
-		"OutBaseDir": OutDir + "guard/",
+		"OutBaseDir": constants.WEB_OUT_DIR + "guard/",
 		"GroupList":  providers.GroupService.GetUsageGroup(),
 		"AgentList":  providers.AgentService.GetUsageAgent(),
 	})
@@ -102,7 +102,7 @@ func (c *AppController) Create(ctx *gin.Context) {
 	app.StdOut = ctx.PostForm("std_out")
 	app.StdErr = ctx.PostForm("std_err")
 	app.Status = constants.APP_STATUS_PAUSE
-	app.Creator = GetUserID(ctx)
+	app.Creator = utils.GetUserID(ctx)
 	if ctx.PostForm("auto_restart") != "" {
 		app.AutoRestart = 1
 	}
@@ -119,9 +119,9 @@ func (c *AppController) Create(ctx *gin.Context) {
 
 func (c *AppController) Edit(ctx *gin.Context) {
 	app := utils.GetApp(ctx)
-	ctx.HTML(StatusOK, "app/edit", gin.H{
+	utils.Render(ctx, "app/edit", gin.H{
 		"Subtitle":  "编辑应用",
-		"BackUrl":   GetReferer(ctx),
+		"BackUrl":   utils.GetReferer(ctx),
 		"Info":      utils.AppFormat(app),
 		"GroupList": providers.GroupService.GetUsageGroup(),
 		"AgentList": providers.AgentService.GetUsageAgent(),
@@ -138,7 +138,7 @@ func (c *AppController) Update(ctx *gin.Context) {
 	app.Args = ctx.PostForm("args")
 	app.StdOut = ctx.PostForm("std_out")
 	app.StdErr = ctx.PostForm("std_err")
-	app.Updator = GetUserID(ctx)
+	app.Updator = utils.GetUserID(ctx)
 	if ctx.PostForm("auto_restart") != "" {
 		app.AutoRestart = 1
 	}
@@ -167,7 +167,7 @@ func (c *AppController) Copy(ctx *gin.Context) {
 	_app.AutoRestart = app.AutoRestart
 	_app.IsMonitor = app.IsMonitor
 	_app.Status = constants.APP_STATUS_PAUSE
-	_app.Creator = GetUserID(ctx)
+	_app.Creator = utils.GetUserID(ctx)
 	ok := providers.AppService.CreateApp(_app)
 	if !ok {
 		utils.APIError(ctx, "复制应用失败")
@@ -195,7 +195,7 @@ func (c *AppController) Start(ctx *gin.Context) {
 			return
 		}
 	}
-	ok := providers.AppService.ChangeAPPStatus(app, constants.APP_STATUS_RUNNING, GetUserID(ctx))
+	ok := providers.AppService.ChangeAPPStatus(app, constants.APP_STATUS_RUNNING, utils.GetUserID(ctx))
 	if !ok {
 		utils.APIError(ctx, "更新应用状态失败")
 		return
@@ -242,7 +242,7 @@ func (c *AppController) Pause(ctx *gin.Context) {
 			return
 		}
 	}
-	ok := providers.AppService.ChangeAPPStatus(app, constants.APP_STATUS_PAUSE, GetUserID(ctx))
+	ok := providers.AppService.ChangeAPPStatus(app, constants.APP_STATUS_PAUSE, utils.GetUserID(ctx))
 	if !ok {
 		utils.APIError(ctx, "更新应用状态失败")
 		return
@@ -269,7 +269,7 @@ func (c *AppController) Delete(ctx *gin.Context) {
 			return
 		}
 	}
-	ok := providers.AppService.ChangeAPPStatus(app, constants.APP_STATUS_DELETED, GetUserID(ctx))
+	ok := providers.AppService.ChangeAPPStatus(app, constants.APP_STATUS_DELETED, utils.GetUserID(ctx))
 	if !ok {
 		utils.APIError(ctx, "删除应用失败")
 		return
@@ -294,7 +294,7 @@ func (c *AppController) BatchStart(ctx *gin.Context) {
 				logger.Error(fmt.Sprintf("App BatchStart AddAgentApp Error:%s", err.Error()))
 			}
 		}
-		providers.AppService.ChangeAPPStatus(app, constants.APP_STATUS_RUNNING, GetUserID(ctx))
+		providers.AppService.ChangeAPPStatus(app, constants.APP_STATUS_RUNNING, utils.GetUserID(ctx))
 	}
 	utils.APIOK(ctx)
 }
@@ -337,7 +337,7 @@ func (c *AppController) BatchPause(ctx *gin.Context) {
 				return
 			}
 		}
-		providers.AppService.ChangeAPPStatus(app, constants.APP_STATUS_PAUSE, GetUserID(ctx))
+		providers.AppService.ChangeAPPStatus(app, constants.APP_STATUS_PAUSE, utils.GetUserID(ctx))
 	}
 	utils.APIOK(ctx)
 }
@@ -360,7 +360,7 @@ func (c *AppController) BatchDelete(ctx *gin.Context) {
 				return
 			}
 		}
-		providers.AppService.ChangeAPPStatus(app, constants.APP_STATUS_DELETED, GetUserID(ctx))
+		providers.AppService.ChangeAPPStatus(app, constants.APP_STATUS_DELETED, utils.GetUserID(ctx))
 	}
 	utils.APIOK(ctx)
 }

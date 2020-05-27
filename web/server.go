@@ -68,7 +68,7 @@ func Init() error {
 func setupController() {
 	outDir := viper.GetString("log.dir")
 	if outDir != "" {
-		controllers.OutDir = outDir
+		constants.WEB_OUT_DIR = outDir
 	}
 	useController = controllers.NewUserController()
 	agentController = controllers.NewAgentController()

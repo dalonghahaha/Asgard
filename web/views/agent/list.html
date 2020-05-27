@@ -17,11 +17,10 @@
                     <thead>
                         <tr>
                             <th style="width: 5%"><span>ID</span></th>
-                            <th style="width: 15%"><span>别名</span></th>
+                            <th style="width: 10%"><span>别名</span></th>
                             <th style="width: 15%"><span>地址</span></th>
-                            <th style="width: 10%"><span>端口</span></th>
                             <th style="width: 10%"><span>状态</span></th>
-                            <th style="width: 45%">操作</th>
+                            <th style="width: 56%" class="text-right">操作</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -29,8 +28,7 @@
                         <tr>
                             <td>{{.ID}}</td>
                             <td>{{.Alias}}</td>
-                            <td>{{.IP}}</td>
-                            <td>{{.Port}}</td>
+                            <td>{{.IP}}:{{.Port}}</td>
                             <td>
                                 {{if eq .Status 0}}
                                 <span class="badge bg-gray">offline</span>
@@ -42,20 +40,25 @@
                             </td>
                             <td class="text-right">
                                 <div class="btn-list">
-                                    <a href="/agent/edit?id={{.ID}}" title="编辑" class="btn btn-secondary btn-icon ml-auto">
+                                    <a href="/agent/edit?id={{.ID}}" title="编辑" class="btn btn-sm btn-secondary ml-auto">
                                         {{include "partials/svg/edit"}}
+                                        编辑
                                     </a>
-                                    <a href="/agent/monitor?id={{.ID}}" title="运行状态" class="btn btn-info btn-icon">
+                                    <a href="/monitor/agent?id={{.ID}}" title="运行状态" class="btn btn-sm btn-info">
                                         {{include "partials/svg/monitor"}}
+                                        运行状态
                                     </a>
-                                    <a href="/app/list?agent_id={{.ID}}" title="应用列表" class="btn btn-info btn-icon">
+                                    <a href="/app/list?agent_id={{.ID}}" title="应用列表" class="btn btn-sm btn-info">
                                         {{include "partials/svg/app"}}
+                                        应用列表
                                     </a>
-                                    <a href="/job/list?agent_id={{.ID}}" title="计划任务列表" class="btn btn-info btn-icon">
+                                    <a href="/job/list?agent_id={{.ID}}" title="计划任务列表" class="btn btn-sm btn-info">
                                         {{include "partials/svg/job"}}
+                                        计划任务列表
                                     </a>
-                                    <a href="/timing/list?agent_id={{.ID}}" title="定时任务列表" class="btn btn-info btn-icon">
+                                    <a href="/timing/list?agent_id={{.ID}}" title="定时任务列表" class="btn btn-sm btn-info">
                                         {{include "partials/svg/timing"}}
+                                        定时任务列表
                                     </a>
                                 </div>
                             </td>

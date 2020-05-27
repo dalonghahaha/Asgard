@@ -1,6 +1,9 @@
 package controllers
 
 import (
+	"strconv"
+	"strings"
+
 	"github.com/gin-gonic/gin"
 
 	"Asgard/constants"
@@ -18,19 +21,37 @@ func NewGroupController() *GroupController {
 
 func (c *GroupController) List(ctx *gin.Context) {
 	page := utils.DefaultInt(ctx, "page", 1)
-	where := map[string]interface{}{}
-	list, total := providers.GroupService.GetGroupPageList(where, page, PageSize)
+	status := utils.DefaultInt(ctx, "status", -99)
+	name := ctx.Query("name")
+	where := map[string]interface{}{
+		"status": status,
+	}
+	querys := []string{}
+	if name != "" {
+		where["name"] = name
+		querys = append(querys, "name="+name)
+	}
+	if status != -99 {
+		querys = append(querys, "status="+strconv.Itoa(status))
+	}
+	list, total := providers.GroupService.GetGroupPageList(where, page, constants.WEB_LIST_PAGE_SIZE)
 	mpurl := "/group/list"
-	ctx.HTML(StatusOK, "group/list", gin.H{
+	if len(querys) > 0 {
+		mpurl = "/group/list?" + strings.Join(querys, "&")
+	}
+	utils.Render(ctx, "group/list", gin.H{
 		"Subtitle":   "分组列表",
 		"List":       list,
 		"Total":      total,
+		"StatusList": constants.GROUP_STATUS,
+		"Name":       name,
+		"Status":     status,
 		"Pagination": utils.PagerHtml(total, page, mpurl),
 	})
 }
 
 func (c *GroupController) Add(ctx *gin.Context) {
-	ctx.HTML(StatusOK, "group/add", gin.H{
+	utils.Render(ctx, "group/add", gin.H{
 		"Subtitle": "添加分组",
 	})
 }
@@ -43,7 +64,7 @@ func (c *GroupController) Create(ctx *gin.Context) {
 	}
 	group := new(models.Group)
 	group.Name = name
-	group.Creator = GetUserID(ctx)
+	group.Creator = utils.GetUserID(ctx)
 	if status != "" {
 		group.Status = constants.GROUP_STATUS_USAGE
 	} else {
@@ -68,27 +89,18 @@ func (c *GroupController) Edit(ctx *gin.Context) {
 		utils.JumpError(ctx)
 		return
 	}
-	ctx.HTML(StatusOK, "group/edit", gin.H{
+	utils.Render(ctx, "group/edit", gin.H{
 		"Subtitle": "编辑分组",
 		"Group":    group,
 	})
 }
 
 func (c *GroupController) Update(ctx *gin.Context) {
-	id := utils.FormDefaultInt64(ctx, "id", 0)
+	group := utils.GetGroup(ctx)
 	name := ctx.PostForm("name")
 	status := ctx.PostForm("status")
-	if id == 0 {
-		utils.APIBadRequest(ctx, "ID格式错误")
-		return
-	}
-	group := providers.GroupService.GetGroupByID(id)
-	if group == nil {
-		utils.APIBadRequest(ctx, "分组不存在")
-		return
-	}
 	group.Name = name
-	group.Updator = GetUserID(ctx)
+	group.Updator = utils.GetUserID(ctx)
 	if status != "" {
 		group.Status = constants.GROUP_STATUS_USAGE
 	} else {
@@ -103,19 +115,10 @@ func (c *GroupController) Update(ctx *gin.Context) {
 }
 
 func (c *GroupController) Delete(ctx *gin.Context) {
-	id := utils.DefaultInt64(ctx, "id", 0)
-	if id == 0 {
-		utils.APIBadRequest(ctx, "ID格式错误")
-		return
-	}
-	group := providers.GroupService.GetGroupByID(id)
-	if group == nil {
-		utils.APIBadRequest(ctx, "分组不存在")
-		return
-	}
-	ok := providers.GroupService.DeleteGroupByID(group)
+	group := utils.GetGroup(ctx)
+	ok := providers.GroupService.ChangeGroupStatus(group, constants.GROUP_STATUS_DELETED, utils.GetUserID(ctx))
 	if !ok {
-		utils.APIError(ctx, "删除分组失败")
+		utils.APIError(ctx, "更新分组状态失败")
 		return
 	}
 	utils.APIOK(ctx)

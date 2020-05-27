@@ -32,7 +32,21 @@ func (s *GroupService) GetUsageGroup() (list []models.Group) {
 }
 
 func (s *GroupService) GetGroupPageList(where map[string]interface{}, page int, pageSize int) (list []models.Group, count int) {
-	err := models.PageList(&models.Group{}, where, page, pageSize, "created_at desc", &list, &count)
+	condition := "1=1"
+	for key, val := range where {
+		if key == "status" {
+			if val.(int) == -99 {
+				condition += " and status != -1"
+			} else {
+				condition += fmt.Sprintf(" and %s=%v", key, val)
+			}
+		} else if key == "name" {
+			condition += fmt.Sprintf(" and %s like '%%%v%%' ", key, val)
+		} else {
+			condition += fmt.Sprintf(" and %s=%v", key, val)
+		}
+	}
+	err := models.PageListbyWhereString(&models.Group{}, condition, page, pageSize, "created_at desc", &list, &count)
 	if err != nil {
 		logger.Error("GetGroupPageList Error:", err)
 		return nil, 0
@@ -80,12 +94,25 @@ func (s *GroupService) UpdateGroup(group *models.Group) bool {
 	return true
 }
 
-func (s *GroupService) DeleteGroupByID(group *models.Group) bool {
+func (s *GroupService) DeleteGroup(group *models.Group) bool {
 	err := models.Delete(group)
 	if err != nil {
 		logger.Error("DeleteGroupByID Error:", err)
 		return false
 	}
 	DelCache(s.buidCacheKey(group.ID))
+	return true
+}
+
+func (s *GroupService) ChangeGroupStatus(group *models.Group, status int64, updator int64) bool {
+	values := map[string]interface{}{
+		"status":  status,
+		"updator": updator,
+	}
+	err := models.UpdateColumns(group, values)
+	if err != nil {
+		logger.Error("ChangeGroupStatus Error:", err)
+		return false
+	}
 	return true
 }

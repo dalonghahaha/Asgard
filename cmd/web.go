@@ -59,7 +59,7 @@ func StartWebServer() {
 		logger.Error("web init error:", err)
 		os.Exit(1)
 	}
-	logger.Info("Web Server Started!", os.Getpid())
+	logger.Info("Web Server Started!")
 	logger.Debug(fmt.Sprintf("Server Port:%d", constants.WEB_PORT))
 	logger.Debug(fmt.Sprintf("Server Pid:%d", os.Getpid()))
 	web.Run()

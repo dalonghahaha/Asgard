@@ -47,7 +47,7 @@ func (c *TimingController) List(ctx *gin.Context) {
 		where["name"] = name
 		querys = append(querys, "name="+name)
 	}
-	timingList, total := providers.TimingService.GetTimingPageList(where, page, PageSize)
+	timingList, total := providers.TimingService.GetTimingPageList(where, page, constants.WEB_LIST_PAGE_SIZE)
 	if timingList == nil {
 		utils.APIError(ctx, "获取定时任务列表失败")
 	}
@@ -59,7 +59,7 @@ func (c *TimingController) List(ctx *gin.Context) {
 	if len(querys) > 0 {
 		mpurl = "/timing/list?" + strings.Join(querys, "&")
 	}
-	ctx.HTML(StatusOK, "timing/list", gin.H{
+	utils.Render(ctx, "timing/list", gin.H{
 		"Subtitle":   "定时任务列表",
 		"List":       list,
 		"Total":      total,
@@ -76,16 +76,16 @@ func (c *TimingController) List(ctx *gin.Context) {
 
 func (c *TimingController) Show(ctx *gin.Context) {
 	timing := utils.GetTiming(ctx)
-	ctx.HTML(StatusOK, "timing/show", gin.H{
+	utils.Render(ctx, "timing/show", gin.H{
 		"Subtitle": "查看定时任务",
 		"Timing":   utils.TimingFormat(timing),
 	})
 }
 
 func (c *TimingController) Add(ctx *gin.Context) {
-	ctx.HTML(StatusOK, "timing/add", gin.H{
+	utils.Render(ctx, "timing/add", gin.H{
 		"Subtitle":   "添加定时任务",
-		"OutBaseDir": OutDir + "timer/",
+		"OutBaseDir": constants.WEB_OUT_DIR + "timer/",
 		"GroupList":  providers.GroupService.GetUsageGroup(),
 		"AgentList":  providers.AgentService.GetUsageAgent(),
 	})
@@ -104,7 +104,7 @@ func (c *TimingController) Create(ctx *gin.Context) {
 	timing.Time, _ = utils.ParseTime(ctx.PostForm("time"))
 	timing.Timeout = utils.FormDefaultInt64(ctx, "timeout", -1)
 	timing.Status = constants.TIMING_STATUS_PAUSE
-	timing.Creator = GetUserID(ctx)
+	timing.Creator = utils.GetUserID(ctx)
 	if ctx.PostForm("is_monitor") != "" {
 		timing.IsMonitor = 1
 	}
@@ -118,9 +118,9 @@ func (c *TimingController) Create(ctx *gin.Context) {
 
 func (c *TimingController) Edit(ctx *gin.Context) {
 	timing := utils.GetTiming(ctx)
-	ctx.HTML(StatusOK, "timing/edit", gin.H{
+	utils.Render(ctx, "timing/edit", gin.H{
 		"Subtitle":  "编辑定时任务",
-		"BackUrl":   GetReferer(ctx),
+		"BackUrl":   utils.GetReferer(ctx),
 		"Info":      utils.TimingFormat(timing),
 		"GroupList": providers.GroupService.GetUsageGroup(),
 		"AgentList": providers.AgentService.GetUsageAgent(),
@@ -139,7 +139,7 @@ func (c *TimingController) Update(ctx *gin.Context) {
 	timing.StdErr = ctx.PostForm("std_err")
 	timing.Time, _ = utils.ParseTime(ctx.PostForm("time"))
 	timing.Timeout = utils.FormDefaultInt64(ctx, "timeout", -1)
-	timing.Creator = GetUserID(ctx)
+	timing.Creator = utils.GetUserID(ctx)
 	if ctx.PostForm("is_monitor") != "" {
 		timing.IsMonitor = 1
 	}
@@ -166,7 +166,7 @@ func (c *TimingController) Copy(ctx *gin.Context) {
 	_timing.Timeout = timing.Timeout
 	_timing.IsMonitor = timing.IsMonitor
 	_timing.Status = constants.TIMING_STATUS_PAUSE
-	_timing.Creator = GetUserID(ctx)
+	_timing.Creator = utils.GetUserID(ctx)
 	ok := providers.TimingService.CreateTiming(_timing)
 	if !ok {
 		utils.APIError(ctx, "复制定时任务失败")
@@ -196,7 +196,7 @@ func (c *TimingController) Start(ctx *gin.Context) {
 		utils.APIOK(ctx)
 		return
 	}
-	ok := providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_RUNNING, GetUserID(ctx))
+	ok := providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_RUNNING, utils.GetUserID(ctx))
 	if !ok {
 		utils.APIError(ctx, "更新定时任务状态失败")
 		return
@@ -243,7 +243,7 @@ func (c *TimingController) Pause(ctx *gin.Context) {
 			return
 		}
 	}
-	ok := providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_PAUSE, GetUserID(ctx))
+	ok := providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_PAUSE, utils.GetUserID(ctx))
 	if !ok {
 		utils.APIError(ctx, "更新定时任务状态失败")
 		return
@@ -270,7 +270,7 @@ func (c *TimingController) Delete(ctx *gin.Context) {
 			return
 		}
 	}
-	ok := providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_DELETED, GetUserID(ctx))
+	ok := providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_DELETED, utils.GetUserID(ctx))
 	if !ok {
 		utils.APIError(ctx, "更新定时任务状态失败")
 		return
@@ -295,7 +295,7 @@ func (c *TimingController) BatchStart(ctx *gin.Context) {
 				logger.Error(fmt.Sprintf("Timing BatchStart AddAgentTiming Error:%s", err.Error()))
 			}
 		}
-		providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_RUNNING, GetUserID(ctx))
+		providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_RUNNING, utils.GetUserID(ctx))
 	}
 	utils.APIOK(ctx)
 }
@@ -338,7 +338,7 @@ func (c *TimingController) BatchPause(ctx *gin.Context) {
 				return
 			}
 		}
-		providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_PAUSE, GetUserID(ctx))
+		providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_PAUSE, utils.GetUserID(ctx))
 	}
 	utils.APIOK(ctx)
 }
@@ -361,7 +361,7 @@ func (c *TimingController) BatchDelete(ctx *gin.Context) {
 				return
 			}
 		}
-		providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_DELETED, GetUserID(ctx))
+		providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_DELETED, utils.GetUserID(ctx))
 	}
 	utils.APIOK(ctx)
 }

@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"net/http"
 	"strconv"
 
 	"github.com/dalonghahaha/avenger/tools/coding"
@@ -29,13 +30,13 @@ func GetUserID(ctx *gin.Context) int64 {
 func GetUser(ctx *gin.Context) *models.User {
 	user, ok := ctx.Get("user")
 	if !ok {
-		ctx.Redirect(constants.StatusFound, "/error")
+		ctx.Redirect(http.StatusFound, "/error")
 		ctx.Abort()
 		return nil
 	}
 	_user, ok := user.(*models.User)
 	if !ok {
-		ctx.Redirect(constants.StatusFound, "/error")
+		ctx.Redirect(http.StatusFound, "/error")
 		ctx.Abort()
 		return nil
 	}

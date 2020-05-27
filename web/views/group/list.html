@@ -1,31 +1,31 @@
 {{define "content"}}
-<div class="page-title-box">
-    <div class="row align-items-center">
-        <div class="col-auto">
-            <h2 class="page-title">
-                分组列表
-            </h2>
-        </div>
-        <div class="col-auto">
-            <div class="text-muted text-h5 mt-2">总记录数:{{.Total}}</div>
-        </div>
-        <div class="col-auto ml-auto d-print-none">
-            <div class="d-flex">
-                <a href="/group/add" class="btn btn-success">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="icon">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                    新增分组
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="row">
+{{template "page_title" .}}
+<div id="main" class="row" data-mod="group">
     <div class="col-12">
+        <form class="mb-3">
+            <div class="row">
+                <div class="col-xl-6">
+                    {{include "partials/input/name"}}
+                </div>
+                <div class="col-xl-6">
+                    {{include "partials/select/status"}}
+                </div>
+                <div class="col btn-list">
+                    <button action="submit" type="button" class="btn btn-primary">
+                        {{include "partials/svg/search"}}
+                        查询
+                    </button>
+                    <button action="list" type="button" class="btn btn-info">
+                        {{include "partials/svg/reset"}}
+                        重置
+                    </button>
+                    <button action="add" type="button" class="btn btn-success">
+                        {{include "partials/svg/add"}}
+                        新增
+                    </button>
+                </div>
+            </div>
+        </form>
         <div class="card">
             <div class="table-responsive">
                 <table class="table card-table table-vcenter text-nowrap datatable overflow-hidden">
@@ -49,25 +49,35 @@
                                 {{if eq .Status 1}}
                                 <span class="badge bg-green">Usage</span>
                                 {{end}}
+                                {{if eq .Status -1}}
+                                <span class="badge bg-red">Deleted</span>
+                                {{end}}
                             </td>
                             <td class="text-right">
-                                <div class="btn-list">
-                                    <a href="/group/edit?id={{.ID}}" title="编辑" class="btn btn-secondary btn-icon ml-auto">
+                                <div class="cmd-info btn-list" data-bind="{{.ID}}">
+                                    {{if ne .Status -1}}
+                                    <button action="edit" class="btn btn-secondary btn-sm ml-auto">
                                         {{include "partials/svg/edit"}}
-                                    </a>
-                                    <a data-bind="{{.ID}}" href="javascript:;" action="delete" title="删除" class="btn btn-danger btn-icon">
+                                        编辑
+                                    </button>
+                                    <button action="delete" class="btn btn-danger btn-sm">
                                         {{include "partials/svg/delete"}}
-                                    </a>
+                                        删除
+                                    </button>
+                                    {{end}}
                                     {{if eq .Status 1}}
-                                    <a href="/app/list?group_id={{.ID}}" title="应用列表" class="btn btn-info btn-icon">
+                                    <button url="/app/list?group_id={{.ID}}" action="jump" class="btn btn-info btn-sm">
                                         {{include "partials/svg/app"}}
-                                    </a>
-                                    <a href="/job/list?group_id={{.ID}}" title="计划任务列表" class="btn btn-info btn-icon">
+                                        应用列表
+                                    </button>
+                                    <button url="/job/list?group_id={{.ID}}" action="jump" class="btn btn-info btn-sm">
                                         {{include "partials/svg/job"}}
-                                    </a>
-                                    <a href="/timing/list?group_id={{.ID}}" title="定时任务列表" class="btn btn-info btn-icon">
+                                        计划任务列表
+                                    </button>
+                                    <button url="/timing/list?group_id={{.ID}}" action="jump" class="btn btn-info btn-sm">
                                         {{include "partials/svg/timing"}}
-                                    </a>
+                                        定时任务列表
+                                    </button>
                                     {{end}}
                                 </div>
                             </td>
@@ -86,17 +96,8 @@
 {{define "script"}}
 <script type="text/javascript">
     $(document).ready(function () {
-        $("table").delegate("a[action=delete]", "click", function () {
-            var id = $(this).attr("data-bind");
-            $.getJSON("/group/delete?id=" + id, function (data) {
-                if (data.code == 200) {
-                    alert("操作成功");
-                    window.location.reload(true)
-                } else {
-                    alert(data.message);
-                }
-            })
-        });
+        $('#status').selectize({});
+        Asgard.init("#main", "group");
     });
 </script>
 {{end}}

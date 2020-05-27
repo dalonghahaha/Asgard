@@ -7,6 +7,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func GetReferer(ctx *gin.Context) string {
+	return ctx.Request.Header.Get("Referer")
+}
+
 func DefaultInt(ctx *gin.Context, key string, defaultVal int) int {
 	val := ctx.Query(key)
 	if val == "" {
@@ -73,6 +77,18 @@ func GetAgent(ctx *gin.Context) *models.Agent {
 		return nil
 	}
 	return _agent
+}
+
+func GetGroup(ctx *gin.Context) *models.Group {
+	group, ok := ctx.Get("group")
+	if !ok {
+		return nil
+	}
+	_group, ok := group.(*models.Group)
+	if !ok {
+		return nil
+	}
+	return _group
 }
 
 func GetApp(ctx *gin.Context) *models.App {

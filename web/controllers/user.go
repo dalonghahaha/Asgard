@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"net/http"
 	"strconv"
 
 	"github.com/dalonghahaha/avenger/tools/coding"
@@ -21,7 +22,7 @@ func NewUserController() *UserController {
 }
 
 func (c *UserController) List(ctx *gin.Context) {
-	userID := GetUserID(ctx)
+	userID := utils.GetUserID(ctx)
 	if userID == 0 {
 		utils.APIBadRequest(ctx, "用户ID错误")
 		return
@@ -33,7 +34,7 @@ func (c *UserController) List(ctx *gin.Context) {
 	}
 	page := utils.DefaultInt(ctx, "page", 1)
 	where := map[string]interface{}{}
-	list, total := providers.UserService.GetUserPageList(where, page, PageSize)
+	list, total := providers.UserService.GetUserPageList(where, page, constants.WEB_LIST_PAGE_SIZE)
 	mpurl := "/user/list"
 	ctx.HTML(200, "user/list", gin.H{
 		"Subtitle":   "用户列表",
@@ -45,7 +46,7 @@ func (c *UserController) List(ctx *gin.Context) {
 }
 
 func (c *UserController) Add(ctx *gin.Context) {
-	ctx.HTML(StatusOK, "user/add", gin.H{
+	utils.Render(ctx, "user/add", gin.H{
 		"Subtitle": "添加用户",
 	})
 }
@@ -113,7 +114,7 @@ func (c *UserController) Create(ctx *gin.Context) {
 }
 
 func (c *UserController) Info(ctx *gin.Context) {
-	userID := GetUserID(ctx)
+	userID := utils.GetUserID(ctx)
 	if userID == 0 {
 		utils.APIBadRequest(ctx, "用户ID错误")
 		return
@@ -138,7 +139,7 @@ func (c *UserController) Edit(ctx *gin.Context) {
 		utils.JumpError(ctx)
 		return
 	}
-	ctx.HTML(StatusOK, "user/edit", gin.H{
+	utils.Render(ctx, "user/edit", gin.H{
 		"Subtitle": "用户信息修改",
 		"User":     user,
 	})
@@ -186,7 +187,7 @@ func (c *UserController) Update(ctx *gin.Context) {
 }
 
 func (c *UserController) Setting(ctx *gin.Context) {
-	userID := GetUserID(ctx)
+	userID := utils.GetUserID(ctx)
 	if userID == 0 {
 		utils.JumpError(ctx)
 		return
@@ -196,7 +197,7 @@ func (c *UserController) Setting(ctx *gin.Context) {
 		utils.JumpError(ctx)
 		return
 	}
-	ctx.HTML(StatusOK, "user/setting", gin.H{
+	utils.Render(ctx, "user/setting", gin.H{
 		"Subtitle": "用户信息设置",
 		"User":     user,
 	})
@@ -206,7 +207,7 @@ func (c *UserController) DoSetting(ctx *gin.Context) {
 	nickname := ctx.PostForm("nickname")
 	email := ctx.PostForm("email")
 	mobile := ctx.PostForm("mobile")
-	userID := GetUserID(ctx)
+	userID := utils.GetUserID(ctx)
 	if userID == 0 {
 		utils.APIBadRequest(ctx, "用户ID错误")
 		return
@@ -289,7 +290,7 @@ func (c *UserController) ResetPassword(ctx *gin.Context) {
 		utils.JumpError(ctx)
 		return
 	}
-	ctx.HTML(StatusOK, "user/reset_password", gin.H{
+	utils.Render(ctx, "user/reset_password", gin.H{
 		"Subtitle": "重置密码",
 		"ID":       id,
 	})
@@ -324,7 +325,7 @@ func (c *UserController) DoResetPassword(ctx *gin.Context) {
 }
 
 func (c *UserController) ChangePassword(ctx *gin.Context) {
-	userID := GetUserID(ctx)
+	userID := utils.GetUserID(ctx)
 	if userID == 0 {
 		utils.JumpError(ctx)
 		return
@@ -334,14 +335,14 @@ func (c *UserController) ChangePassword(ctx *gin.Context) {
 		utils.JumpError(ctx)
 		return
 	}
-	ctx.HTML(StatusOK, "user/change_password", gin.H{
+	utils.Render(ctx, "user/change_password", gin.H{
 		"Subtitle": "修改密码",
 	})
 }
 
 func (c *UserController) DoChangePassword(ctx *gin.Context) {
 	password := ctx.PostForm("password")
-	userID := GetUserID(ctx)
+	userID := utils.GetUserID(ctx)
 	if userID == 0 {
 		utils.APIBadRequest(ctx, "用户ID错误")
 		return
@@ -369,7 +370,7 @@ func (c *UserController) DoChangePassword(ctx *gin.Context) {
 }
 
 func (c *UserController) Register(ctx *gin.Context) {
-	ctx.HTML(StatusOK, "user/register.html", gin.H{
+	utils.Render(ctx, "user/register.html", gin.H{
 		"Subtitle": "用户注册",
 	})
 }
@@ -445,7 +446,7 @@ func (c *UserController) DoRegister(ctx *gin.Context) {
 }
 
 func (c *UserController) Login(ctx *gin.Context) {
-	ctx.HTML(StatusOK, "user/login.html", gin.H{
+	utils.Render(ctx, "user/login.html", gin.H{
 		"Subtitle": "用户登录",
 	})
 }
@@ -491,5 +492,5 @@ func (c *UserController) DoLogin(ctx *gin.Context) {
 
 func (c *UserController) Logout(ctx *gin.Context) {
 	utils.CleanTokenCookie(ctx)
-	ctx.Redirect(StatusFound, "/login")
+	ctx.Redirect(http.StatusFound, "/login")
 }

@@ -1,5 +1,7 @@
 var Asgard = {
-    "doAction": function (url, success_url) {
+    "selector":null,
+    "mod":"",
+    "getData": function (url, success_url) {
         $.getJSON(url, function (data) {
             if (data.code == 200) {
                 alert("操作成功");
@@ -13,7 +15,7 @@ var Asgard = {
             }
         })
     },
-    "postAction": function (url, data, success_url) {
+    "postData": function (url, data, success_url) {
         $.post(url, data, function (info) {
             if (info.code == 200) {
                 alert("操作成功");
@@ -27,41 +29,40 @@ var Asgard = {
             }
         })
     },
-    "SearchSubmit": function () {
-        $("#main").find("form").submit();
+    "Search": function () {
+        Asgard.selector.find("form").submit();
     },
-    "ActionShow": function () {
+    "Show": function () {
         $(this).parent().parent().prev().toggle();
     },
     "ActionBatch": function () {
         $(".batch").toggle();
     },
     "Action": function () {
-        var mod = $("#main").attr("data-mod");
         var action = $(this).attr("action");
-        var url = "/" + mod + "/" + action
+        window.location.href = "/" + Asgard.mod + "/" + action;
+    },
+    "ActionWithURL": function () {
+        var url = $(this).attr("url");
         window.location.href = url;
     },
     "ActionWithID": function () {
-        var mod = $("#main").attr("data-mod");
         var action = $(this).attr("action");
         var id = $(this).parents(".cmd-info").attr("data-bind");
-        var url = "/" + mod + "/" + action + "?id=" + id;
+        var url = "/" + Asgard.mod + "/" + action + "?id=" + id;
         window.location.href = url;
     },
     "JumpWithID": function () {
-        var mod = $("#main").attr("data-mod");
         var action = $(this).attr("action");
         var id = $(this).parents(".cmd-info").attr("data-bind");
-        var url = "/" + action + "/" + mod + "?id=" + id;
+        var url = "/" + action + "/" + Asgard.mod + "?id=" + id;
         window.location.href = url;
     },
     "runAction": function () {
-        var mod = $("#main").attr("data-mod");
         var action = $(this).attr("action");
         var id = $(this).parents(".cmd-info").attr("data-bind");
-        var url = "/" + mod + "/" + action;
-        Asgard.postAction(url, { "id": id });
+        var url = "/" + Asgard.mod + "/" + action;
+        Asgard.postData(url, { "id": id });
     },
     "runBatchAction": function () {
         var ids = [];
@@ -72,7 +73,7 @@ var Asgard = {
                 ids.push($(this).attr("data-bind"))
                 var _status = $(this).attr("status");
                 if (status == "") {
-                    status = _status; 
+                    status = _status;
                 } else if (status != _status) {
                     valid = false;
                     return
@@ -83,7 +84,6 @@ var Asgard = {
             alert("请选择状态相同的对象进行批量操作!");
             return
         }
-        var mod = $("#main").attr("data-mod");
         var action = $(this).attr("action");
         switch (action) {
             case "batch-start":
@@ -114,14 +114,17 @@ var Asgard = {
                 break;
         }
         var id = $(this).parents(".cmd-info").attr("data-bind");
-        var url = "/" + mod + "/" + action;
-        Asgard.postAction(url, { "ids": ids.join(",") });
+        var url = "/" + Asgard.mod + "/" + action;
+        Asgard.postData(url, { "ids": ids.join(",") });
     },
-    "listDelegate": function (mod) {
-        $("#main").delegate("button[action=list]", "click", Asgard.Action)
+    "init": function (selector, mod) {
+        Asgard.selector = $(selector);
+        Asgard.mod = mod;
+        Asgard.selector.delegate("button[action=list]", "click", Asgard.Action)
             .delegate("button[action=add]", "click", Asgard.Action)
-            .delegate("button[action=submit]", "click", Asgard.SearchSubmit)
-            .delegate("button[action=show]", "click", Asgard.ActionShow)
+            .delegate("button[action=jump]", "click", Asgard.ActionWithURL)
+            .delegate("button[action=submit]", "click", Asgard.Search)
+            .delegate("button[action=show]", "click", Asgard.Show)
             .delegate("button[action=edit]", "click", Asgard.ActionWithID)
             .delegate("button[action=monitor]", "click", Asgard.JumpWithID)
             .delegate("button[action=archive]", "click", Asgard.JumpWithID)

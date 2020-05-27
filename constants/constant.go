@@ -19,6 +19,7 @@ const (
 	AGENT_ONLINE    = int64(1)
 	AGENT_FORBIDDEN = int64(-1)
 
+	GROUP_STATUS_DELETED = int64(-1)
 	GROUP_STATUS_UNUSAGE = int64(0)
 	GROUP_STATUS_USAGE   = int64(1)
 
@@ -41,6 +42,21 @@ const (
 	TIMING_STATUS_PAUSE    = int64(2)
 	TIMING_STATUS_FINISHED = int64(3)
 )
+
+var GROUP_STATUS = []structs.M{
+	{
+		"ID":   GROUP_STATUS_UNUSAGE,
+		"Name": "未启用",
+	},
+	{
+		"ID":   GROUP_STATUS_USAGE,
+		"Name": "启用",
+	},
+	{
+		"ID":   GROUP_STATUS_DELETED,
+		"Name": "已删除",
+	},
+}
 
 var APP_STATUS = []structs.M{
 	{

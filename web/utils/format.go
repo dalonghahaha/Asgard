@@ -159,13 +159,13 @@ func ArchiveFormat(info *models.Archive) gin.H {
 
 func GetErrorMessage(code int) (message string) {
 	var ok bool
-	if constants.Lang == "cn" {
+	if constants.WEB_LANG == "cn" {
 		message, ok = constants.ERROR_CN[code]
 	} else {
 		message, ok = constants.ERROR_EN[code]
 	}
 	if !ok {
-		if constants.Lang == "cn" {
+		if constants.WEB_LANG == "cn" {
 			return constants.ERROR_CN_NOFUND
 		} else {
 			return constants.ERROR_EN_NOFUND

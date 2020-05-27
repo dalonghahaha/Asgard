@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"Asgard/providers"
+	"Asgard/web/utils"
 )
 
 type IndexController struct {
@@ -54,7 +55,7 @@ func (c *IndexController) Index(ctx *gin.Context) {
 	appCount := providers.AppService.GetAppCount(where)
 	jobCount := providers.JobService.GetJobCount(where)
 	timingCount := providers.TimingService.GetTimingCount(where)
-	ctx.HTML(StatusOK, "index", gin.H{
+	utils.Render(ctx, "index", gin.H{
 		"Subtitle":     "首页",
 		"Agents":       len(agents),
 		"Apps":         appCount,
@@ -71,36 +72,24 @@ func (c *IndexController) Index(ctx *gin.Context) {
 	})
 }
 
-func UI(c *gin.Context) {
-	c.HTML(StatusOK, "UI", gin.H{
-		"Subtitle": "布局",
-	})
+func Nologin(ctx *gin.Context) {
+	utils.Render(ctx, "error/no_login.html", gin.H{})
 }
 
-func Nologin(c *gin.Context) {
-	c.HTML(StatusOK, "error/no_login.html", gin.H{})
+func AuthFail(ctx *gin.Context) {
+	utils.Render(ctx, "error/auth_fail.html", gin.H{})
 }
 
-func AuthFail(c *gin.Context) {
-	c.HTML(StatusOK, "error/auth_fail.html", gin.H{})
+func AdminOnly(ctx *gin.Context) {
+	utils.Render(ctx, "error/admin_only.html", gin.H{})
 }
 
-func AdminOnly(c *gin.Context) {
-	c.HTML(StatusOK, "error/admin_only.html", gin.H{})
-}
-
-func Error(c *gin.Context) {
-	c.HTML(StatusOK, "error/err.html", gin.H{
+func Error(ctx *gin.Context) {
+	utils.Render(ctx, "error/err.html", gin.H{
 		"Subtitle": "服务器异常",
 	})
 }
 
-func Forbidden(c *gin.Context) {
-	c.HTML(StatusOK, "error/forbidden.html", gin.H{})
-}
-
-func Ping(c *gin.Context) {
-	c.JSON(200, gin.H{
-		"message": "pong",
-	})
+func Forbidden(ctx *gin.Context) {
+	utils.Render(ctx, "error/forbidden.html", gin.H{})
 }
