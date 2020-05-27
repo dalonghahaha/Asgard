@@ -26,6 +26,19 @@ func (s *AppService) GetAppCount(where map[string]interface{}) (count int) {
 	return
 }
 
+func (s *AppService) GetUsageAppCount(where map[string]interface{}) (count int) {
+	condition := "status != -1"
+	for key, val := range where {
+		condition += fmt.Sprintf(" and %s=%v", key, val)
+	}
+	err := models.CountByWhereString(&models.App{}, condition, &count)
+	if err != nil {
+		logger.Error("GetUsageAppCount Error:", err)
+		return 0
+	}
+	return
+}
+
 func (s *AppService) GetAppPageList(where map[string]interface{}, page int, pageSize int) (list []models.App, count int) {
 	condition := "1=1"
 	for key, val := range where {

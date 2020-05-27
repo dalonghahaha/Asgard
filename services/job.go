@@ -26,6 +26,19 @@ func (s *JobService) GetJobCount(where map[string]interface{}) (count int) {
 	return
 }
 
+func (s *JobService) GetUsageJobCount(where map[string]interface{}) (count int) {
+	condition := "status != -1"
+	for key, val := range where {
+		condition += fmt.Sprintf(" and %s=%v", key, val)
+	}
+	err := models.CountByWhereString(&models.Job{}, condition, &count)
+	if err != nil {
+		logger.Error("GetUsageJobCount Error:", err)
+		return 0
+	}
+	return
+}
+
 func (s *JobService) GetJobPageList(where map[string]interface{}, page int, pageSize int) (list []models.Job, count int) {
 	condition := "1=1"
 	for key, val := range where {

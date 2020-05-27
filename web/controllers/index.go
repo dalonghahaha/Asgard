@@ -34,9 +34,9 @@ func (c *IndexController) Index(ctx *gin.Context) {
 			agentList = append(agentList, agent.Alias)
 		}
 		where := map[string]interface{}{"agent_id": agent.ID}
-		apps := providers.AppService.GetAppCount(where)
-		jobs := providers.JobService.GetJobCount(where)
-		timings := providers.TimingService.GetTimingCount(where)
+		apps := providers.AppService.GetUsageAppCount(where)
+		jobs := providers.JobService.GetUsageJobCount(where)
+		timings := providers.TimingService.GetUsageTimingCount(where)
 		agentApps = append(agentApps, apps)
 		agentJobs = append(agentJobs, jobs)
 		agentTimings = append(agentTimings, timings)
@@ -44,17 +44,17 @@ func (c *IndexController) Index(ctx *gin.Context) {
 	for _, group := range groups {
 		groupList = append(groupList, group.Name)
 		where := map[string]interface{}{"group_id": group.ID}
-		apps := providers.AppService.GetAppCount(where)
-		jobs := providers.JobService.GetJobCount(where)
-		timings := providers.TimingService.GetTimingCount(where)
+		apps := providers.AppService.GetUsageAppCount(where)
+		jobs := providers.JobService.GetUsageJobCount(where)
+		timings := providers.TimingService.GetUsageTimingCount(where)
 		groupApps = append(groupApps, apps)
 		groupJobs = append(groupJobs, jobs)
 		groupTimings = append(groupTimings, timings)
 	}
 	where := map[string]interface{}{}
-	appCount := providers.AppService.GetAppCount(where)
-	jobCount := providers.JobService.GetJobCount(where)
-	timingCount := providers.TimingService.GetTimingCount(where)
+	appCount := providers.AppService.GetUsageAppCount(where)
+	jobCount := providers.JobService.GetUsageJobCount(where)
+	timingCount := providers.TimingService.GetUsageTimingCount(where)
 	utils.Render(ctx, "index", gin.H{
 		"Subtitle":     "首页",
 		"Agents":       len(agents),

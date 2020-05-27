@@ -26,6 +26,19 @@ func (s *TimingService) GetTimingCount(where map[string]interface{}) (count int)
 	return
 }
 
+func (s *TimingService) GetUsageTimingCount(where map[string]interface{}) (count int) {
+	condition := "status != -1"
+	for key, val := range where {
+		condition += fmt.Sprintf(" and %s=%v", key, val)
+	}
+	err := models.CountByWhereString(&models.Timing{}, condition, &count)
+	if err != nil {
+		logger.Error("GetUsageTimingCount Error:", err)
+		return 0
+	}
+	return
+}
+
 func (s *TimingService) GetTimingPageList(where map[string]interface{}, page int, pageSize int) (list []models.Timing, count int) {
 	condition := "1=1"
 	for key, val := range where {

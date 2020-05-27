@@ -22,6 +22,10 @@ func Count(object interface{}, where map[string]interface{}, count *int) error {
 	return db.Get(DB_NAME).Model(object).Where(where).Count(count).Error
 }
 
+func CountByWhereString(object interface{}, where string, count *int) error {
+	return db.Get(DB_NAME).Model(object).Where(where).Count(count).Error
+}
+
 func AllList(object interface{}, where map[string]interface{}, list interface{}, count *int) error {
 	err := db.Get(DB_NAME).Where(where).Find(list).Error
 	if err != nil {
