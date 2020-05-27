@@ -3,51 +3,55 @@ package client
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/dalonghahaha/avenger/components/logger"
-	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 
+	"Asgard/constants"
 	"Asgard/rpc"
 )
 
-var (
-	MasterClient rpc.MasterClient
-	TimeOut      = time.Second * 10
-)
+type Master struct {
+	agent     *rpc.AgentInfo
+	rpcClient rpc.MasterClient
+}
 
-func InitMasterClient() {
-	masterIP := viper.GetString("agent.master.ip")
-	masterPort := viper.GetString("agent.master.port")
-	addr := fmt.Sprintf("%s:%s", masterIP, masterPort)
-	ctx, cancel := context.WithTimeout(context.Background(), DialTimeOut)
+func NewMaster() *Master {
+	addr := fmt.Sprintf("%s:%d", constants.MASTER_IP, constants.MASTER_PORT)
+	ctx, cancel := context.WithTimeout(context.Background(), constants.MASTER_TIMEOUT)
 	defer cancel()
 	conn, err := grpc.DialContext(ctx, addr, grpc.WithInsecure())
 	if err != nil {
-		panic("Can't connect: " + addr)
+		panic("can't connect master: " + addr)
 	}
-	MasterClient = rpc.NewMasterClient(conn)
+	logger.Debug("master connected!")
+	return &Master{
+		agent: &rpc.AgentInfo{
+			Ip:   constants.AGENT_IP,
+			Port: constants.AGENT_PORT,
+		},
+		rpcClient: rpc.NewMasterClient(conn),
+	}
 }
 
-func AgentRegister(agentIP, agentPort string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), TimeOut)
+func (m *Master) AgentRegister() error {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.MASTER_TIMEOUT)
 	defer cancel()
-	logger.Debug(fmt.Sprintf("agent register：%s:%s", agentIP, agentPort))
-	response, err := MasterClient.Register(ctx, &rpc.AgentInfo{Ip: agentIP, Port: agentPort})
+	response, err := m.rpcClient.Register(ctx, m.agent)
 	if err != nil {
-		return fmt.Errorf("agent register fail: %v", err.Error())
+		return fmt.Errorf("agent register fail: %s", err.Error())
 	}
 	if response.GetCode() != 200 {
 		return fmt.Errorf("agent register fail: %s", response.GetMessage())
 	}
+	logger.Debug("agent register success!")
 	return nil
 }
 
-func GetAppList(agentIP, agentPort string) ([]*rpc.App, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), TimeOut)
+func (m *Master) GetAppList() ([]*rpc.App, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.MASTER_TIMEOUT)
 	defer cancel()
-	response, err := MasterClient.AppList(ctx, &rpc.AgentInfo{Ip: agentIP, Port: agentPort})
+	response, err := m.rpcClient.AppList(ctx, m.agent)
 	if err != nil {
 		return nil, fmt.Errorf("get app list error: %v", err.Error())
 	}
@@ -57,10 +61,10 @@ func GetAppList(agentIP, agentPort string) ([]*rpc.App, error) {
 	return response.GetApps(), nil
 }
 
-func GetJobList(agentIP, agentPort string) ([]*rpc.Job, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), TimeOut)
+func (m *Master) GetJobList() ([]*rpc.Job, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.MASTER_TIMEOUT)
 	defer cancel()
-	response, err := MasterClient.JobList(ctx, &rpc.AgentInfo{Ip: agentIP, Port: agentPort})
+	response, err := m.rpcClient.JobList(ctx, m.agent)
 	if err != nil {
 		return nil, fmt.Errorf("get job list error: %v", err.Error())
 	}
@@ -70,10 +74,10 @@ func GetJobList(agentIP, agentPort string) ([]*rpc.Job, error) {
 	return response.GetJobs(), nil
 }
 
-func GetTimingList(agentIP, agentPort string) ([]*rpc.Timing, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), TimeOut)
+func (m *Master) GetTimingList() ([]*rpc.Timing, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.MASTER_TIMEOUT)
 	defer cancel()
-	response, err := MasterClient.TimingList(ctx, &rpc.AgentInfo{Ip: agentIP, Port: agentPort})
+	response, err := m.rpcClient.TimingList(ctx, m.agent)
 	if err != nil {
 		return nil, fmt.Errorf("get job list error: %v", err.Error())
 	}
@@ -83,10 +87,10 @@ func GetTimingList(agentIP, agentPort string) ([]*rpc.Timing, error) {
 	return response.GetTimings(), nil
 }
 
-func AgentMonitorReport(agentMonitor *rpc.AgentMonitor) {
-	ctx, cancel := context.WithTimeout(context.Background(), TimeOut)
+func (m *Master) AgentMonitorReport(agentMonitor *rpc.AgentMonitor) {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.MASTER_TIMEOUT)
 	defer cancel()
-	response, err := MasterClient.AgentMonitorReport(ctx, agentMonitor)
+	response, err := m.rpcClient.AgentMonitorReport(ctx, agentMonitor)
 	if err != nil {
 		logger.Error(fmt.Sprintf("agent moniter report failed：%s", err.Error()))
 		return
@@ -97,10 +101,10 @@ func AgentMonitorReport(agentMonitor *rpc.AgentMonitor) {
 	}
 }
 
-func AppMonitorReport(appMonitor *rpc.AppMonitor) {
-	ctx, cancel := context.WithTimeout(context.Background(), TimeOut)
+func (m *Master) AppMonitorReport(appMonitor *rpc.AppMonitor) {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.MASTER_TIMEOUT)
 	defer cancel()
-	response, err := MasterClient.AppMonitorReport(ctx, appMonitor)
+	response, err := m.rpcClient.AppMonitorReport(ctx, appMonitor)
 	if err != nil {
 		logger.Error(fmt.Sprintf("app moniter report failed：%s", err.Error()))
 		return
@@ -111,10 +115,10 @@ func AppMonitorReport(appMonitor *rpc.AppMonitor) {
 	}
 }
 
-func JobMonitorReport(jobMonitor *rpc.JobMonior) {
-	ctx, cancel := context.WithTimeout(context.Background(), TimeOut)
+func (m *Master) JobMonitorReport(jobMonitor *rpc.JobMonior) {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.MASTER_TIMEOUT)
 	defer cancel()
-	response, err := MasterClient.JobMoniorReport(ctx, jobMonitor)
+	response, err := m.rpcClient.JobMoniorReport(ctx, jobMonitor)
 	if err != nil {
 		logger.Error(fmt.Sprintf("job moniter report failed：%s", err.Error()))
 		return
@@ -125,10 +129,10 @@ func JobMonitorReport(jobMonitor *rpc.JobMonior) {
 	}
 }
 
-func TimingMonitorReport(timingMonitor *rpc.TimingMonior) {
-	ctx, cancel := context.WithTimeout(context.Background(), TimeOut)
+func (m *Master) TimingMonitorReport(timingMonitor *rpc.TimingMonior) {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.MASTER_TIMEOUT)
 	defer cancel()
-	response, err := MasterClient.TimingMoniorReport(ctx, timingMonitor)
+	response, err := m.rpcClient.TimingMoniorReport(ctx, timingMonitor)
 	if err != nil {
 		logger.Error(fmt.Sprintf("timing moniter report failed：%s", err.Error()))
 		return
@@ -139,10 +143,10 @@ func TimingMonitorReport(timingMonitor *rpc.TimingMonior) {
 	}
 }
 
-func AppArchiveReport(appArchive *rpc.AppArchive) {
-	ctx, cancel := context.WithTimeout(context.Background(), TimeOut)
+func (m *Master) AppArchiveReport(appArchive *rpc.AppArchive) {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.MASTER_TIMEOUT)
 	defer cancel()
-	response, err := MasterClient.AppArchiveReport(ctx, appArchive)
+	response, err := m.rpcClient.AppArchiveReport(ctx, appArchive)
 	if err != nil {
 		logger.Error(fmt.Sprintf("app archive report failed：%s", err.Error()))
 		return
@@ -153,10 +157,10 @@ func AppArchiveReport(appArchive *rpc.AppArchive) {
 	}
 }
 
-func JobArchiveReport(jobArchive *rpc.JobArchive) {
-	ctx, cancel := context.WithTimeout(context.Background(), TimeOut)
+func (m *Master) JobArchiveReport(jobArchive *rpc.JobArchive) {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.MASTER_TIMEOUT)
 	defer cancel()
-	response, err := MasterClient.JobArchiveReport(ctx, jobArchive)
+	response, err := m.rpcClient.JobArchiveReport(ctx, jobArchive)
 	if err != nil {
 		logger.Error(fmt.Sprintf("job archive report failed：%s", err.Error()))
 		return
@@ -167,10 +171,10 @@ func JobArchiveReport(jobArchive *rpc.JobArchive) {
 	}
 }
 
-func TimingArchiveReport(timingArchive *rpc.TimingArchive) {
-	ctx, cancel := context.WithTimeout(context.Background(), TimeOut)
+func (m *Master) TimingArchiveReport(timingArchive *rpc.TimingArchive) {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.MASTER_TIMEOUT)
 	defer cancel()
-	response, err := MasterClient.TimingArchiveReport(ctx, timingArchive)
+	response, err := m.rpcClient.TimingArchiveReport(ctx, timingArchive)
 	if err != nil {
 		logger.Error(fmt.Sprintf("timing archive report failed：%s", err.Error()))
 		return

@@ -13,6 +13,7 @@ import (
 )
 
 var (
+	TimeOut     = time.Second * 5
 	DialTimeOut = time.Second * 5
 	CronClients = map[int64]rpc.CronClient{}
 )

@@ -1,6 +1,7 @@
 package applications
 
 import (
+	"math"
 	"sync"
 	"time"
 
@@ -8,23 +9,30 @@ import (
 	"github.com/spf13/viper"
 )
 
-var lock sync.Mutex
-
-var ticker *time.Ticker
+var (
+	unit   = 0.0001
+	lock   sync.Mutex
+	ticker *time.Ticker
+)
 
 var moniters = map[int]func(info *process.Process){}
 
 type Monitor struct {
-	CPUPercent    float64
-	MemoryPercent float32
-	NumThreads    int
+	CPUPercent float64
+	Memory     float64
+	NumThreads int
+}
+
+func bytesToMB(bytes uint64) float64 {
+	mb := float64(bytes) / 1024 / 1024
+	return math.Trunc(mb/unit) * unit
 }
 
 func BuildMonitor(info *process.Process) *Monitor {
 	monitor := new(Monitor)
-	memoryPercent, err := info.MemoryPercent()
+	memoryPercent, err := info.MemoryInfo()
 	if err == nil {
-		monitor.MemoryPercent = memoryPercent
+		monitor.Memory = bytesToMB(memoryPercent.RSS)
 	}
 	cpuPercent, err := info.CPUPercent()
 	if err == nil {

@@ -1,9 +1,11 @@
 package rpc
 
 import (
-	"Asgard/applications"
-	"Asgard/models"
 	"time"
+
+	"Asgard/applications"
+	"Asgard/constants"
+	"Asgard/models"
 )
 
 var (
@@ -111,17 +113,17 @@ func BuildArchive(command *applications.Command) *Archive {
 	}
 }
 
-func BuildAgentMonitor(agentIP string, agentPort string, Pid int, UUID string, monitor *applications.Monitor) *AgentMonitor {
+func BuildAgentMonitor(monitor *applications.Monitor) *AgentMonitor {
 	return &AgentMonitor{
 		Agent: &AgentInfo{
-			Ip:   agentIP,
-			Port: agentPort,
+			Ip:   constants.AGENT_IP,
+			Port: constants.AGENT_PORT,
 		},
 		Monitor: &Monitor{
-			Uuid:    UUID,
-			Pid:     int32(Pid),
+			Uuid:    constants.AGENT_UUID,
+			Pid:     int32(constants.AGENT_PID),
 			Cpu:     float32(monitor.CPUPercent),
-			Memory:  monitor.MemoryPercent,
+			Memory:  float32(monitor.Memory),
 			Threads: int32(monitor.NumThreads),
 		},
 	}
@@ -134,7 +136,7 @@ func BuildAppMonitor(app *applications.App, monitor *applications.Monitor) *AppM
 			Uuid:    app.UUID,
 			Pid:     int32(app.Pid),
 			Cpu:     float32(monitor.CPUPercent),
-			Memory:  monitor.MemoryPercent,
+			Memory:  float32(monitor.Memory),
 			Threads: int32(monitor.NumThreads),
 		},
 	}
@@ -147,7 +149,7 @@ func BuildJobMonior(job *applications.Job, monitor *applications.Monitor) *JobMo
 			Uuid:    job.UUID,
 			Pid:     int32(job.Pid),
 			Cpu:     float32(monitor.CPUPercent),
-			Memory:  monitor.MemoryPercent,
+			Memory:  float32(monitor.Memory),
 			Threads: int32(monitor.NumThreads),
 		},
 	}
@@ -160,7 +162,7 @@ func BuildTimingMonior(timing *applications.Timing, monitor *applications.Monito
 			Uuid:    timing.UUID,
 			Pid:     int32(timing.Pid),
 			Cpu:     float32(monitor.CPUPercent),
-			Memory:  monitor.MemoryPercent,
+			Memory:  float32(monitor.Memory),
 			Threads: int32(monitor.NumThreads),
 		},
 	}
