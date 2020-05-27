@@ -1,8 +1,8 @@
 {{define "header_actions"}}
-<div class="card-actions btn-list">
-    <button action="show" class="btn btn-secondary ml-auto" title="查看配置详情">
+<div class="card-actions btn-list justify-content-end">
+    <button action="show" class="btn btn-secondary " title="查看配置详情">
         {{include "partials/svg/show"}}
-        配置详情
+        详情
     </button>
     <button action="edit" class="btn btn-secondary " title="编辑">
         {{include "partials/svg/edit"}}
@@ -14,11 +14,11 @@
     </button>
     <button action="monitor" class="btn btn-info" title="查看监控信息">
         {{include "partials/svg/monitor"}}
-        监控信息
+        监控
     </button>
     <button action="archive" class="btn btn-info" title="查看归档信息">
         {{include "partials/svg/archive"}}
-        归档信息
+        归档
     </button>
     {{if eq .Status 1}}
     <button action="restart" class="btn btn-success" title="重启">

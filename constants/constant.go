@@ -43,6 +43,21 @@ const (
 	TIMING_STATUS_FINISHED = int64(3)
 )
 
+var AGENT_STATUS = []structs.M{
+	{
+		"ID":   AGENT_ONLINE,
+		"Name": "在线",
+	},
+	{
+		"ID":   AGENT_OFFLINE,
+		"Name": "离线",
+	},
+	{
+		"ID":   AGENT_FORBIDDEN,
+		"Name": "禁用",
+	},
+}
+
 var GROUP_STATUS = []structs.M{
 	{
 		"ID":   GROUP_STATUS_UNUSAGE,

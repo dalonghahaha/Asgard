@@ -63,7 +63,21 @@ func (s *AgentService) GetAgentCount(where map[string]interface{}) (count int) {
 }
 
 func (s *AgentService) GetAgentPageList(where map[string]interface{}, page int, pageSize int) (list []models.Agent, count int) {
-	err := models.PageList(&models.Agent{}, where, page, pageSize, "created_at desc", &list, &count)
+	condition := "1=1"
+	for key, val := range where {
+		if key == "status" {
+			if val.(int) == -99 {
+				condition += " and status != -1"
+			} else {
+				condition += fmt.Sprintf(" and %s=%v", key, val)
+			}
+		} else if key == "alias" {
+			condition += fmt.Sprintf(" and %s like '%%%v%%' ", key, val)
+		} else {
+			condition += fmt.Sprintf(" and %s=%v", key, val)
+		}
+	}
+	err := models.PageListbyWhereString(&models.Agent{}, condition, page, pageSize, "created_at desc", &list, &count)
 	if err != nil {
 		logger.Error("GetAgentPageList Error:", err)
 		return nil, 0
