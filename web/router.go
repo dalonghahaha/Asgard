@@ -64,7 +64,7 @@ func setupRouter() {
 		app.POST("/start", middlewares.AppAgentInit, appController.Start)
 		app.POST("/restart", middlewares.AppAgentInit, appController.ReStart)
 		app.POST("/pause", middlewares.AppAgentInit, appController.Pause)
-		app.POST("/delete", middlewares.AppInit, appController.Delete)
+		app.POST("/delete", middlewares.AppAgentInit, appController.Delete)
 		//batch-control
 		app.POST("/batch-start", middlewares.BatchAppAgentInit, appController.BatchStart)
 		app.POST("/batch-restart", middlewares.BatchAppAgentInit, appController.BatchReStart)
@@ -85,7 +85,7 @@ func setupRouter() {
 		job.POST("/start", middlewares.JobAgentInit, jobController.Start)
 		job.POST("/restart", middlewares.JobAgentInit, jobController.ReStart)
 		job.POST("/pause", middlewares.JobAgentInit, jobController.Pause)
-		job.POST("/delete", middlewares.JobInit, jobController.Delete)
+		job.POST("/delete", middlewares.JobAgentInit, jobController.Delete)
 		//batch-control
 		job.POST("/batch-start", middlewares.BatchJobAgentInit, jobController.BatchStart)
 		job.POST("/batch-restart", middlewares.BatchJobAgentInit, jobController.BatchReStart)
@@ -106,7 +106,7 @@ func setupRouter() {
 		timing.POST("/start", middlewares.TimingAgentInit, timingController.Start)
 		timing.POST("/restart", middlewares.TimingAgentInit, timingController.ReStart)
 		timing.POST("/pause", middlewares.TimingAgentInit, timingController.Pause)
-		timing.POST("/delete", middlewares.TimingInit, timingController.Delete)
+		timing.POST("/delete", middlewares.TimingAgentInit, timingController.Delete)
 		//batch-control
 		timing.POST("/batch-start", middlewares.BatchTimingAgentInit, timingController.BatchStart)
 		timing.POST("/batch-restart", middlewares.BatchTimingAgentInit, timingController.BatchReStart)
