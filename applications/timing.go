@@ -151,12 +151,26 @@ func NewTiming(config map[string]interface{}) (*Timing, error) {
 	return timing, nil
 }
 
-func TimingRegister(id int64, config map[string]interface{}) (*Timing, error) {
+func TimingRegister(id int64, config map[string]interface{}, timingMonitorChan chan TimingMonitor, timingArchiveChan chan TimingArchive) error {
 	timing, err := NewTiming(config)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	timing.ID = id
+	timing.MonitorReport = func(monitor *Monitor) {
+		timingMonitor := TimingMonitor{
+			Timing:  timing,
+			Monitor: monitor,
+		}
+		timingMonitorChan <- timingMonitor
+	}
+	timing.ArchiveReport = func(archive *Archive) {
+		timingArchive := TimingArchive{
+			Timing:  timing,
+			Archive: archive,
+		}
+		timingArchiveChan <- timingArchive
+	}
 	Timings[id] = timing
-	return timing, nil
+	return nil
 }

@@ -2,8 +2,10 @@ package applications
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/dalonghahaha/avenger/components/logger"
+	"github.com/dalonghahaha/avenger/tools/uuid"
 )
 
 var APPs = map[int64]*App{}
@@ -104,12 +106,30 @@ func NewApp(config map[string]interface{}) (*App, error) {
 	return app, nil
 }
 
-func AppRegister(id int64, config map[string]interface{}) (*App, error) {
+func AppRegister(id int64, config map[string]interface{}, reports *sync.Map, appMonitorChan chan AppMonitor, appArchiveChan chan AppArchive) error {
 	app, err := NewApp(config)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	app.ID = id
+	app.MonitorReport = func(monitor *Monitor) {
+		appMonitor := AppMonitor{
+			UUID:    uuid.GenerateV4(),
+			App:     app,
+			Monitor: monitor,
+		}
+		reports.Store(appMonitor.UUID, 1)
+		appMonitorChan <- appMonitor
+	}
+	app.ArchiveReport = func(archive *Archive) {
+		appArchive := AppArchive{
+			UUID:    uuid.GenerateV4(),
+			App:     app,
+			Archive: archive,
+		}
+		reports.Store(appArchive.UUID, 1)
+		appArchiveChan <- appArchive
+	}
 	APPs[id] = app
-	return app, nil
+	return nil
 }

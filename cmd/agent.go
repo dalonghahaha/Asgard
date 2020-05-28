@@ -15,8 +15,8 @@ import (
 	"google.golang.org/grpc/reflection"
 
 	"Asgard/applications"
-	"Asgard/client"
 	"Asgard/constants"
+	"Asgard/providers"
 	"Asgard/rpc"
 	"Asgard/server"
 )
@@ -25,8 +25,6 @@ func init() {
 	agentCommonCmd.PersistentFlags().StringP("conf", "c", "conf", "config path")
 	rootCmd.AddCommand(agentCommonCmd)
 }
-
-var master *client.Master
 
 var agentCommonCmd = &cobra.Command{
 	Use:    "agent",
@@ -71,11 +69,11 @@ func InitAgent() {
 		constants.AGENT_MONITER = duration
 	}
 	constants.AGENT_MONITER_TICKER = time.NewTicker(time.Second * time.Duration(constants.AGENT_MONITER))
-	master = client.NewMaster()
+	providers.RegisterMaster()
 }
 
 func StartAgent() {
-	err := master.AgentRegister()
+	err := providers.MasterClient.AgentRegister()
 	if err != nil {
 		panic(err)
 	}
@@ -94,6 +92,7 @@ func StartAgent() {
 	applications.AppStartAll(false)
 	applications.JobStartAll(false)
 	applications.TimingStartAll(false)
+	logger.Info("Agent Server Started!")
 	applications.MoniterStart()
 }
 
@@ -102,11 +101,21 @@ func StopAgent() {
 	applications.AppStopAll()
 	applications.JobStopAll()
 	applications.TimingStopAll()
+	maxWait := 10
+	countWait := 0
+	for {
+		if providers.MasterClient.IsRunning() && countWait <= maxWait {
+			time.Sleep(time.Second * 1)
+			countWait += 1
+		} else {
+			break
+		}
+	}
+	logger.Info("Agent Server Stop!")
 }
 
 func StartAgentRpcServer() {
-	port := viper.GetString("agent.rpc.port")
-	listen, err := net.Listen("tcp", ":"+port)
+	listen, err := net.Listen("tcp", ":"+constants.AGENT_PORT)
 	if err != nil {
 		logger.Error("failed to listen:", err)
 		panic(err)
@@ -133,71 +142,73 @@ func AgentMonitorReport() {
 		logger.Error("get process failed:", err)
 		return
 	}
-	monitor := applications.BuildMonitor(info)
-	master.AgentMonitorReport(rpc.BuildAgentMonitor(monitor))
+	agentMonitor := applications.AgentMonitor{
+		Ip:      constants.AGENT_IP,
+		Port:    constants.AGENT_PORT,
+		Monitor: applications.BuildMonitor(info),
+	}
+	providers.MasterClient.AgentMonitorChan <- agentMonitor
 }
 
 func AppsRegister() error {
-	apps, err := master.GetAppList()
+	apps, err := providers.MasterClient.GetAppList()
 	if err != nil {
 		return err
 	}
 	for _, app := range apps {
 		logger.Debug("app register: ", app.GetName())
 		config := rpc.BuildAppConfig(app)
-		app, err := applications.AppRegister(app.GetId(), config)
+		err := applications.AppRegister(
+			app.GetId(),
+			config,
+			providers.MasterClient.Reports,
+			providers.MasterClient.AppMonitorChan,
+			providers.MasterClient.AppArchiveChan,
+		)
 		if err != nil {
 			return err
-		}
-		app.MonitorReport = func(monitor *applications.Monitor) {
-			master.AppMonitorReport(rpc.BuildAppMonitor(app, monitor))
-		}
-		app.ArchiveReport = func(command *applications.Command) {
-			master.AppArchiveReport(rpc.BuildAppArchive(app, command))
 		}
 	}
 	return nil
 }
 
 func JobsRegister() error {
-	jobs, err := master.GetJobList()
+	jobs, err := providers.MasterClient.GetJobList()
 	if err != nil {
 		return err
 	}
 	for _, job := range jobs {
-		logger.Debug("job register: ", job.GetName())
+		logger.Debug(fmt.Sprintf("job register: %s %s", job.GetName(), job.GetSpec()))
 		config := rpc.BuildJobConfig(job)
-		job, err := applications.JobRegister(job.GetId(), config)
+		err := applications.JobRegister(
+			job.GetId(),
+			config,
+			providers.MasterClient.JobMonitorChan,
+			providers.MasterClient.JobArchiveChan,
+		)
 		if err != nil {
 			return err
-		}
-		job.MonitorReport = func(monitor *applications.Monitor) {
-			master.JobMonitorReport(rpc.BuildJobMonior(job, monitor))
-		}
-		job.ArchiveReport = func(command *applications.Command) {
-			master.JobArchiveReport(rpc.BuildJobArchive(job, command))
 		}
 	}
 	return nil
 }
 
 func TimingsRegister() error {
-	timings, err := master.GetTimingList()
+	timings, err := providers.MasterClient.GetTimingList()
 	if err != nil {
 		return err
 	}
 	for _, timing := range timings {
-		logger.Debug(fmt.Sprintf("timing register: %s %v", timing.GetName(), time.Unix(timing.GetTime(), 0).Format("2006-01-02 15:04:05")))
+		logger.Debug(fmt.Sprintf("timing register: %s %s", timing.GetName(), time.Unix(timing.GetTime(), 0).Format("2006-01-02 15:04:05")))
 		config := rpc.BuildTimingConfig(timing)
-		timing, err := applications.TimingRegister(timing.GetId(), config)
+		err := applications.TimingRegister(
+			timing.GetId(),
+			config,
+			providers.MasterClient.TimingMonitorChan,
+			providers.MasterClient.TimingArchiveChan,
+		)
 		if err != nil {
 			return err
-		}
-		timing.MonitorReport = func(monitor *applications.Monitor) {
-			master.TimingMonitorReport(rpc.BuildTimingMonior(timing, monitor))
-		}
-		timing.ArchiveReport = func(command *applications.Command) {
-			master.TimingArchiveReport(rpc.BuildTimingArchive(timing, command))
 		}
 	}
 	return nil

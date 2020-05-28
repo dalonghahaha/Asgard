@@ -10,9 +10,10 @@ import (
 )
 
 var (
-	unit   = 0.0001
-	lock   sync.Mutex
-	ticker *time.Ticker
+	cupUnit    = 0.001
+	memoryUnit = 0.0001
+	lock       sync.Mutex
+	ticker     *time.Ticker
 )
 
 var moniters = map[int]func(info *process.Process){}
@@ -23,20 +24,43 @@ type Monitor struct {
 	NumThreads int
 }
 
+type AgentMonitor struct {
+	UUID    string
+	Ip      string
+	Port    string
+	Monitor *Monitor
+}
+
+type AppMonitor struct {
+	UUID    string
+	App     *App
+	Monitor *Monitor
+}
+
+type JobMonitor struct {
+	UUID    string
+	Job     *Job
+	Monitor *Monitor
+}
+
+type TimingMonitor struct {
+	Timing  *Timing
+	Monitor *Monitor
+}
+
 func bytesToMB(bytes uint64) float64 {
-	mb := float64(bytes) / 1024 / 1024
-	return math.Trunc(mb/unit) * unit
+	return float64(bytes) / 1024 / 1024
 }
 
 func BuildMonitor(info *process.Process) *Monitor {
 	monitor := new(Monitor)
-	memoryPercent, err := info.MemoryInfo()
+	memoryInfo, err := info.MemoryInfo()
 	if err == nil {
-		monitor.Memory = bytesToMB(memoryPercent.RSS)
+		monitor.Memory = math.Trunc(bytesToMB(memoryInfo.RSS)/memoryUnit) * memoryUnit
 	}
 	cpuPercent, err := info.CPUPercent()
 	if err == nil {
-		monitor.CPUPercent = cpuPercent
+		monitor.CPUPercent = math.Trunc(cpuPercent/cupUnit) * cupUnit
 	}
 	threads, err := info.NumThreads()
 	if err == nil {

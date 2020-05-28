@@ -2,23 +2,22 @@ package server
 
 import (
 	"Asgard/applications"
-	"Asgard/client"
+	"Asgard/providers"
 	"Asgard/rpc"
 	"fmt"
 )
 
 func AddJob(id int64, request *rpc.Job) error {
-	job, err := applications.JobRegister(id, rpc.BuildJobConfig(request))
+	err := applications.JobRegister(
+		id,
+		rpc.BuildJobConfig(request),
+		providers.MasterClient.JobMonitorChan,
+		providers.MasterClient.JobArchiveChan,
+	)
 	if err != nil {
 		return err
 	}
-	job.MonitorReport = func(monitor *applications.Monitor) {
-		client.JobMonitorReport(rpc.BuildJobMonior(job, monitor))
-	}
-	job.ArchiveReport = func(command *applications.Command) {
-		client.JobArchiveReport(rpc.BuildJobArchive(job, command))
-	}
-	applications.JobAdd(job)
+	applications.JobAdd(applications.Jobs[id])
 	return nil
 }
 

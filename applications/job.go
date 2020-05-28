@@ -158,12 +158,26 @@ func JobAppend(id int64, config map[string]interface{}) (*Job, error) {
 	return job, nil
 }
 
-func JobRegister(id int64, config map[string]interface{}) (*Job, error) {
+func JobRegister(id int64, config map[string]interface{}, jobMonitorChan chan JobMonitor, jobArchiveChan chan JobArchive) error {
 	job, err := NewJob(config)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	job.ID = id
+	job.MonitorReport = func(monitor *Monitor) {
+		jobMonitor := JobMonitor{
+			Job:     job,
+			Monitor: monitor,
+		}
+		jobMonitorChan <- jobMonitor
+	}
+	job.ArchiveReport = func(archive *Archive) {
+		jobArchive := JobArchive{
+			Job:     job,
+			Archive: archive,
+		}
+		jobArchiveChan <- jobArchive
+	}
 	Jobs[id] = job
-	return job, nil
+	return nil
 }

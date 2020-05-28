@@ -11,6 +11,11 @@ import (
 	"Asgard/applications"
 )
 
+var (
+	jobMonitorChan chan applications.JobMonitor
+	jobArchiveChan chan applications.JobArchive
+)
+
 func init() {
 	cronCommonCmd.PersistentFlags().StringP("conf", "c", "conf", "config path")
 	rootCmd.AddCommand(cronCommonCmd)
@@ -52,7 +57,12 @@ func StartCron() {
 			}
 			config[_k] = v
 		}
-		_, err := applications.JobRegister(int64(index), config)
+		err := applications.JobRegister(
+			int64(index),
+			config,
+			jobMonitorChan,
+			jobArchiveChan,
+		)
 		if err != nil {
 			fmt.Println(err)
 			return

@@ -9,6 +9,12 @@ import (
 	"github.com/spf13/viper"
 
 	"Asgard/applications"
+	"Asgard/providers"
+)
+
+var (
+	appMonitorChan chan applications.AppMonitor
+	appArchiveChan chan applications.AppArchive
 )
 
 func init() {
@@ -52,7 +58,12 @@ func StartGuard() {
 			}
 			config[_k] = v
 		}
-		_, err := applications.AppRegister(int64(index), config)
+		err := applications.AppRegister(
+			int64(index),
+			config,
+			providers.MasterClient.Reports,
+			appMonitorChan,
+			appArchiveChan)
 		if err != nil {
 			fmt.Println(err)
 			return

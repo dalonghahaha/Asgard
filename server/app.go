@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"Asgard/applications"
-	"Asgard/client"
+	"Asgard/providers"
 	"Asgard/rpc"
 )
 
@@ -37,15 +37,15 @@ func AddApp(id int64, appRequest *rpc.App) error {
 	if ok {
 		return nil
 	}
-	app, err := applications.AppRegister(id, rpc.BuildAppConfig(appRequest))
+	err := applications.AppRegister(
+		id,
+		rpc.BuildAppConfig(appRequest),
+		providers.MasterClient.Reports,
+		providers.MasterClient.AppMonitorChan,
+		providers.MasterClient.AppArchiveChan,
+	)
 	if err != nil {
 		return err
-	}
-	app.MonitorReport = func(monitor *applications.Monitor) {
-		client.AppMonitorReport(rpc.BuildAppMonitor(app, monitor))
-	}
-	app.ArchiveReport = func(command *applications.Command) {
-		client.AppArchiveReport(rpc.BuildAppArchive(app, command))
 	}
 	ok = applications.AppStartByID(id)
 	if !ok {

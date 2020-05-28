@@ -2,23 +2,22 @@ package server
 
 import (
 	"Asgard/applications"
-	"Asgard/client"
+	"Asgard/providers"
 	"Asgard/rpc"
 	"fmt"
 )
 
 func AddTiming(id int64, request *rpc.Timing) error {
-	timing, err := applications.TimingRegister(id, rpc.BuildTimingConfig(request))
+	err := applications.TimingRegister(
+		id,
+		rpc.BuildTimingConfig(request),
+		providers.MasterClient.TimingMonitorChan,
+		providers.MasterClient.TimingArchiveChan,
+	)
 	if err != nil {
 		return err
 	}
-	timing.MonitorReport = func(monitor *applications.Monitor) {
-		client.TimingMonitorReport(rpc.BuildTimingMonior(timing, monitor))
-	}
-	timing.ArchiveReport = func(command *applications.Command) {
-		client.TimingArchiveReport(rpc.BuildTimingArchive(timing, command))
-	}
-	applications.TimingAdd(id, timing)
+	applications.TimingAdd(id, applications.Timings[id])
 	return nil
 }
 

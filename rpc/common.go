@@ -102,22 +102,22 @@ func BuildTiming(job *applications.Timing) *Timing {
 	}
 }
 
-func BuildArchive(command *applications.Command) *Archive {
+func BuildArchive(archive *applications.Archive) *Archive {
 	return &Archive{
-		Uuid:      command.UUID,
-		Pid:       int32(command.Pid),
-		BeginTime: command.Begin.Unix(),
-		EndTime:   command.End.Unix(),
-		Status:    int32(command.Status),
-		Signal:    command.Signal,
+		Uuid:      archive.UUID,
+		Pid:       archive.Pid,
+		BeginTime: archive.BeginTime,
+		EndTime:   archive.EndTime,
+		Status:    archive.Status,
+		Signal:    archive.Signal,
 	}
 }
 
-func BuildAgentMonitor(monitor *applications.Monitor) *AgentMonitor {
+func BuildAgentMonitor(ip, port string, monitor *applications.Monitor) *AgentMonitor {
 	return &AgentMonitor{
 		Agent: &AgentInfo{
-			Ip:   constants.AGENT_IP,
-			Port: constants.AGENT_PORT,
+			Ip:   ip,
+			Port: port,
 		},
 		Monitor: &Monitor{
 			Uuid:    constants.AGENT_UUID,
@@ -168,24 +168,24 @@ func BuildTimingMonior(timing *applications.Timing, monitor *applications.Monito
 	}
 }
 
-func BuildAppArchive(app *applications.App, command *applications.Command) *AppArchive {
+func BuildAppArchive(app *applications.App, archive *applications.Archive) *AppArchive {
 	return &AppArchive{
 		App:     BuildApp(app),
-		Archive: BuildArchive(command),
+		Archive: BuildArchive(archive),
 	}
 }
 
-func BuildJobArchive(job *applications.Job, command *applications.Command) *JobArchive {
+func BuildJobArchive(job *applications.Job, archive *applications.Archive) *JobArchive {
 	return &JobArchive{
 		Job:     BuildJob(job),
-		Archive: BuildArchive(command),
+		Archive: BuildArchive(archive),
 	}
 }
 
-func BuildTimingArchive(timing *applications.Timing, command *applications.Command) *TimingArchive {
+func BuildTimingArchive(timing *applications.Timing, archive *applications.Archive) *TimingArchive {
 	return &TimingArchive{
 		Timing:  BuildTiming(timing),
-		Archive: BuildArchive(command),
+		Archive: BuildArchive(archive),
 	}
 }
 

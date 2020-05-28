@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -18,6 +19,7 @@ import (
 var processExit = false
 
 type Command struct {
+	lock            sync.Mutex
 	Name            string
 	Dir             string
 	Program         string
@@ -35,7 +37,7 @@ type Command struct {
 	Cmd             *exec.Cmd
 	ExceptionReport func(message string)
 	MonitorReport   func(monitor *Monitor)
-	ArchiveReport   func(command *Command)
+	ArchiveReport   func(archive *Archive)
 }
 
 func (c *Command) configure(config map[string]interface{}) error {
@@ -130,7 +132,7 @@ func (c *Command) start() error {
 	}
 	c.Begin = time.Now()
 	c.Finished = false
-	c.UUID = uuid.GenerateV1()
+	c.UUID = uuid.GenerateV4()
 	c.Pid = c.Cmd.Process.Pid
 	logger.Info(c.Name+" started at ", c.Pid)
 	if c.IsMonitor {
@@ -141,58 +143,65 @@ func (c *Command) start() error {
 
 func (c *Command) wait(callback func()) {
 	_ = c.Cmd.Wait()
-	if c.IsMonitor {
-		MoniterRemove(c.Pid)
-	}
-	if c.Cmd == nil || c.Cmd.ProcessState == nil {
-		c.Status = -2
-		c.Signal = ""
-		c.End = time.Now()
-		c.Finished = true
-		if c.ArchiveReport != nil {
-			c.ArchiveReport(c)
-		}
-		callback()
+	if c.Finished {
 		return
 	}
-	status := c.Cmd.ProcessState.Sys().(syscall.WaitStatus)
-	if status.Signaled() {
-		logger.Info(c.Name+" signaled:", status.Signal().String())
-	}
-	if c.Cmd.ProcessState.ExitCode() != 0 {
-		logger.Error(c.Name+" exit with status ", c.Cmd.ProcessState.ExitCode())
+	c.finish()
+	if c.Cmd == nil || c.Cmd.ProcessState == nil {
+		c.Status = -3
+		c.Signal = "unknow"
 	} else {
-		logger.Info(c.Name + " finished")
+		c.Status = c.Cmd.ProcessState.ExitCode()
+		status, ok := c.Cmd.ProcessState.Sys().(syscall.WaitStatus)
+		if ok && status.Signaled() {
+			c.Signal = status.Signal().String()
+		}
 	}
-	c.End = time.Now()
-	c.Finished = true
-	c.Status = c.Cmd.ProcessState.ExitCode()
-	c.Signal = status.Signal().String()
 	if c.ArchiveReport != nil {
-		c.ArchiveReport(c)
+		logger.Debug(fmt.Sprintf("appArchive Send from wait:[%s][%d][%s]", c.Name, c.Status, c.Signal))
+		c.ArchiveReport(buildArchive(c))
 	}
 	callback()
 }
 
 func (c *Command) stop() {
-	if !c.Finished {
-		if c.Cmd == nil {
-			return
-		}
-		if c.Cmd.Process == nil {
-			return
-		}
+	if c.Finished {
+		return
+	}
+	c.finish()
+	if c.Cmd == nil || c.Cmd.Process == nil {
+		c.Status = -3
+		c.Signal = "unknow"
+	} else {
+		//try kill
 		err := c.Cmd.Process.Kill()
-		if err != nil {
-			logger.Error(c.Name+" kill fail:", err)
-		}
-		logger.Info(c.Name + " killed!")
-		c.Status = -2
-		c.Signal = "Killed"
-		if c.ArchiveReport != nil {
-			c.ArchiveReport(c)
+		if err == nil {
+			c.Status = -2
+			c.Signal = "kill"
+		} else {
+			if c.Cmd.ProcessState != nil {
+				c.Status = c.Cmd.ProcessState.ExitCode()
+				status, ok := c.Cmd.ProcessState.Sys().(syscall.WaitStatus)
+				if ok && status.Signaled() {
+					c.Signal = status.Signal().String()
+				}
+			}
 		}
 	}
+	if c.ArchiveReport != nil {
+		logger.Debug(fmt.Sprintf("appArchive Send from stop:[%s][%d][%s]", c.Name, c.Status, c.Signal))
+		c.ArchiveReport(buildArchive(c))
+	}
+}
+
+func (c *Command) finish() {
+	c.lock.Lock()
+	if c.IsMonitor {
+		MoniterRemove(c.Pid)
+	}
+	c.End = time.Now()
+	c.Finished = true
+	c.lock.Unlock()
 }
 
 func (c *Command) monitor(info *process.Process) {
