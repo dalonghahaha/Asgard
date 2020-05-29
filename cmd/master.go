@@ -57,7 +57,7 @@ func InitMaster() {
 }
 
 func StartMasterRpcServer() {
-	listen, err := net.Listen("tcp", fmt.Sprintf(":%d", constants.MASTER_PORT))
+	listen, err := net.Listen("tcp", fmt.Sprintf(":%s", constants.MASTER_PORT))
 	if err != nil {
 		logger.Error("failed to listen:", err)
 		panic(err)
@@ -66,7 +66,7 @@ func StartMasterRpcServer() {
 	rpc.RegisterMasterServer(s, &server.MasterServer{})
 	reflection.Register(s)
 	logger.Info("Master Rpc Server Started!")
-	logger.Debugf("Server Port:%d", constants.MASTER_PORT)
+	logger.Debugf("Server Port:%s", constants.MASTER_PORT)
 	logger.Debugf("Server Pid:%d", os.Getpid())
 	logger.Debugf("Moniter Loop:%d", constants.MASTER_MONITER)
 	err = s.Serve(listen)
@@ -122,21 +122,21 @@ func checkAgent(agent models.Agent) {
 		agent.Status = constants.AGENT_ONLINE
 		providers.AgentService.UpdateAgent(&agent)
 		//更新实例应用运行状态
-		apps, err := client.GetAppList(&agent)
+		apps, err := client.GetAppList()
 		if err != nil {
 			logger.Error("checkOnlineAgent GetAgentAppList Error:", err)
 		} else {
 			markAppStatus(apps, usageApps)
 		}
 		//更新实例计划任务运行状态
-		jobs, err := client.GetJobList(&agent)
+		jobs, err := client.GetJobList()
 		if err != nil {
 			logger.Error("checkOnlineAgent GetAgentJobList Error:", err)
 		} else {
 			markJobStatus(jobs, usageJobs)
 		}
 		//更新实例计划任务运行状态
-		timings, err := client.GetTimingList(&agent)
+		timings, err := client.GetTimingList()
 		if err != nil {
 			logger.Error("checkOnlineAgent GetAgentTimingList Error:", err)
 		} else {

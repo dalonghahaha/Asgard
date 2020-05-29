@@ -186,13 +186,13 @@ func (c *TimingController) Start(ctx *gin.Context) {
 		utils.APIError(ctx, "初始化RPC客户端异常:\n"+err.Error())
 		return
 	}
-	_timing, err := client.GetTiming(agent, timing.ID)
+	_timing, err := client.GetTiming(timing.ID)
 	if err != nil {
 		utils.APIError(ctx, fmt.Sprintf("获取定时任务情况异常:%s", err.Error()))
 		return
 	}
 	if _timing == nil {
-		err = client.AddTiming(agent, timing)
+		err = client.AddTiming(timing)
 		if err != nil {
 			utils.APIError(ctx, fmt.Sprintf("添加定时任务异常:%s", err.Error()))
 			return
@@ -216,19 +216,19 @@ func (c *TimingController) ReStart(ctx *gin.Context) {
 		utils.APIError(ctx, "初始化RPC客户端异常:\n"+err.Error())
 		return
 	}
-	_timing, err := client.GetTiming(agent, timing.ID)
+	_timing, err := client.GetTiming(timing.ID)
 	if err != nil {
 		utils.APIError(ctx, fmt.Sprintf("获取定时任务情况异常:%s", err.Error()))
 		return
 	}
 	if _timing == nil {
-		err = client.AddTiming(agent, timing)
+		err = client.AddTiming(timing)
 		if err != nil {
 			utils.APIError(ctx, fmt.Sprintf("重启定时任务异常:%s", err.Error()))
 			return
 		}
 	} else {
-		err = client.UpdateTiming(agent, timing)
+		err = client.UpdateTiming(timing)
 		if err != nil {
 			utils.APIError(ctx, fmt.Sprintf("重启定时任务异常:%s", err.Error()))
 			return
@@ -245,13 +245,13 @@ func (c *TimingController) Pause(ctx *gin.Context) {
 		utils.APIError(ctx, "初始化RPC客户端异常:\n"+err.Error())
 		return
 	}
-	_timing, err := client.GetTiming(agent, timing.ID)
+	_timing, err := client.GetTiming(timing.ID)
 	if err != nil {
 		utils.APIError(ctx, fmt.Sprintf("获取定时任务情况异常:%s", err.Error()))
 		return
 	}
 	if _timing != nil {
-		err = client.RemoveTiming(agent, timing.ID)
+		err = client.RemoveTiming(timing.ID)
 		if err != nil {
 			utils.APIError(ctx, fmt.Sprintf("停止定时任务异常:%s", err.Error()))
 			return
@@ -277,13 +277,13 @@ func (c *TimingController) Delete(ctx *gin.Context) {
 		utils.APIError(ctx, "初始化RPC客户端异常:\n"+err.Error())
 		return
 	}
-	_timing, err := client.GetTiming(agent, timing.ID)
+	_timing, err := client.GetTiming(timing.ID)
 	if err != nil {
 		utils.APIError(ctx, fmt.Sprintf("获取定时任务情况异常:%s", err.Error()))
 		return
 	}
 	if _timing != nil {
-		err = client.RemoveTiming(agent, timing.ID)
+		err = client.RemoveTiming(timing.ID)
 		if err != nil {
 			utils.APIError(ctx, fmt.Sprintf("停止定时任务异常:%s", err.Error()))
 			return
@@ -308,13 +308,13 @@ func (c *TimingController) BatchStart(ctx *gin.Context) {
 			logger.Errorf("Timing BatchStart GetAgent Error:[%d][%s]", timing.ID, err.Error())
 			continue
 		}
-		_timing, err := client.GetTiming(agent, timing.ID)
+		_timing, err := client.GetTiming(timing.ID)
 		if err != nil {
 			logger.Errorf("Timing BatchStart GetAgentTiming Error:[%d][%s]", timing.ID, err.Error())
 			continue
 		}
 		if _timing == nil {
-			err = client.AddTiming(agent, timing)
+			err = client.AddTiming(timing)
 			if err != nil {
 				logger.Errorf("Timing BatchStart AddAgentTiming Error:%s", err.Error())
 			}
@@ -332,18 +332,18 @@ func (c *TimingController) BatchReStart(ctx *gin.Context) {
 			logger.Errorf("Timing BatchReStart GetAgent Error:[%d][%s]", timing.ID, err.Error())
 			continue
 		}
-		_timing, err := client.GetTiming(agent, timing.ID)
+		_timing, err := client.GetTiming(timing.ID)
 		if err != nil {
 			logger.Errorf("Timing BatchReStart GetAgentTiming Error:[%d][%s]", timing.ID, err.Error())
 			continue
 		}
 		if _timing == nil {
-			err = client.AddTiming(agent, timing)
+			err = client.AddTiming(timing)
 			if err != nil {
 				logger.Errorf("Timing BatchReStart AddAgentTiming Error:[%d][%s]", timing.ID, err.Error())
 			}
 		} else {
-			err = client.UpdateTiming(agent, timing)
+			err = client.UpdateTiming(timing)
 			if err != nil {
 				logger.Errorf("Timing BatchReStart UpdateAgentJob Error:[%d][%s]", timing.ID, err.Error())
 			}
@@ -359,13 +359,13 @@ func (c *TimingController) BatchPause(ctx *gin.Context) {
 		if err != nil {
 			logger.Errorf("Timing BatchPause GetAgent Error:[%d][%s]", timing.ID, err.Error())
 		}
-		_timing, err := client.GetTiming(agent, timing.ID)
+		_timing, err := client.GetTiming(timing.ID)
 		if err != nil {
 			logger.Errorf("Timing BatchPause GetAgentTiming Error:[%d][%s]", timing.ID, err.Error())
 			continue
 		}
 		if _timing != nil {
-			err = client.RemoveTiming(agent, timing.ID)
+			err = client.RemoveTiming(timing.ID)
 			if err != nil {
 				logger.Errorf("Timing BatchPause RemoveAgentTiming Error:[%d][%s]", timing.ID, err.Error())
 				return
@@ -386,13 +386,13 @@ func (c *TimingController) BatchDelete(ctx *gin.Context) {
 		if err != nil {
 			logger.Errorf("Timing BatchDelete GetAgent Error:[%d][%s]", timing.ID, err.Error())
 		}
-		_timing, err := client.GetTiming(agent, timing.ID)
+		_timing, err := client.GetTiming(timing.ID)
 		if err != nil {
 			logger.Errorf("Timing BatchDelete GetAgentTiming Error:[%d][%s]", timing.ID, err.Error())
 			continue
 		}
 		if _timing != nil {
-			err = client.RemoveTiming(agent, timing.ID)
+			err = client.RemoveTiming(timing.ID)
 			if err != nil {
 				logger.Errorf("Timing BatchDelete RemoveAgentTiming Error:[%d][%s]", timing.ID, err.Error())
 				return

@@ -12,10 +12,11 @@ var (
 )
 
 func RegisterMaster() error {
-	MasterClient, err := client.NewMaster(constants.MASTER_IP, constants.MASTER_PORT)
+	masterClient, err := client.NewMaster(constants.MASTER_IP, constants.MASTER_PORT)
 	if err != nil {
 		return err
 	}
+	MasterClient = masterClient
 	go MasterClient.Report()
 	return nil
 }

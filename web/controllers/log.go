@@ -24,7 +24,7 @@ func (c *LogController) AppOutLog(ctx *gin.Context) {
 		utils.JumpWarning(ctx, "获取日志失败:\n"+err.Error())
 		return
 	}
-	content, err := client.GetLog(agent, app.StdOut, lines)
+	content, err := client.GetLog(app.StdOut, lines)
 	if err != nil {
 		utils.JumpWarning(ctx, "获取失败:"+err.Error())
 		return
@@ -50,7 +50,7 @@ func (c *LogController) AppErrLog(ctx *gin.Context) {
 		utils.JumpWarning(ctx, "获取日志失败:\n"+err.Error())
 		return
 	}
-	content, err := client.GetLog(agent, app.StdErr, lines)
+	content, err := client.GetLog(app.StdErr, lines)
 	if err != nil {
 		utils.JumpWarning(ctx, "获取日志失败:\n"+err.Error())
 		return
@@ -76,7 +76,7 @@ func (c *LogController) AppOutLogData(ctx *gin.Context) {
 		utils.APIError(ctx, "获取日志失败:\n"+err.Error())
 		return
 	}
-	content, err := client.GetLog(agent, app.StdOut, lines)
+	content, err := client.GetLog(app.StdOut, lines)
 	if err != nil {
 		utils.APIError(ctx, err.Error())
 		return
@@ -93,7 +93,7 @@ func (c *LogController) AppErrLogData(ctx *gin.Context) {
 		utils.APIError(ctx, "获取日志失败:\n"+err.Error())
 		return
 	}
-	content, err := client.GetLog(agent, app.StdErr, lines)
+	content, err := client.GetLog(app.StdErr, lines)
 	if err != nil {
 		utils.APIError(ctx, err.Error())
 		return
@@ -110,7 +110,7 @@ func (c *LogController) JobOutLog(ctx *gin.Context) {
 		utils.JumpWarning(ctx, "获取日志失败:\n"+err.Error())
 		return
 	}
-	content, err := client.GetLog(agent, job.StdOut, lines)
+	content, err := client.GetLog(job.StdOut, lines)
 	if err != nil {
 		utils.JumpWarning(ctx, "获取日志失败:\n"+err.Error())
 		return
@@ -136,7 +136,7 @@ func (c *LogController) JobErrLog(ctx *gin.Context) {
 		utils.JumpWarning(ctx, "获取日志失败:\n"+err.Error())
 		return
 	}
-	content, err := client.GetLog(agent, job.StdErr, lines)
+	content, err := client.GetLog(job.StdErr, lines)
 	if err != nil {
 		utils.JumpWarning(ctx, "获取日志失败:\n"+err.Error())
 		return
@@ -162,7 +162,7 @@ func (c *LogController) JobOutLogData(ctx *gin.Context) {
 		utils.APIError(ctx, "获取日志失败:\n"+err.Error())
 		return
 	}
-	content, err := client.GetLog(agent, job.StdOut, lines)
+	content, err := client.GetLog(job.StdOut, lines)
 	if err != nil {
 		utils.APIError(ctx, err.Error())
 		return
@@ -179,7 +179,7 @@ func (c *LogController) JobErrLogData(ctx *gin.Context) {
 		utils.APIError(ctx, "获取日志失败:\n"+err.Error())
 		return
 	}
-	content, err := client.GetLog(agent, job.StdErr, lines)
+	content, err := client.GetLog(job.StdErr, lines)
 	if err != nil {
 		utils.APIError(ctx, err.Error())
 		return
@@ -196,7 +196,7 @@ func (c *LogController) TimingOutLog(ctx *gin.Context) {
 		utils.JumpWarning(ctx, "获取日志失败:\n"+err.Error())
 		return
 	}
-	content, err := client.GetLog(agent, timing.StdOut, lines)
+	content, err := client.GetLog(timing.StdOut, lines)
 	if err != nil {
 		utils.JumpWarning(ctx, "获取日志失败:\n"+err.Error())
 		return
@@ -222,7 +222,7 @@ func (c *LogController) TimingErrLog(ctx *gin.Context) {
 		utils.JumpWarning(ctx, "获取日志失败:\n"+err.Error())
 		return
 	}
-	content, err := client.GetLog(agent, timing.StdErr, lines)
+	content, err := client.GetLog(timing.StdErr, lines)
 	if err != nil {
 		utils.JumpWarning(ctx, "获取日志失败:\n"+err.Error())
 		return
@@ -249,7 +249,7 @@ func (c *LogController) TimingOutLogData(ctx *gin.Context) {
 		utils.APIError(ctx, "获取日志失败:\n"+err.Error())
 		return
 	}
-	content, err := client.GetLog(agent, timing.StdOut, lines)
+	content, err := client.GetLog(timing.StdOut, lines)
 	if err != nil {
 		utils.APIError(ctx, err.Error())
 		return
@@ -266,7 +266,7 @@ func (c *LogController) TimingErrLogData(ctx *gin.Context) {
 		utils.APIError(ctx, "获取日志失败:\n"+err.Error())
 		return
 	}
-	content, err := client.GetLog(agent, timing.StdErr, lines)
+	content, err := client.GetLog(timing.StdErr, lines)
 	if err != nil {
 		utils.APIError(ctx, err.Error())
 		return

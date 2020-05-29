@@ -187,13 +187,13 @@ func (c *AppController) Start(ctx *gin.Context) {
 		utils.APIError(ctx, "初始化RPC客户端异常:\n"+err.Error())
 		return
 	}
-	_app, err := client.GetApp(agent, app.ID)
+	_app, err := client.GetApp(app.ID)
 	if err != nil {
 		utils.APIError(ctx, fmt.Sprintf("获取应用情况异常:%s", err.Error()))
 		return
 	}
 	if _app == nil {
-		err = client.AddApp(agent, app)
+		err = client.AddApp(app)
 		if err != nil {
 			utils.APIError(ctx, fmt.Sprintf("添加应用异常:%s", err.Error()))
 			return
@@ -215,19 +215,19 @@ func (c *AppController) ReStart(ctx *gin.Context) {
 		utils.APIError(ctx, "初始化RPC客户端异常:\n"+err.Error())
 		return
 	}
-	_app, err := client.GetApp(agent, app.ID)
+	_app, err := client.GetApp(app.ID)
 	if err != nil {
 		utils.APIError(ctx, fmt.Sprintf("获取应用情况异常:%s", err.Error()))
 		return
 	}
 	if _app == nil {
-		err = client.AddApp(agent, app)
+		err = client.AddApp(app)
 		if err != nil {
 			utils.APIError(ctx, fmt.Sprintf("重启应用异常:%s", err.Error()))
 			return
 		}
 	} else {
-		err = client.UpdateApp(agent, app)
+		err = client.UpdateApp(app)
 		if err != nil {
 			utils.APIError(ctx, fmt.Sprintf("重启应用异常:%s", err.Error()))
 			return
@@ -244,13 +244,13 @@ func (c *AppController) Pause(ctx *gin.Context) {
 		utils.APIError(ctx, "初始化RPC客户端异常:\n"+err.Error())
 		return
 	}
-	_app, err := client.GetApp(agent, app.ID)
+	_app, err := client.GetApp(app.ID)
 	if err != nil {
 		utils.APIError(ctx, fmt.Sprintf("获取应用情况异常:%s", err.Error()))
 		return
 	}
 	if _app != nil {
-		err = client.RemoveApp(agent, app.ID)
+		err = client.RemoveApp(app.ID)
 		if err != nil {
 			utils.APIError(ctx, fmt.Sprintf("停止应用异常:%s", err.Error()))
 			return
@@ -276,13 +276,13 @@ func (c *AppController) Delete(ctx *gin.Context) {
 		utils.APIError(ctx, "初始化RPC客户端异常:\n"+err.Error())
 		return
 	}
-	_app, err := client.GetApp(agent, app.ID)
+	_app, err := client.GetApp(app.ID)
 	if err != nil {
 		utils.APIError(ctx, fmt.Sprintf("获取应用情况异常:%s", err.Error()))
 		return
 	}
 	if _app != nil {
-		err = client.RemoveApp(agent, app.ID)
+		err = client.RemoveApp(app.ID)
 		if err != nil {
 			utils.APIError(ctx, fmt.Sprintf("停止应用异常:%s", err.Error()))
 			return
@@ -307,13 +307,13 @@ func (c *AppController) BatchStart(ctx *gin.Context) {
 			logger.Errorf("App BatchStart GetAgent Error:[%d][%s]", app.ID, err.Error())
 			continue
 		}
-		_app, err := client.GetApp(agent, app.ID)
+		_app, err := client.GetApp(app.ID)
 		if err != nil {
 			logger.Errorf("App BatchStart GetApp Error:[%d][%s]", app.ID, err.Error())
 			continue
 		}
 		if _app == nil {
-			err = client.AddApp(agent, app)
+			err = client.AddApp(app)
 			if err != nil {
 				logger.Errorf("App BatchStart AddApp Error:%s", err.Error())
 			}
@@ -331,18 +331,18 @@ func (c *AppController) BatchReStart(ctx *gin.Context) {
 			logger.Errorf("App BatchReStart GetAgent Error:[%d][%s]", app.ID, err.Error())
 			continue
 		}
-		_app, err := client.GetApp(agent, app.ID)
+		_app, err := client.GetApp(app.ID)
 		if err != nil {
 			logger.Errorf("App BatchReStart GetAgentApp Error:[%d][%s]", app.ID, err.Error())
 			continue
 		}
 		if _app == nil {
-			err = client.AddApp(agent, app)
+			err = client.AddApp(app)
 			if err != nil {
 				logger.Errorf("App BatchReStart AddAgentApp Error:[%d][%s]", app.ID, err.Error())
 			}
 		} else {
-			err = client.UpdateApp(agent, app)
+			err = client.UpdateApp(app)
 			if err != nil {
 				logger.Errorf("App BatchReStart UpdateAgentApp Error:[%d][%s]", app.ID, err.Error())
 			}
@@ -359,13 +359,13 @@ func (c *AppController) BatchPause(ctx *gin.Context) {
 			logger.Errorf("App BatchPause GetAgent Error:[%d][%s]", app.ID, err.Error())
 			continue
 		}
-		_app, err := client.GetApp(agent, app.ID)
+		_app, err := client.GetApp(app.ID)
 		if err != nil {
 			logger.Errorf("App BatchPause GetAgentApp Error:[%d][%s]", app.ID, err.Error())
 			continue
 		}
 		if _app != nil {
-			err = client.RemoveApp(agent, app.ID)
+			err = client.RemoveApp(app.ID)
 			if err != nil {
 				logger.Errorf("App BatchPause RemoveAgentApp Error:[%d][%s]", app.ID, err.Error())
 				return
@@ -387,13 +387,13 @@ func (c *AppController) BatchDelete(ctx *gin.Context) {
 			logger.Errorf("App BatchDelete GetAgent Error:[%d][%s]", app.ID, err.Error())
 			continue
 		}
-		_app, err := client.GetApp(agent, app.ID)
+		_app, err := client.GetApp(app.ID)
 		if err != nil {
 			logger.Errorf("App BatchDelete GetAgentApp Error:[%d][%s]", app.ID, err.Error())
 			continue
 		}
 		if _app != nil {
-			err = client.RemoveApp(agent, app.ID)
+			err = client.RemoveApp(app.ID)
 			if err != nil {
 				logger.Errorf("App BatchDelete RemoveAgentApp Error:[%d][%s]", app.ID, err.Error())
 				return

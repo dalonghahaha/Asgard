@@ -192,13 +192,13 @@ func (c *JobController) Start(ctx *gin.Context) {
 		utils.APIError(ctx, "初始化RPC客户端异常:\n"+err.Error())
 		return
 	}
-	_job, err := client.GetJob(agent, job.ID)
+	_job, err := client.GetJob(job.ID)
 	if err != nil {
 		utils.APIError(ctx, fmt.Sprintf("获取计划任务情况异常:%s", err.Error()))
 		return
 	}
 	if _job == nil {
-		err = client.AddJob(agent, job)
+		err = client.AddJob(job)
 		if err != nil {
 			utils.APIError(ctx, fmt.Sprintf("添加计划任务异常:%s", err.Error()))
 			return
@@ -220,19 +220,19 @@ func (c *JobController) ReStart(ctx *gin.Context) {
 		utils.APIError(ctx, "初始化RPC客户端异常:\n"+err.Error())
 		return
 	}
-	_job, err := client.GetJob(agent, job.ID)
+	_job, err := client.GetJob(job.ID)
 	if err != nil {
 		utils.APIError(ctx, fmt.Sprintf("获取计划任务情况异常:%s", err.Error()))
 		return
 	}
 	if _job == nil {
-		err = client.AddJob(agent, job)
+		err = client.AddJob(job)
 		if err != nil {
 			utils.APIError(ctx, fmt.Sprintf("重启计划任务异常:%s", err.Error()))
 			return
 		}
 	} else {
-		err = client.UpdateJob(agent, job)
+		err = client.UpdateJob(job)
 		if err != nil {
 			utils.APIError(ctx, fmt.Sprintf("重启计划任务异常:%s", err.Error()))
 			return
@@ -249,13 +249,13 @@ func (c *JobController) Pause(ctx *gin.Context) {
 		utils.APIError(ctx, "初始化RPC客户端异常:\n"+err.Error())
 		return
 	}
-	_job, err := client.GetJob(agent, job.ID)
+	_job, err := client.GetJob(job.ID)
 	if err != nil {
 		utils.APIError(ctx, fmt.Sprintf("获取计划任务情况异常:%s", err.Error()))
 		return
 	}
 	if _job != nil {
-		err = client.RemoveJob(agent, job.ID)
+		err = client.RemoveJob(job.ID)
 		if err != nil {
 			utils.APIError(ctx, fmt.Sprintf("停止计划任务异常:%s", err.Error()))
 			return
@@ -281,13 +281,13 @@ func (c *JobController) Delete(ctx *gin.Context) {
 		utils.APIError(ctx, "初始化RPC客户端异常:\n"+err.Error())
 		return
 	}
-	_job, err := client.GetJob(agent, job.ID)
+	_job, err := client.GetJob(job.ID)
 	if err != nil {
 		utils.APIError(ctx, fmt.Sprintf("获取计划任务情况异常:%s", err.Error()))
 		return
 	}
 	if _job != nil {
-		err = client.RemoveJob(agent, job.ID)
+		err = client.RemoveJob(job.ID)
 		if err != nil {
 			utils.APIError(ctx, fmt.Sprintf("停止计划任务异常:%s", err.Error()))
 			return
@@ -312,13 +312,13 @@ func (c *JobController) BatchStart(ctx *gin.Context) {
 			logger.Errorf("App BatchStart GetAgent Error:[%d][%s]", job.ID, err.Error())
 			continue
 		}
-		_job, err := client.GetJob(agent, job.ID)
+		_job, err := client.GetJob(job.ID)
 		if err != nil {
 			logger.Errorf("Job BatchStart GetJob Error:[%d][%s]", job.ID, err.Error())
 			continue
 		}
 		if _job == nil {
-			err = client.AddJob(agent, job)
+			err = client.AddJob(job)
 			if err != nil {
 				logger.Errorf("Job BatchStart AddJob Error:%s", err.Error())
 			}
@@ -336,18 +336,18 @@ func (c *JobController) BatchReStart(ctx *gin.Context) {
 			logger.Errorf("Job BatchReStart GetAgent Error:[%d][%s]", job.ID, err.Error())
 			continue
 		}
-		_job, err := client.GetJob(agent, job.ID)
+		_job, err := client.GetJob(job.ID)
 		if err != nil {
 			logger.Errorf("Job BatchReStart GetAgentJob Error:[%d][%s]", job.ID, err.Error())
 			continue
 		}
 		if _job == nil {
-			err = client.AddJob(agent, job)
+			err = client.AddJob(job)
 			if err != nil {
 				logger.Errorf("Job BatchReStart AddAgentJob Error:[%d][%s]", job.ID, err.Error())
 			}
 		} else {
-			err = client.UpdateJob(agent, job)
+			err = client.UpdateJob(job)
 			if err != nil {
 				logger.Errorf("Job BatchReStart UpdateAgentJob Error:[%d][%s]", job.ID, err.Error())
 			}
@@ -364,13 +364,13 @@ func (c *JobController) BatchPause(ctx *gin.Context) {
 			logger.Errorf("Job BatchPause GetAgent Error:[%d][%s]", job.ID, err.Error())
 			continue
 		}
-		_job, err := client.GetJob(agent, job.ID)
+		_job, err := client.GetJob(job.ID)
 		if err != nil {
 			logger.Errorf("Job BatchPause GetAgentJob Error:[%d][%s]", job.ID, err.Error())
 			continue
 		}
 		if _job != nil {
-			err = client.RemoveJob(agent, job.ID)
+			err = client.RemoveJob(job.ID)
 			if err != nil {
 				logger.Errorf("Job BatchPause RemoveAgentJob Error:[%d][%s]", job.ID, err.Error())
 				return
@@ -392,13 +392,13 @@ func (c *JobController) BatchDelete(ctx *gin.Context) {
 			logger.Errorf("Job BatchDelete GetAgent Error:[%d][%s]", job.ID, err.Error())
 			continue
 		}
-		_job, err := client.GetJob(agent, job.ID)
+		_job, err := client.GetJob(job.ID)
 		if err != nil {
 			logger.Errorf("Job BatchDelete GetJob Error:[%d][%s]", job.ID, err.Error())
 			continue
 		}
 		if _job != nil {
-			err = client.RemoveJob(agent, job.ID)
+			err = client.RemoveJob(job.ID)
 			if err != nil {
 				logger.Errorf("Job BatchDelete RemoveJob Error:[%d][%s]", job.ID, err.Error())
 				return

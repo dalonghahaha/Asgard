@@ -44,7 +44,7 @@ func (a *Agent) GetStat() (*rpc.AgentStat, error) {
 	return response.GetAgentStat(), nil
 }
 
-func (a *Agent) GetLog(agent *models.Agent, dir string, lines int64) ([]string, error) {
+func (a *Agent) GetLog(dir string, lines int64) ([]string, error) {
 	content := []string{}
 	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
@@ -58,7 +58,7 @@ func (a *Agent) GetLog(agent *models.Agent, dir string, lines int64) ([]string, 
 	return content, nil
 }
 
-func (a *Agent) GetAppList(agent *models.Agent) ([]*rpc.App, error) {
+func (a *Agent) GetAppList() ([]*rpc.App, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
 	response, err := a.client.AppList(ctx, &rpc.Empty{})
@@ -68,7 +68,7 @@ func (a *Agent) GetAppList(agent *models.Agent) ([]*rpc.App, error) {
 	return response.GetApps(), nil
 }
 
-func (a *Agent) GetApp(agent *models.Agent, id int64) (*rpc.App, error) {
+func (a *Agent) GetApp(id int64) (*rpc.App, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
 	response, err := a.client.AppGet(ctx, &rpc.ID{Id: id})
@@ -81,7 +81,7 @@ func (a *Agent) GetApp(agent *models.Agent, id int64) (*rpc.App, error) {
 	return response.GetApp(), nil
 }
 
-func (a *Agent) AddApp(agent *models.Agent, app *models.App) error {
+func (a *Agent) AddApp(app *models.App) error {
 	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
 	response, err := a.client.AppAdd(ctx, rpc.FormatApp(app))
@@ -94,7 +94,7 @@ func (a *Agent) AddApp(agent *models.Agent, app *models.App) error {
 	return fmt.Errorf(response.GetMessage())
 }
 
-func (a *Agent) UpdateApp(agent *models.Agent, app *models.App) error {
+func (a *Agent) UpdateApp(app *models.App) error {
 	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
 	response, err := a.client.AppUpdate(ctx, rpc.FormatApp(app))
@@ -107,7 +107,7 @@ func (a *Agent) UpdateApp(agent *models.Agent, app *models.App) error {
 	return fmt.Errorf(response.GetMessage())
 }
 
-func (a *Agent) RemoveApp(agent *models.Agent, id int64) error {
+func (a *Agent) RemoveApp(id int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
 	response, err := a.client.AppRemove(ctx, &rpc.ID{Id: id})
@@ -120,7 +120,7 @@ func (a *Agent) RemoveApp(agent *models.Agent, id int64) error {
 	return fmt.Errorf(response.GetMessage())
 }
 
-func (a *Agent) GetJobList(agent *models.Agent) ([]*rpc.Job, error) {
+func (a *Agent) GetJobList() ([]*rpc.Job, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
 	response, err := a.client.JobList(ctx, &rpc.Empty{})
@@ -130,7 +130,7 @@ func (a *Agent) GetJobList(agent *models.Agent) ([]*rpc.Job, error) {
 	return response.GetJobs(), nil
 }
 
-func (a *Agent) GetJob(agent *models.Agent, id int64) (*rpc.Job, error) {
+func (a *Agent) GetJob(id int64) (*rpc.Job, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
 	response, err := a.client.JobGet(ctx, &rpc.ID{Id: id})
@@ -143,7 +143,7 @@ func (a *Agent) GetJob(agent *models.Agent, id int64) (*rpc.Job, error) {
 	return response.GetJob(), nil
 }
 
-func (a *Agent) AddJob(agent *models.Agent, job *models.Job) error {
+func (a *Agent) AddJob(job *models.Job) error {
 	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
 	response, err := a.client.JobAdd(ctx, rpc.FormatJob(job))
@@ -156,7 +156,7 @@ func (a *Agent) AddJob(agent *models.Agent, job *models.Job) error {
 	return fmt.Errorf(response.GetMessage())
 }
 
-func (a *Agent) UpdateJob(agent *models.Agent, job *models.Job) error {
+func (a *Agent) UpdateJob(job *models.Job) error {
 	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
 	response, err := a.client.JobUpdate(ctx, rpc.FormatJob(job))
@@ -169,7 +169,7 @@ func (a *Agent) UpdateJob(agent *models.Agent, job *models.Job) error {
 	return fmt.Errorf(response.GetMessage())
 }
 
-func (a *Agent) RemoveJob(agent *models.Agent, id int64) error {
+func (a *Agent) RemoveJob(id int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
 	response, err := a.client.JobRemove(ctx, &rpc.ID{Id: id})
@@ -182,7 +182,7 @@ func (a *Agent) RemoveJob(agent *models.Agent, id int64) error {
 	return fmt.Errorf(response.GetMessage())
 }
 
-func (a *Agent) GetTimingList(agent *models.Agent) ([]*rpc.Timing, error) {
+func (a *Agent) GetTimingList() ([]*rpc.Timing, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
 	response, err := a.client.TimingList(ctx, &rpc.Empty{})
@@ -192,7 +192,7 @@ func (a *Agent) GetTimingList(agent *models.Agent) ([]*rpc.Timing, error) {
 	return response.GetTimings(), nil
 }
 
-func (a *Agent) GetTiming(agent *models.Agent, id int64) (*rpc.Timing, error) {
+func (a *Agent) GetTiming(id int64) (*rpc.Timing, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
 	response, err := a.client.TimingGet(ctx, &rpc.ID{Id: id})
@@ -205,7 +205,7 @@ func (a *Agent) GetTiming(agent *models.Agent, id int64) (*rpc.Timing, error) {
 	return response.GetTiming(), nil
 }
 
-func (a *Agent) AddTiming(agent *models.Agent, timing *models.Timing) error {
+func (a *Agent) AddTiming(timing *models.Timing) error {
 	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
 	response, err := a.client.TimingAdd(ctx, rpc.FormatTiming(timing))
@@ -218,7 +218,7 @@ func (a *Agent) AddTiming(agent *models.Agent, timing *models.Timing) error {
 	return fmt.Errorf(response.GetMessage())
 }
 
-func (a *Agent) UpdateTiming(agent *models.Agent, timing *models.Timing) error {
+func (a *Agent) UpdateTiming(timing *models.Timing) error {
 	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
 	response, err := a.client.TimingUpdate(ctx, rpc.FormatTiming(timing))
@@ -231,7 +231,7 @@ func (a *Agent) UpdateTiming(agent *models.Agent, timing *models.Timing) error {
 	return fmt.Errorf(response.GetMessage())
 }
 
-func (a *Agent) RemoveTiming(agent *models.Agent, id int64) error {
+func (a *Agent) RemoveTiming(id int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
 	response, err := a.client.TimingRemove(ctx, &rpc.ID{Id: id})
