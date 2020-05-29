@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"os"
@@ -12,6 +13,7 @@ import (
 	"github.com/shirou/gopsutil/process"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
 	"Asgard/applications"
@@ -23,6 +25,8 @@ import (
 
 func init() {
 	agentCommonCmd.PersistentFlags().StringP("conf", "c", "conf", "config path")
+	listCommonCmd.PersistentFlags().StringP("port", "p", "27147", "agent port")
+	agentCommonCmd.AddCommand(listCommonCmd)
 	rootCmd.AddCommand(agentCommonCmd)
 }
 
@@ -47,6 +51,33 @@ var agentCommonCmd = &cobra.Command{
 	},
 }
 
+var listCommonCmd = &cobra.Command{
+	Use:   "list",
+	Short: "show agent running applications",
+	Run: func(cmd *cobra.Command, args []string) {
+		port := cmd.Flag("port").Value.String()
+		addr := fmt.Sprintf("127.0.0.1:%s", port)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		defer cancel()
+		option := grpc.WithDefaultCallOptions(
+			grpc.MaxCallRecvMsgSize(1024*1024*1024),
+			grpc.MaxCallSendMsgSize(1024*1024*1024),
+		)
+		conn, err := grpc.DialContext(ctx, addr, grpc.WithInsecure(), option)
+		if err != nil {
+			fmt.Printf("can't connect to agent!:%s\n", err.Error())
+		}
+		client := rpc.NewAgentClient(conn)
+		fmt.Println(client)
+		fmt.Println()
+		fmt.Println("app list")
+		fmt.Println()
+		fmt.Println("job list")
+		fmt.Println()
+		fmt.Println("timing list")
+	},
+}
+
 func InitAgent() {
 	agentIP := viper.GetString("agent.rpc.ip")
 	agentPort := viper.GetString("agent.rpc.port")
@@ -56,8 +87,8 @@ func InitAgent() {
 	constants.AGENT_IP = agentIP
 	constants.AGENT_PORT = agentPort
 	masterIP := viper.GetString("agent.master.ip")
-	masterPort := viper.GetInt("agent.master.port")
-	if masterIP == "" && masterPort == 0 {
+	masterPort := viper.GetString("agent.master.port")
+	if masterIP == "" && masterPort == "" {
 		panic("agent config error")
 	}
 	constants.MASTER_IP = masterIP
@@ -69,7 +100,10 @@ func InitAgent() {
 		constants.AGENT_MONITER = duration
 	}
 	constants.AGENT_MONITER_TICKER = time.NewTicker(time.Second * time.Duration(constants.AGENT_MONITER))
-	providers.RegisterMaster()
+	err := providers.RegisterMaster()
+	if err != nil {
+		panic("register master failed:" + err.Error())
+	}
 }
 
 func StartAgent() {
@@ -178,7 +212,7 @@ func JobsRegister() error {
 		return err
 	}
 	for _, job := range jobs {
-		logger.Debug(fmt.Sprintf("job register: %s %s", job.GetName(), job.GetSpec()))
+		logger.Debugf("job register: %s %s", job.GetName(), job.GetSpec())
 		config := rpc.BuildJobConfig(job)
 		err := applications.JobRegister(
 			job.GetId(),
@@ -199,7 +233,7 @@ func TimingsRegister() error {
 		return err
 	}
 	for _, timing := range timings {
-		logger.Debug(fmt.Sprintf("timing register: %s %s", timing.GetName(), time.Unix(timing.GetTime(), 0).Format("2006-01-02 15:04:05")))
+		logger.Debugf("timing register: %s %s", timing.GetName(), time.Unix(timing.GetTime(), 0).Format("2006-01-02 15:04:05"))
 		config := rpc.BuildTimingConfig(timing)
 		err := applications.TimingRegister(
 			timing.GetId(),

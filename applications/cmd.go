@@ -158,7 +158,7 @@ func (c *Command) wait(callback func()) {
 		}
 	}
 	if c.ArchiveReport != nil {
-		logger.Debug(fmt.Sprintf("appArchive Send from wait:[%s][%d][%s]", c.Name, c.Status, c.Signal))
+		logger.Debugf("appArchive Send from wait:[%s][%d][%s]", c.Name, c.Status, c.Signal)
 		c.ArchiveReport(buildArchive(c))
 	}
 	callback()
@@ -189,13 +189,14 @@ func (c *Command) stop() {
 		}
 	}
 	if c.ArchiveReport != nil {
-		logger.Debug(fmt.Sprintf("appArchive Send from stop:[%s][%d][%s]", c.Name, c.Status, c.Signal))
+		logger.Debugf("appArchive Send from stop:[%s][%d][%s]", c.Name, c.Status, c.Signal)
 		c.ArchiveReport(buildArchive(c))
 	}
 }
 
 func (c *Command) finish() {
 	c.lock.Lock()
+	logger.Info(c.Name + " finish")
 	if c.IsMonitor {
 		MoniterRemove(c.Pid)
 	}

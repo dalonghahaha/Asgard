@@ -26,16 +26,19 @@ type Master struct {
 	TimingArchiveChan chan applications.TimingArchive
 }
 
-func NewMaster() *Master {
-	addr := fmt.Sprintf("%s:%d", constants.MASTER_IP, constants.MASTER_PORT)
-	ctx, cancel := context.WithTimeout(context.Background(), constants.MASTER_TIMEOUT)
+func NewMaster(ip, port string) (*Master, error) {
+	addr := fmt.Sprintf("%s:%s", ip, port)
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
-	conn, err := grpc.DialContext(ctx, addr, grpc.WithInsecure())
+	option := grpc.WithDefaultCallOptions(
+		grpc.MaxCallRecvMsgSize(constants.RPC_MESSAGE_SIZE),
+		grpc.MaxCallSendMsgSize(constants.RPC_MESSAGE_SIZE),
+	)
+	conn, err := grpc.DialContext(ctx, addr, grpc.WithInsecure(), option)
 	if err != nil {
-		panic("can't connect master: " + addr)
+		return nil, err
 	}
-	logger.Debug("master connected!")
-	return &Master{
+	master := Master{
 		agent: &rpc.AgentInfo{
 			Ip:   constants.AGENT_IP,
 			Port: constants.AGENT_PORT,
@@ -50,6 +53,7 @@ func NewMaster() *Master {
 		TimingMonitorChan: make(chan applications.TimingMonitor, 100),
 		TimingArchiveChan: make(chan applications.TimingArchive, 100),
 	}
+	return &master, nil
 }
 
 func (m *Master) IsRunning() bool {
@@ -86,7 +90,7 @@ func (m *Master) Report() {
 }
 
 func (m *Master) AgentRegister() error {
-	ctx, cancel := context.WithTimeout(context.Background(), constants.MASTER_TIMEOUT)
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
 	response, err := m.rpcClient.Register(ctx, m.agent)
 	if err != nil {
@@ -100,7 +104,7 @@ func (m *Master) AgentRegister() error {
 }
 
 func (m *Master) GetAppList() ([]*rpc.App, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), constants.MASTER_TIMEOUT)
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
 	response, err := m.rpcClient.AppList(ctx, m.agent)
 	if err != nil {
@@ -113,7 +117,7 @@ func (m *Master) GetAppList() ([]*rpc.App, error) {
 }
 
 func (m *Master) GetJobList() ([]*rpc.Job, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), constants.MASTER_TIMEOUT)
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
 	response, err := m.rpcClient.JobList(ctx, m.agent)
 	if err != nil {
@@ -126,7 +130,7 @@ func (m *Master) GetJobList() ([]*rpc.Job, error) {
 }
 
 func (m *Master) GetTimingList() ([]*rpc.Timing, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), constants.MASTER_TIMEOUT)
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
 	response, err := m.rpcClient.TimingList(ctx, m.agent)
 	if err != nil {
@@ -139,99 +143,99 @@ func (m *Master) GetTimingList() ([]*rpc.Timing, error) {
 }
 
 func (m *Master) agentMonitorReport(agentMonitor *rpc.AgentMonitor) {
-	ctx, cancel := context.WithTimeout(context.Background(), constants.MASTER_REPORT_TIMEOUT)
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
 	response, err := m.rpcClient.AgentMonitorReport(ctx, agentMonitor)
 	if err != nil {
-		logger.Error(fmt.Sprintf("agent moniter report failed：%s", err.Error()))
+		logger.Errorf("agent moniter report failed：%s", err.Error())
 		return
 	}
 	if response.GetCode() != 200 {
-		logger.Error(fmt.Sprintf("agent moniter report failed：%s", response.GetMessage()))
+		logger.Errorf("agent moniter report failed：%s", response.GetMessage())
 		return
 	}
 }
 
 func (m *Master) appMonitorReport(appMonitor *rpc.AppMonitor) {
-	ctx, cancel := context.WithTimeout(context.Background(), constants.MASTER_REPORT_TIMEOUT)
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
 	response, err := m.rpcClient.AppMonitorReport(ctx, appMonitor)
 	if err != nil {
-		logger.Error(fmt.Sprintf("app moniter report failed：%s", err.Error()))
+		logger.Errorf("app moniter report failed：%s", err.Error())
 		return
 	}
 	if response.GetCode() != 200 {
-		logger.Error(fmt.Sprintf("app moniter report failed：%s", response.GetMessage()))
+		logger.Errorf("app moniter report failed：%s", response.GetMessage())
 		return
 	}
 }
 
 func (m *Master) jobMonitorReport(jobMonitor *rpc.JobMonior) {
-	ctx, cancel := context.WithTimeout(context.Background(), constants.MASTER_REPORT_TIMEOUT)
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
 	response, err := m.rpcClient.JobMoniorReport(ctx, jobMonitor)
 	if err != nil {
-		logger.Error(fmt.Sprintf("job moniter report failed：%s", err.Error()))
+		logger.Errorf("job moniter report failed：%s", err.Error())
 		return
 	}
 	if response.GetCode() != 200 {
-		logger.Error(fmt.Sprintf("job moniter report failed：%s", response.GetMessage()))
+		logger.Error("job moniter report failed：%s", response.GetMessage())
 		return
 	}
 }
 
 func (m *Master) timingMonitorReport(timingMonitor *rpc.TimingMonior) {
-	ctx, cancel := context.WithTimeout(context.Background(), constants.MASTER_REPORT_TIMEOUT)
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
 	response, err := m.rpcClient.TimingMoniorReport(ctx, timingMonitor)
 	if err != nil {
-		logger.Error(fmt.Sprintf("timing moniter report failed：%s", err.Error()))
+		logger.Errorf("timing moniter report failed：%s", err.Error())
 		return
 	}
 	if response.GetCode() != 200 {
-		logger.Error(fmt.Sprintf("timing moniter report failed：%s", response.GetMessage()))
+		logger.Errorf("timing moniter report failed：%s", response.GetMessage())
 		return
 	}
 }
 
 func (m *Master) appArchiveReport(appArchive *rpc.AppArchive) {
-	ctx, cancel := context.WithTimeout(context.Background(), constants.MASTER_REPORT_TIMEOUT)
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
 	response, err := m.rpcClient.AppArchiveReport(ctx, appArchive)
 	if err != nil {
-		logger.Error(fmt.Sprintf("app archive report failed：%s", err.Error()))
+		logger.Errorf("app archive report failed：%s", err.Error())
 		return
 	}
 	if response.GetCode() != 200 {
-		logger.Error(fmt.Sprintf("app archive report failed：%s", response.GetMessage()))
+		logger.Error("app archive report failed：%s", response.GetMessage())
 		return
 	}
 }
 
 func (m *Master) jobArchiveReport(jobArchive *rpc.JobArchive) {
-	ctx, cancel := context.WithTimeout(context.Background(), constants.MASTER_REPORT_TIMEOUT)
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
 	response, err := m.rpcClient.JobArchiveReport(ctx, jobArchive)
 	if err != nil {
-		logger.Error(fmt.Sprintf("job archive report failed：%s", err.Error()))
+		logger.Errorf("job archive report failed：%s", err.Error())
 		return
 	}
 	if response.GetCode() != 200 {
-		logger.Error(fmt.Sprintf("job archive report failed：%s", response.GetMessage()))
+		logger.Errorf("job archive report failed：%s", response.GetMessage())
 		return
 	}
 }
 
 func (m *Master) timingArchiveReport(timingArchive *rpc.TimingArchive) {
-	ctx, cancel := context.WithTimeout(context.Background(), constants.MASTER_REPORT_TIMEOUT)
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
 	response, err := m.rpcClient.TimingArchiveReport(ctx, timingArchive)
 	if err != nil {
-		logger.Error(fmt.Sprintf("timing archive report failed：%s", err.Error()))
+		logger.Errorf("timing archive report failed：%s", err.Error())
 		return
 	}
 	if response.GetCode() != 200 {
-		logger.Error(fmt.Sprintf("timing archive report failed：%s", response.GetMessage()))
+		logger.Errorf("timing archive report failed：%s", response.GetMessage())
 		return
 	}
 }

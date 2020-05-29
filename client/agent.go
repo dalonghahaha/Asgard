@@ -3,65 +3,52 @@ package client
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"google.golang.org/grpc"
 
+	"Asgard/constants"
 	"Asgard/models"
 	"Asgard/rpc"
 )
 
-var (
-	Agents = map[int64]rpc.AgentClient{}
-)
-
-func GetAgent(agent *models.Agent) (rpc.AgentClient, error) {
-	_client, ok := Agents[agent.ID]
-	if ok {
-		return _client, nil
-	}
-	addr := fmt.Sprintf("%s:%s", agent.IP, agent.Port)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
-	option := grpc.WithDefaultCallOptions(
-		grpc.MaxCallRecvMsgSize(1024*1024*1024),
-		grpc.MaxCallSendMsgSize(1024*1024*1024),
-	)
-	conn, err := grpc.DialContext(ctx,
-		addr,
-		grpc.WithInsecure(),
-		option,
-	)
-	if err != nil {
-		return nil, err
-	}
-	Agents[agent.ID] = rpc.NewAgentClient(conn)
-	return Agents[agent.ID], nil
+type Agent struct {
+	client rpc.AgentClient
 }
 
-func GetAgentStat(agent *models.Agent) (*rpc.AgentStat, error) {
-	agentClient, err := GetAgent(agent)
+func NewAgent(ip, port string) (*Agent, error) {
+	addr := fmt.Sprintf("%s:%s", ip, port)
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
+	defer cancel()
+	option := grpc.WithDefaultCallOptions(
+		grpc.MaxCallRecvMsgSize(constants.RPC_MESSAGE_SIZE),
+		grpc.MaxCallSendMsgSize(constants.RPC_MESSAGE_SIZE),
+	)
+	conn, err := grpc.DialContext(ctx, addr, grpc.WithInsecure(), option)
 	if err != nil {
 		return nil, err
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), RPCTimeOut)
+	client := rpc.NewAgentClient(conn)
+	agent := Agent{
+		client: client,
+	}
+	return &agent, nil
+}
+
+func (a *Agent) GetStat() (*rpc.AgentStat, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
-	response, err := agentClient.Stat(ctx, &rpc.Empty{})
+	response, err := a.client.Stat(ctx, &rpc.Empty{})
 	if err != nil {
 		return nil, err
 	}
 	return response.GetAgentStat(), nil
 }
 
-func GetAgentLog(agent *models.Agent, dir string, lines int64) ([]string, error) {
+func (a *Agent) GetLog(agent *models.Agent, dir string, lines int64) ([]string, error) {
 	content := []string{}
-	agentClient, err := GetAgent(agent)
-	if err != nil {
-		return content, err
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), RPCTimeOut)
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
-	response, err := agentClient.Log(ctx, &rpc.LogRuquest{Dir: dir, Lines: lines})
+	response, err := a.client.Log(ctx, &rpc.LogRuquest{Dir: dir, Lines: lines})
 	if err != nil {
 		return content, err
 	}
@@ -71,28 +58,20 @@ func GetAgentLog(agent *models.Agent, dir string, lines int64) ([]string, error)
 	return content, nil
 }
 
-func GetAgentAppList(agent *models.Agent) ([]*rpc.App, error) {
-	agentClient, err := GetAgent(agent)
-	if err != nil {
-		return nil, err
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), RPCTimeOut)
+func (a *Agent) GetAppList(agent *models.Agent) ([]*rpc.App, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
-	response, err := agentClient.AppList(ctx, &rpc.Empty{})
+	response, err := a.client.AppList(ctx, &rpc.Empty{})
 	if err != nil {
 		return nil, err
 	}
 	return response.GetApps(), nil
 }
 
-func GetAgentApp(agent *models.Agent, id int64) (*rpc.App, error) {
-	agentClient, err := GetAgent(agent)
-	if err != nil {
-		return nil, err
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), RPCTimeOut)
+func (a *Agent) GetApp(agent *models.Agent, id int64) (*rpc.App, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
-	response, err := agentClient.AppGet(ctx, &rpc.ID{Id: id})
+	response, err := a.client.AppGet(ctx, &rpc.ID{Id: id})
 	if err != nil {
 		return nil, err
 	}
@@ -102,14 +81,10 @@ func GetAgentApp(agent *models.Agent, id int64) (*rpc.App, error) {
 	return response.GetApp(), nil
 }
 
-func AddAgentApp(agent *models.Agent, app *models.App) error {
-	agentClient, err := GetAgent(agent)
-	if err != nil {
-		return err
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), RPCTimeOut)
+func (a *Agent) AddApp(agent *models.Agent, app *models.App) error {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
-	response, err := agentClient.AppAdd(ctx, rpc.FormatApp(app))
+	response, err := a.client.AppAdd(ctx, rpc.FormatApp(app))
 	if err != nil {
 		return err
 	}
@@ -119,14 +94,10 @@ func AddAgentApp(agent *models.Agent, app *models.App) error {
 	return fmt.Errorf(response.GetMessage())
 }
 
-func UpdateAgentApp(agent *models.Agent, app *models.App) error {
-	agentClient, err := GetAgent(agent)
-	if err != nil {
-		return err
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), RPCTimeOut)
+func (a *Agent) UpdateApp(agent *models.Agent, app *models.App) error {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
-	response, err := agentClient.AppUpdate(ctx, rpc.FormatApp(app))
+	response, err := a.client.AppUpdate(ctx, rpc.FormatApp(app))
 	if err != nil {
 		return err
 	}
@@ -136,14 +107,10 @@ func UpdateAgentApp(agent *models.Agent, app *models.App) error {
 	return fmt.Errorf(response.GetMessage())
 }
 
-func RemoveAgentApp(agent *models.Agent, id int64) error {
-	agentClient, err := GetAgent(agent)
-	if err != nil {
-		return err
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), RPCTimeOut)
+func (a *Agent) RemoveApp(agent *models.Agent, id int64) error {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
-	response, err := agentClient.AppRemove(ctx, &rpc.ID{Id: id})
+	response, err := a.client.AppRemove(ctx, &rpc.ID{Id: id})
 	if err != nil {
 		return err
 	}
@@ -153,28 +120,20 @@ func RemoveAgentApp(agent *models.Agent, id int64) error {
 	return fmt.Errorf(response.GetMessage())
 }
 
-func GetAgentJobList(agent *models.Agent) ([]*rpc.Job, error) {
-	agentClient, err := GetAgent(agent)
-	if err != nil {
-		return nil, err
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), RPCTimeOut)
+func (a *Agent) GetJobList(agent *models.Agent) ([]*rpc.Job, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
-	response, err := agentClient.JobList(ctx, &rpc.Empty{})
+	response, err := a.client.JobList(ctx, &rpc.Empty{})
 	if err != nil {
 		return nil, err
 	}
 	return response.GetJobs(), nil
 }
 
-func GetAgentJob(agent *models.Agent, id int64) (*rpc.Job, error) {
-	agentClient, err := GetAgent(agent)
-	if err != nil {
-		return nil, err
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), RPCTimeOut)
+func (a *Agent) GetJob(agent *models.Agent, id int64) (*rpc.Job, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
-	response, err := agentClient.JobGet(ctx, &rpc.ID{Id: id})
+	response, err := a.client.JobGet(ctx, &rpc.ID{Id: id})
 	if err != nil {
 		return nil, err
 	}
@@ -184,14 +143,10 @@ func GetAgentJob(agent *models.Agent, id int64) (*rpc.Job, error) {
 	return response.GetJob(), nil
 }
 
-func AddAgentJob(agent *models.Agent, job *models.Job) error {
-	agentClient, err := GetAgent(agent)
-	if err != nil {
-		return err
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), RPCTimeOut)
+func (a *Agent) AddJob(agent *models.Agent, job *models.Job) error {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
-	response, err := agentClient.JobAdd(ctx, rpc.FormatJob(job))
+	response, err := a.client.JobAdd(ctx, rpc.FormatJob(job))
 	if err != nil {
 		return err
 	}
@@ -201,14 +156,10 @@ func AddAgentJob(agent *models.Agent, job *models.Job) error {
 	return fmt.Errorf(response.GetMessage())
 }
 
-func UpdateAgentJob(agent *models.Agent, job *models.Job) error {
-	agentClient, err := GetAgent(agent)
-	if err != nil {
-		return err
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), RPCTimeOut)
+func (a *Agent) UpdateJob(agent *models.Agent, job *models.Job) error {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
-	response, err := agentClient.JobUpdate(ctx, rpc.FormatJob(job))
+	response, err := a.client.JobUpdate(ctx, rpc.FormatJob(job))
 	if err != nil {
 		return err
 	}
@@ -218,14 +169,10 @@ func UpdateAgentJob(agent *models.Agent, job *models.Job) error {
 	return fmt.Errorf(response.GetMessage())
 }
 
-func RemoveAgentJob(agent *models.Agent, id int64) error {
-	agentClient, err := GetAgent(agent)
-	if err != nil {
-		return err
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), RPCTimeOut)
+func (a *Agent) RemoveJob(agent *models.Agent, id int64) error {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
-	response, err := agentClient.JobRemove(ctx, &rpc.ID{Id: id})
+	response, err := a.client.JobRemove(ctx, &rpc.ID{Id: id})
 	if err != nil {
 		return err
 	}
@@ -235,28 +182,20 @@ func RemoveAgentJob(agent *models.Agent, id int64) error {
 	return fmt.Errorf(response.GetMessage())
 }
 
-func GetAgentTimingList(agent *models.Agent) ([]*rpc.Timing, error) {
-	agentClient, err := GetAgent(agent)
-	if err != nil {
-		return nil, err
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), RPCTimeOut)
+func (a *Agent) GetTimingList(agent *models.Agent) ([]*rpc.Timing, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
-	response, err := agentClient.TimingList(ctx, &rpc.Empty{})
+	response, err := a.client.TimingList(ctx, &rpc.Empty{})
 	if err != nil {
 		return nil, err
 	}
 	return response.GetTimings(), nil
 }
 
-func GetAgentTiming(agent *models.Agent, id int64) (*rpc.Timing, error) {
-	agentClient, err := GetAgent(agent)
-	if err != nil {
-		return nil, err
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), RPCTimeOut)
+func (a *Agent) GetTiming(agent *models.Agent, id int64) (*rpc.Timing, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
-	response, err := agentClient.TimingGet(ctx, &rpc.ID{Id: id})
+	response, err := a.client.TimingGet(ctx, &rpc.ID{Id: id})
 	if err != nil {
 		return nil, err
 	}
@@ -266,14 +205,10 @@ func GetAgentTiming(agent *models.Agent, id int64) (*rpc.Timing, error) {
 	return response.GetTiming(), nil
 }
 
-func AddAgentTiming(agent *models.Agent, timing *models.Timing) error {
-	agentClient, err := GetAgent(agent)
-	if err != nil {
-		return err
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), RPCTimeOut)
+func (a *Agent) AddTiming(agent *models.Agent, timing *models.Timing) error {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
-	response, err := agentClient.TimingAdd(ctx, rpc.FormatTiming(timing))
+	response, err := a.client.TimingAdd(ctx, rpc.FormatTiming(timing))
 	if err != nil {
 		return err
 	}
@@ -283,14 +218,10 @@ func AddAgentTiming(agent *models.Agent, timing *models.Timing) error {
 	return fmt.Errorf(response.GetMessage())
 }
 
-func UpdateAgentTiming(agent *models.Agent, timing *models.Timing) error {
-	agentClient, err := GetAgent(agent)
-	if err != nil {
-		return err
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), RPCTimeOut)
+func (a *Agent) UpdateTiming(agent *models.Agent, timing *models.Timing) error {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
-	response, err := agentClient.TimingUpdate(ctx, rpc.FormatTiming(timing))
+	response, err := a.client.TimingUpdate(ctx, rpc.FormatTiming(timing))
 	if err != nil {
 		return err
 	}
@@ -300,14 +231,10 @@ func UpdateAgentTiming(agent *models.Agent, timing *models.Timing) error {
 	return fmt.Errorf(response.GetMessage())
 }
 
-func RemoveAgentTiming(agent *models.Agent, id int64) error {
-	agentClient, err := GetAgent(agent)
-	if err != nil {
-		return err
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), RPCTimeOut)
+func (a *Agent) RemoveTiming(agent *models.Agent, id int64) error {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
-	response, err := agentClient.TimingRemove(ctx, &rpc.ID{Id: id})
+	response, err := a.client.TimingRemove(ctx, &rpc.ID{Id: id})
 	if err != nil {
 		return err
 	}

@@ -13,7 +13,6 @@ import (
 	"github.com/spf13/viper"
 	"google.golang.org/grpc/reflection"
 
-	"Asgard/client"
 	"Asgard/constants"
 	"Asgard/models"
 	"Asgard/providers"
@@ -47,8 +46,8 @@ func InitMaster() {
 	if err != nil {
 		panic(err)
 	}
-	port := viper.GetInt("master.port")
-	if port != 0 {
+	port := viper.GetString("master.port")
+	if port != "" {
 		constants.MASTER_PORT = port
 	}
 	moniter := viper.GetInt("master.moniter")
@@ -67,9 +66,9 @@ func StartMasterRpcServer() {
 	rpc.RegisterMasterServer(s, &server.MasterServer{})
 	reflection.Register(s)
 	logger.Info("Master Rpc Server Started!")
-	logger.Debug(fmt.Sprintf("Server Port:%d", constants.MASTER_PORT))
-	logger.Debug(fmt.Sprintf("Server Pid:%d", os.Getpid()))
-	logger.Debug(fmt.Sprintf("Moniter Loop:%d", constants.MASTER_MONITER))
+	logger.Debugf("Server Port:%d", constants.MASTER_PORT)
+	logger.Debugf("Server Pid:%d", os.Getpid())
+	logger.Debugf("Moniter Loop:%d", constants.MASTER_MONITER)
 	err = s.Serve(listen)
 	if err != nil {
 		logger.Error("failed to serve:", err)
@@ -96,7 +95,11 @@ func checkAgent(agent models.Agent) {
 	usageApps := providers.AppService.GetUsageAppByAgentID(agent.ID)
 	usageJobs := providers.JobService.GetUsageJobByAgentID(agent.ID)
 	usageTimings := providers.TimingService.GetUsageTimingByAgentID(agent.ID)
-	_, err := client.GetAgentStat(&agent)
+	client, err := providers.GetAgent(&agent)
+	if err != nil {
+		return
+	}
+	_, err = client.GetStat()
 	if err != nil {
 		//标记实例状态为离线
 		agent.Status = constants.AGENT_OFFLINE
@@ -119,58 +122,70 @@ func checkAgent(agent models.Agent) {
 		agent.Status = constants.AGENT_ONLINE
 		providers.AgentService.UpdateAgent(&agent)
 		//更新实例应用运行状态
-		apps, err := client.GetAgentAppList(&agent)
+		apps, err := client.GetAppList(&agent)
 		if err != nil {
 			logger.Error("checkOnlineAgent GetAgentAppList Error:", err)
 		} else {
-			runningApps := map[int64]string{}
-			for _, app := range apps {
-				runningApps[app.GetId()] = app.GetName()
-			}
-			for _, app := range usageApps {
-				_, ok := runningApps[app.ID]
-				if ok {
-					providers.AppService.ChangeAPPStatus(&app, constants.APP_STATUS_RUNNING, 0)
-				} else {
-					providers.AppService.ChangeAPPStatus(&app, constants.APP_STATUS_STOP, 0)
-				}
-			}
+			markAppStatus(apps, usageApps)
 		}
 		//更新实例计划任务运行状态
-		jobs, err := client.GetAgentJobList(&agent)
+		jobs, err := client.GetJobList(&agent)
 		if err != nil {
 			logger.Error("checkOnlineAgent GetAgentJobList Error:", err)
 		} else {
-			runningJobs := map[int64]string{}
-			for _, job := range jobs {
-				runningJobs[job.GetId()] = job.GetName()
-			}
-			for _, job := range usageJobs {
-				_, ok := runningJobs[job.ID]
-				if ok {
-					providers.JobService.ChangeJobStatus(&job, constants.JOB_STATUS_RUNNING, 0)
-				} else {
-					providers.JobService.ChangeJobStatus(&job, constants.JOB_STATUS_STOP, 0)
-				}
-			}
+			markJobStatus(jobs, usageJobs)
 		}
 		//更新实例计划任务运行状态
-		timings, err := client.GetAgentTimingList(&agent)
+		timings, err := client.GetTimingList(&agent)
 		if err != nil {
 			logger.Error("checkOnlineAgent GetAgentTimingList Error:", err)
 		} else {
-			runningTimings := map[int64]string{}
-			for _, timing := range timings {
-				runningTimings[timing.GetId()] = timing.GetName()
-			}
-			for _, timing := range usageTimings {
-				_, ok := runningTimings[timing.ID]
-				if ok {
-					providers.TimingService.ChangeTimingStatus(&timing, constants.TIMING_STATUS_RUNNING, 0)
-				} else {
-					providers.TimingService.ChangeTimingStatus(&timing, constants.TIMING_STATUS_STOP, 0)
-				}
-			}
+			markTimigStatus(timings, usageTimings)
+		}
+	}
+}
+
+func markAppStatus(apps []*rpc.App, usageApps []models.App) {
+	runningApps := map[int64]string{}
+	for _, app := range apps {
+		runningApps[app.GetId()] = app.GetName()
+	}
+	for _, app := range usageApps {
+		_, ok := runningApps[app.ID]
+		if ok {
+			providers.AppService.ChangeAPPStatus(&app, constants.APP_STATUS_RUNNING, 0)
+		} else {
+			providers.AppService.ChangeAPPStatus(&app, constants.APP_STATUS_STOP, 0)
+		}
+	}
+}
+
+func markJobStatus(jobs []*rpc.Job, usageJobs []models.Job) {
+	runningJobs := map[int64]string{}
+	for _, job := range jobs {
+		runningJobs[job.GetId()] = job.GetName()
+	}
+	for _, job := range usageJobs {
+		_, ok := runningJobs[job.ID]
+		if ok {
+			providers.JobService.ChangeJobStatus(&job, constants.JOB_STATUS_RUNNING, 0)
+		} else {
+			providers.JobService.ChangeJobStatus(&job, constants.JOB_STATUS_STOP, 0)
+		}
+	}
+}
+
+func markTimigStatus(timings []*rpc.Timing, usageTimings []models.Timing) {
+	runningTimings := map[int64]string{}
+	for _, timing := range timings {
+		runningTimings[timing.GetId()] = timing.GetName()
+	}
+	for _, timing := range usageTimings {
+		_, ok := runningTimings[timing.ID]
+		if ok {
+			providers.TimingService.ChangeTimingStatus(&timing, constants.TIMING_STATUS_RUNNING, 0)
+		} else {
+			providers.TimingService.ChangeTimingStatus(&timing, constants.TIMING_STATUS_STOP, 0)
 		}
 	}
 }

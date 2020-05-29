@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/dalonghahaha/avenger/components/cache"
@@ -43,6 +42,10 @@ func InitWebServer() {
 	if port != 0 {
 		constants.WEB_PORT = port
 	}
+	mode := viper.GetString("web.mode")
+	if mode != "" {
+		constants.WEB_MODE = mode
+	}
 	domain := viper.GetString("web.domain")
 	if domain != "" {
 		constants.WEB_DOMAIN = domain
@@ -60,8 +63,8 @@ func StartWebServer() {
 		os.Exit(1)
 	}
 	logger.Info("Web Server Started!")
-	logger.Debug(fmt.Sprintf("Server Port:%d", constants.WEB_PORT))
-	logger.Debug(fmt.Sprintf("Server Pid:%d", os.Getpid()))
+	logger.Debugf("Server Port:%d", constants.WEB_PORT)
+	logger.Debugf("Server Pid:%d", os.Getpid())
 	web.Run()
 }
 
