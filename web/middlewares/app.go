@@ -13,19 +13,20 @@ import (
 )
 
 func AppInit(ctx *gin.Context) {
-	id := utils.DefaultInt64(ctx, "id", 0)
-	_id := utils.FormDefaultInt64(ctx, "id", 0)
-	if id == 0 && _id == 0 {
-		utils.APIError(ctx, "请求参数异常")
+	id, ok := utils.GetID(ctx)
+	if !ok {
 		ctx.Abort()
 		return
 	}
-	if id == 0 {
-		id = _id
-	}
 	app := providers.AppService.GetAppByID(id)
 	if app == nil {
-		utils.APIError(ctx, "应用不存在")
+		utils.Warning(ctx, "应用不存在")
+		ctx.Abort()
+		return
+	}
+	user := utils.GetUser(ctx)
+	if user.Role != constants.USER_ROLE_ADMIN && app.Creator != user.ID {
+		utils.Warning(ctx, "对不起，您没有操作此应用的权限")
 		ctx.Abort()
 		return
 	}
@@ -34,31 +35,32 @@ func AppInit(ctx *gin.Context) {
 }
 
 func AppAgentInit(ctx *gin.Context) {
-	id := utils.DefaultInt64(ctx, "id", 0)
-	_id := utils.FormDefaultInt64(ctx, "id", 0)
-	if id == 0 && _id == 0 {
-		utils.APIError(ctx, "请求参数异常")
+	id, ok := utils.GetID(ctx)
+	if !ok {
 		ctx.Abort()
 		return
 	}
-	if id == 0 {
-		id = _id
-	}
 	app := providers.AppService.GetAppByID(id)
 	if app == nil {
-		utils.APIError(ctx, "应用不存在")
+		utils.Warning(ctx, "应用不存在")
+		ctx.Abort()
+		return
+	}
+	user := utils.GetUser(ctx)
+	if user.Role != constants.USER_ROLE_ADMIN && app.Creator != user.ID {
+		utils.Warning(ctx, "对不起，您没有操作此应用的权限")
 		ctx.Abort()
 		return
 	}
 	ctx.Set("app", app)
 	agent := providers.AgentService.GetAgentByID(app.AgentID)
 	if agent == nil {
-		utils.APIError(ctx, "实例获取失败")
+		utils.Warning(ctx, "实例获取失败")
 		ctx.Abort()
 		return
 	}
 	if agent.Status != constants.AGENT_ONLINE {
-		utils.APIError(ctx, "实例不处于运行状态")
+		utils.Warning(ctx, "实例不处于运行状态")
 		ctx.Abort()
 		return
 	}
@@ -75,6 +77,7 @@ func BatchAppAgentInit(ctx *gin.Context) {
 	}
 	appAgents := map[*models.App]*models.Agent{}
 	idList := strings.Split(ids, ",")
+	user := utils.GetUser(ctx)
 	for _, id := range idList {
 		_id, err := strconv.ParseInt(id, 10, 64)
 		if err != nil {
@@ -85,6 +88,11 @@ func BatchAppAgentInit(ctx *gin.Context) {
 		app := providers.AppService.GetAppByID(_id)
 		if app == nil {
 			utils.APIError(ctx, "应用不存在")
+			ctx.Abort()
+			return
+		}
+		if user.Role != constants.USER_ROLE_ADMIN && app.Creator != user.ID {
+			utils.APIError(ctx, "对不起，您没有操作此应用的权限")
 			ctx.Abort()
 			return
 		}

@@ -14,6 +14,7 @@ require (
 	github.com/jinzhu/gorm v1.9.11
 	github.com/logrusorgru/aurora v0.0.0-20200102142835-e9ef32dff381 // indirect
 	github.com/mitchellh/mapstructure v1.3.1 // indirect
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pelletier/go-toml v1.8.0 // indirect
 	github.com/robfig/cron/v3 v3.0.0
 	github.com/shirou/gopsutil v2.19.11+incompatible

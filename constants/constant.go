@@ -7,6 +7,16 @@ const (
 	TYPE_APP    = int64(2)
 	TYPE_JOB    = int64(3)
 	TYPE_TIMING = int64(4)
+	TYPE_GROUP  = int64(5)
+	TYPE_USER   = int64(6)
+
+	ACTION_CREATE  = int64(1)
+	ACTION_UPDATE  = int64(2)
+	ACTION_DELETE  = int64(3)
+	ACTION_COPY    = int64(4)
+	ACTION_START   = int64(5)
+	ACTION_RESTART = int64(6)
+	ACTION_PAUSE   = int64(7)
 
 	USER_ROLE_ADMIN  = "Administrator"
 	USER_ROLE_NORMAL = "User"
@@ -25,6 +35,7 @@ const (
 
 	APP_STATUS_DELETED = int64(-1)
 	APP_STATUS_UNKNOWN = int64(-2)
+	APP_STATUS_FAILED  = int64(-3)
 	APP_STATUS_STOP    = int64(0)
 	APP_STATUS_RUNNING = int64(1)
 	APP_STATUS_PAUSE   = int64(2)
@@ -42,6 +53,21 @@ const (
 	TIMING_STATUS_PAUSE    = int64(2)
 	TIMING_STATUS_FINISHED = int64(3)
 )
+
+var USER_STATUS = []structs.M{
+	{
+		"ID":   USER_STATUS_UNVERIFIED,
+		"Name": "未审核",
+	},
+	{
+		"ID":   USER_STATUS_NORMAL,
+		"Name": "正常",
+	},
+	{
+		"ID":   USER_STATUS_FORBIDDEN,
+		"Name": "禁用",
+	},
+}
 
 var AGENT_STATUS = []structs.M{
 	{

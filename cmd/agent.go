@@ -24,8 +24,8 @@ import (
 
 func init() {
 	agentCommonCmd.PersistentFlags().StringP("conf", "c", "conf", "config path")
-	listCommonCmd.PersistentFlags().StringP("port", "p", "27149", "agent port")
-	agentCommonCmd.AddCommand(listCommonCmd)
+	statusCommonCmd.PersistentFlags().StringP("port", "p", "27149", "agent port")
+	agentCommonCmd.AddCommand(statusCommonCmd)
 	rootCmd.AddCommand(agentCommonCmd)
 }
 
@@ -50,9 +50,9 @@ var agentCommonCmd = &cobra.Command{
 	},
 }
 
-var listCommonCmd = &cobra.Command{
-	Use:   "list",
-	Short: "show agent running applications",
+var statusCommonCmd = &cobra.Command{
+	Use:   "status",
+	Short: "show agent running status",
 	Run: func(cmd *cobra.Command, args []string) {
 		port := cmd.Flag("port").Value.String()
 		_client, err := client.NewAgent("127.0.0.1", port)

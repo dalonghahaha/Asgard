@@ -5,14 +5,15 @@ import (
 )
 
 var (
-	UserService    *services.UserService
-	AgentService   *services.AgentService
-	GroupService   *services.GroupService
-	AppService     *services.AppService
-	JobService     *services.JobService
-	TimingService  *services.TimingService
-	MoniterService *services.MonitorService
-	ArchiveService *services.ArchiveService
+	UserService         *services.UserService
+	AgentService        *services.AgentService
+	GroupService        *services.GroupService
+	AppService          *services.AppService
+	JobService          *services.JobService
+	TimingService       *services.TimingService
+	MoniterService      *services.MonitorService
+	ArchiveService      *services.ArchiveService
+	OperationLogService *services.OperationLogService
 )
 
 func init() {
@@ -24,4 +25,5 @@ func init() {
 	TimingService = services.NewTimingService()
 	MoniterService = services.NewMonitorService()
 	ArchiveService = services.NewArchiveService()
+	OperationLogService = services.NewOperationLogService()
 }

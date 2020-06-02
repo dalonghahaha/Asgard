@@ -13,19 +13,20 @@ import (
 )
 
 func TimingInit(ctx *gin.Context) {
-	id := utils.DefaultInt64(ctx, "id", 0)
-	_id := utils.FormDefaultInt64(ctx, "id", 0)
-	if id == 0 && _id == 0 {
-		utils.JumpWarning(ctx, "请求参数异常")
+	id, ok := utils.GetID(ctx)
+	if !ok {
 		ctx.Abort()
 		return
 	}
-	if id == 0 {
-		id = _id
-	}
 	timing := providers.TimingService.GetTimingByID(id)
 	if timing == nil {
-		utils.JumpWarning(ctx, "定时任务不存在")
+		utils.Warning(ctx, "定时任务不存在")
+		ctx.Abort()
+		return
+	}
+	user := utils.GetUser(ctx)
+	if user.Role != constants.USER_ROLE_ADMIN && timing.Creator != user.ID {
+		utils.Warning(ctx, "对不起，您没有操作此应用的权限")
 		ctx.Abort()
 		return
 	}
@@ -34,31 +35,32 @@ func TimingInit(ctx *gin.Context) {
 }
 
 func TimingAgentInit(ctx *gin.Context) {
-	id := utils.DefaultInt64(ctx, "id", 0)
-	_id := utils.FormDefaultInt64(ctx, "id", 0)
-	if id == 0 {
-		utils.APIBadRequest(ctx, "请求参数异常")
+	id, ok := utils.GetID(ctx)
+	if !ok {
 		ctx.Abort()
 		return
 	}
-	if id == 0 {
-		id = _id
-	}
 	timing := providers.TimingService.GetTimingByID(id)
 	if timing == nil {
-		utils.APIError(ctx, "定时任务不存在")
+		utils.Warning(ctx, "定时任务不存在")
+		ctx.Abort()
+		return
+	}
+	user := utils.GetUser(ctx)
+	if user.Role != constants.USER_ROLE_ADMIN && timing.Creator != user.ID {
+		utils.Warning(ctx, "对不起，您没有操作此应用的权限")
 		ctx.Abort()
 		return
 	}
 	ctx.Set("timing", timing)
 	agent := providers.AgentService.GetAgentByID(timing.AgentID)
 	if agent == nil {
-		utils.APIError(ctx, "实例获取失败")
+		utils.Warning(ctx, "实例获取失败")
 		ctx.Abort()
 		return
 	}
 	if agent.Status != constants.AGENT_ONLINE {
-		utils.APIError(ctx, "实例不处于运行状态")
+		utils.Warning(ctx, "实例不处于运行状态")
 		ctx.Abort()
 		return
 	}
@@ -75,6 +77,7 @@ func BatchTimingAgentInit(ctx *gin.Context) {
 	}
 	timingAgents := map[*models.Timing]*models.Agent{}
 	idList := strings.Split(ids, ",")
+	user := utils.GetUser(ctx)
 	for _, id := range idList {
 		_id, err := strconv.ParseInt(id, 10, 64)
 		if err != nil {
@@ -85,6 +88,11 @@ func BatchTimingAgentInit(ctx *gin.Context) {
 		timing := providers.TimingService.GetTimingByID(_id)
 		if timing == nil {
 			utils.APIError(ctx, "应用不存在")
+			ctx.Abort()
+			return
+		}
+		if user.Role != constants.USER_ROLE_ADMIN && timing.Creator != user.ID {
+			utils.APIError(ctx, "对不起，您没有操作此应用的权限")
 			ctx.Abort()
 			return
 		}

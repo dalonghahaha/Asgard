@@ -27,10 +27,14 @@ func (c *AppController) List(ctx *gin.Context) {
 	status := utils.DefaultInt(ctx, "status", -99)
 	name := ctx.Query("name")
 	page := utils.DefaultInt(ctx, "page", 1)
+	user := utils.GetUser(ctx)
 	where := map[string]interface{}{
 		"status": status,
 	}
 	querys := []string{}
+	if user.Role != constants.USER_ROLE_ADMIN {
+		where["creator"] = user.ID
+	}
 	if groupID != 0 {
 		where["group_id"] = groupID
 		querys = append(querys, "group_id="+strconv.Itoa(groupID))
@@ -113,6 +117,7 @@ func (c *AppController) Create(ctx *gin.Context) {
 		utils.APIError(ctx, "创建应用失败")
 		return
 	}
+	utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_APP, app.ID, constants.ACTION_CREATE)
 	utils.APIOK(ctx)
 }
 
@@ -149,6 +154,7 @@ func (c *AppController) Update(ctx *gin.Context) {
 		utils.APIError(ctx, "更新应用失败")
 		return
 	}
+	utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_APP, app.ID, constants.ACTION_UPDATE)
 	utils.APIOK(ctx)
 }
 
@@ -172,6 +178,7 @@ func (c *AppController) Copy(ctx *gin.Context) {
 		utils.APIError(ctx, "复制应用失败")
 		return
 	}
+	utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_APP, app.ID, constants.ACTION_COPY)
 	utils.APIOK(ctx)
 }
 
@@ -204,6 +211,7 @@ func (c *AppController) Start(ctx *gin.Context) {
 		utils.APIError(ctx, "更新应用状态失败")
 		return
 	}
+	utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_APP, app.ID, constants.ACTION_START)
 	utils.APIOK(ctx)
 }
 
@@ -233,6 +241,7 @@ func (c *AppController) ReStart(ctx *gin.Context) {
 			return
 		}
 	}
+	utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_APP, app.ID, constants.ACTION_RESTART)
 	utils.APIOK(ctx)
 }
 
@@ -261,6 +270,7 @@ func (c *AppController) Pause(ctx *gin.Context) {
 		utils.APIError(ctx, "更新应用状态失败")
 		return
 	}
+	utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_APP, app.ID, constants.ACTION_PAUSE)
 	utils.APIOK(ctx)
 }
 
@@ -293,6 +303,7 @@ func (c *AppController) Delete(ctx *gin.Context) {
 		utils.APIError(ctx, "删除应用失败")
 		return
 	}
+	utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_APP, app.ID, constants.ACTION_DELETE)
 	utils.APIOK(ctx)
 }
 
@@ -319,6 +330,7 @@ func (c *AppController) BatchStart(ctx *gin.Context) {
 			}
 		}
 		providers.AppService.ChangeAPPStatus(app, constants.APP_STATUS_RUNNING, utils.GetUserID(ctx))
+		utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_APP, app.ID, constants.ACTION_START)
 	}
 	utils.APIOK(ctx)
 }
@@ -347,6 +359,7 @@ func (c *AppController) BatchReStart(ctx *gin.Context) {
 				logger.Errorf("App BatchReStart UpdateAgentApp Error:[%d][%s]", app.ID, err.Error())
 			}
 		}
+		utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_APP, app.ID, constants.ACTION_RESTART)
 	}
 	utils.APIOK(ctx)
 }
@@ -372,6 +385,7 @@ func (c *AppController) BatchPause(ctx *gin.Context) {
 			}
 		}
 		providers.AppService.ChangeAPPStatus(app, constants.APP_STATUS_PAUSE, utils.GetUserID(ctx))
+		utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_APP, app.ID, constants.ACTION_PAUSE)
 	}
 	utils.APIOK(ctx)
 }
@@ -400,6 +414,7 @@ func (c *AppController) BatchDelete(ctx *gin.Context) {
 			}
 		}
 		providers.AppService.ChangeAPPStatus(app, constants.APP_STATUS_DELETED, utils.GetUserID(ctx))
+		utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_APP, app.ID, constants.ACTION_DELETE)
 	}
 	utils.APIOK(ctx)
 }

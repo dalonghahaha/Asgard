@@ -1,14 +1,33 @@
 package utils
 
 import (
-	"Asgard/models"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+
+	"Asgard/models"
 )
 
 func GetReferer(ctx *gin.Context) string {
 	return ctx.Request.Header.Get("Referer")
+}
+
+func GetID(ctx *gin.Context) (int64, bool) {
+	var id int64
+	if ctx.Request.Method == "GET" {
+		id = DefaultInt64(ctx, "id", 0)
+		if id == 0 {
+			JumpWarning(ctx, "请求参数异常")
+			return 0, false
+		}
+	} else if ctx.Request.Method == "POST" {
+		id = FormDefaultInt64(ctx, "id", 0)
+		if id == 0 {
+			APIError(ctx, "请求参数异常")
+			return 0, false
+		}
+	}
+	return id, true
 }
 
 func DefaultInt(ctx *gin.Context, key string, defaultVal int) int {

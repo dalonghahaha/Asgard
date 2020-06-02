@@ -23,7 +23,7 @@
             </div>
         </form>
         <div class="card">
-            <div>
+            <div class="table-responsive">
                 <table class="table table-hover table-outline table-vcenter text-nowrap card-table">
                     <thead>
                         <tr>
@@ -31,7 +31,7 @@
                             <th style="width: 10%"><span>别名</span></th>
                             <th style="width: 15%"><span>地址</span></th>
                             <th style="width: 10%"><span>状态</span></th>
-                            <th style="width: 56%" class="text-right">操作</th>
+                            <th style="width: 56%"></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -49,8 +49,9 @@
                                 <span class="badge bg-red">forbidden</span>
                                 {{end}}
                             </td>
-                            <td class="text-right">
+                            <td>
                                 <div class="btn-list">
+                                    {{if eq $.Role "Administrator"}}
                                     <a href="/agent/edit?id={{.ID}}" title="编辑" class="btn btn-sm btn-secondary ml-auto">
                                         {{include "partials/svg/edit"}}
                                         编辑
@@ -71,6 +72,7 @@
                                         {{include "partials/svg/timing"}}
                                         定时任务列表
                                     </a>
+                                    {{end}}
                                 </div>
                             </td>
                         </tr>

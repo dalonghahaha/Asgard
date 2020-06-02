@@ -27,10 +27,14 @@ func (c *JobController) List(ctx *gin.Context) {
 	status := utils.DefaultInt(ctx, "status", -99)
 	name := ctx.Query("name")
 	page := utils.DefaultInt(ctx, "page", 1)
+	user := utils.GetUser(ctx)
 	where := map[string]interface{}{
 		"status": status,
 	}
 	querys := []string{}
+	if user.Role != constants.USER_ROLE_ADMIN {
+		where["creator"] = user.ID
+	}
 	if groupID != 0 {
 		where["group_id"] = groupID
 		querys = append(querys, "group_id="+strconv.Itoa(groupID))
@@ -115,6 +119,7 @@ func (c *JobController) Create(ctx *gin.Context) {
 		utils.APIError(ctx, "创建计划任务失败")
 		return
 	}
+	utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_JOB, job.ID, constants.ACTION_CREATE)
 	utils.APIOK(ctx)
 }
 
@@ -153,6 +158,7 @@ func (c *JobController) Update(ctx *gin.Context) {
 		utils.APIError(ctx, "更新计划任务失败")
 		return
 	}
+	utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_JOB, job.ID, constants.ACTION_UPDATE)
 	utils.APIOK(ctx)
 }
 
@@ -177,6 +183,7 @@ func (c *JobController) Copy(ctx *gin.Context) {
 		utils.APIError(ctx, "复制计划任务失败")
 		return
 	}
+	utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_JOB, job.ID, constants.ACTION_COPY)
 	utils.APIOK(ctx)
 }
 
@@ -209,6 +216,7 @@ func (c *JobController) Start(ctx *gin.Context) {
 		utils.APIError(ctx, "更新计划任务状态失败")
 		return
 	}
+	utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_JOB, job.ID, constants.ACTION_START)
 	utils.APIOK(ctx)
 }
 
@@ -238,6 +246,7 @@ func (c *JobController) ReStart(ctx *gin.Context) {
 			return
 		}
 	}
+	utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_JOB, job.ID, constants.ACTION_RESTART)
 	utils.APIOK(ctx)
 }
 
@@ -266,6 +275,7 @@ func (c *JobController) Pause(ctx *gin.Context) {
 		utils.APIError(ctx, "更新计划任务状态失败")
 		return
 	}
+	utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_JOB, job.ID, constants.ACTION_PAUSE)
 	utils.APIOK(ctx)
 }
 
@@ -298,6 +308,7 @@ func (c *JobController) Delete(ctx *gin.Context) {
 		utils.APIError(ctx, "更新计划任务状态失败")
 		return
 	}
+	utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_JOB, job.ID, constants.ACTION_DELETE)
 	utils.APIOK(ctx)
 }
 
@@ -324,6 +335,7 @@ func (c *JobController) BatchStart(ctx *gin.Context) {
 			}
 		}
 		providers.JobService.ChangeJobStatus(job, constants.JOB_STATUS_RUNNING, utils.GetUserID(ctx))
+		utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_JOB, job.ID, constants.ACTION_START)
 	}
 	utils.APIOK(ctx)
 }
@@ -352,6 +364,7 @@ func (c *JobController) BatchReStart(ctx *gin.Context) {
 				logger.Errorf("Job BatchReStart UpdateAgentJob Error:[%d][%s]", job.ID, err.Error())
 			}
 		}
+		utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_JOB, job.ID, constants.ACTION_RESTART)
 	}
 	utils.APIOK(ctx)
 }
@@ -377,6 +390,7 @@ func (c *JobController) BatchPause(ctx *gin.Context) {
 			}
 		}
 		providers.JobService.ChangeJobStatus(job, constants.JOB_STATUS_PAUSE, utils.GetUserID(ctx))
+		utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_JOB, job.ID, constants.ACTION_PAUSE)
 	}
 	utils.APIOK(ctx)
 }
@@ -405,6 +419,7 @@ func (c *JobController) BatchDelete(ctx *gin.Context) {
 			}
 		}
 		providers.JobService.ChangeJobStatus(job, constants.JOB_STATUS_DELETED, utils.GetUserID(ctx))
+		utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_JOB, job.ID, constants.ACTION_DELETE)
 	}
 	utils.APIOK(ctx)
 }

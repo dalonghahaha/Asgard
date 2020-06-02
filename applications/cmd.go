@@ -32,6 +32,7 @@ type Command struct {
 	Begin           time.Time
 	End             time.Time
 	Finished        bool
+	Successed       bool
 	Status          int
 	Signal          string
 	Cmd             *exec.Cmd
@@ -118,23 +119,23 @@ func (c *Command) build() error {
 		logger.Error("open stderr error:", err)
 		return err
 	}
-
 	c.Cmd.Stderr = stderr
 	return nil
 }
 
 func (c *Command) start() error {
+	c.UUID = uuid.GenerateV4()
+	c.Begin = time.Now()
 	err := c.Cmd.Start()
 	if err != nil {
-		logger.Error(c.Name+" start fail:", err)
+		logger.Errorf("%s start fail: %s", c.Name, err)
 		c.Finished = true
+		c.Successed = false
 		return err
 	}
-	c.Begin = time.Now()
 	c.Finished = false
-	c.UUID = uuid.GenerateV4()
 	c.Pid = c.Cmd.Process.Pid
-	logger.Info(c.Name+" started at ", c.Pid)
+	logger.Infof("%s started at %d", c.Name, c.Pid)
 	if c.IsMonitor {
 		MoniterAdd(c.Pid, c.monitor)
 	}
@@ -151,6 +152,7 @@ func (c *Command) wait(callback func()) {
 		c.Status = -3
 		c.Signal = "unknow"
 	} else {
+		c.Successed = c.Cmd.ProcessState.Success()
 		c.Status = c.Cmd.ProcessState.ExitCode()
 		status, ok := c.Cmd.ProcessState.Sys().(syscall.WaitStatus)
 		if ok && status.Signaled() {
@@ -158,7 +160,7 @@ func (c *Command) wait(callback func()) {
 		}
 	}
 	if c.ArchiveReport != nil {
-		logger.Debugf("appArchive Send from wait:[%s][%d][%s]", c.Name, c.Status, c.Signal)
+		logger.Debugf("archive Send from wait:[%s][%d][%s]", c.Name, c.Status, c.Signal)
 		c.ArchiveReport(buildArchive(c))
 	}
 	callback()
@@ -189,7 +191,7 @@ func (c *Command) stop() {
 		}
 	}
 	if c.ArchiveReport != nil {
-		logger.Debugf("appArchive Send from stop:[%s][%d][%s]", c.Name, c.Status, c.Signal)
+		logger.Debugf("achive Send from stop:[%s][%d][%s]", c.Name, c.Status, c.Signal)
 		c.ArchiveReport(buildArchive(c))
 	}
 }

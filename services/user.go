@@ -23,9 +23,23 @@ func (s *UserService) buidCacheKey(id int64) string {
 }
 
 func (s *UserService) GetUserPageList(where map[string]interface{}, page int, pageSize int) (list []models.User, count int) {
-	err := models.PageList(&models.User{}, where, page, pageSize, "created_at desc", &list, &count)
+	condition := "1=1"
+	for key, val := range where {
+		if key == "status" {
+			if val.(int) == -99 {
+				condition += " and status != -1"
+			} else {
+				condition += fmt.Sprintf(" and %s=%v", key, val)
+			}
+		} else if key == "nickname" || key == "phone" || key == "email" {
+			condition += fmt.Sprintf(" and %s like '%%%v%%' ", key, val)
+		} else {
+			condition += fmt.Sprintf(" and %s=%v", key, val)
+		}
+	}
+	err := models.PageListbyWhereString(&models.User{}, condition, page, pageSize, "created_at desc", &list, &count)
 	if err != nil {
-		logger.Error("GetJobPageList Error:", err)
+		logger.Error("GetUserPageList Error:", err)
 		return nil, 0
 	}
 	return

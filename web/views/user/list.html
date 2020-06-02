@@ -1,26 +1,37 @@
 {{define "content"}}
-<div class="page-title-box">
-    <div class="row align-items-center">
-        <div class="col-auto">
-            <h2 class="page-title">
-                用户列表
-            </h2>
-        </div>
-        <div class="col-auto">
-            <div class="text-muted text-h5 mt-2">总记录数:{{.Total}}</div>
-        </div>
-        <div class="col-auto ml-auto d-print-none">
-            <div class="d-flex">
-                <a href="/user/add" class="btn btn-success">
-                    {{include "partials/svg/add"}}
-                    新增用户
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="row">
+{{template "page_title" .}}
+<div id="main" class="row" data-mod="user">
     <div class="col-12">
+        <form class="mb-3">
+            <div class="row">
+                <div class="col-xl-6">
+                    {{include "partials/input/phone"}}
+                </div>
+                <div class="col-xl-6">
+                    {{include "partials/input/email"}}
+                </div>
+                <div class="col-xl-6">
+                    {{include "partials/input/nickname"}}
+                </div>
+                <div class="col-xl-6">
+                    {{include "partials/select/status"}}
+                </div>
+                <div class="col btn-list">
+                    <button action="submit" type="button" class="btn btn-primary">
+                        {{include "partials/svg/search"}}
+                        查询
+                    </button>
+                    <button action="list" type="button" class="btn btn-info">
+                        {{include "partials/svg/reset"}}
+                        重置
+                    </button>
+                    <button action="add" type="button" class="btn btn-success">
+                        {{include "partials/svg/add"}}
+                        新增
+                    </button>
+                </div>
+            </div>
+        </form>
         <div class="card">
             <div class="table-responsive">
                 <table class="table card-table table-vcenter text-nowrap datatable overflow-hidden">
@@ -56,22 +67,25 @@
                                 {{end}}
                             </td>
                             <td class="text-right">
-                                <div class="btn-list">
+                                <div class="cmd-info btn-list" data-bind="{{.ID}}">
                                     {{if eq $.Role "Administrator"}}
-                                    <a href="/user/edit?id={{.ID}}" title="编辑" class="btn btn-secondary btn-icon ml-auto">
+                                    <button action="edit" class="btn btn-secondary btn-sm ml-auto">
                                         {{include "partials/svg/edit"}}
-                                    </a>
-                                    <a href="/user/reset_password?id={{.ID}}" title="修改密码" class="btn btn-secondary btn-icon">
-                                        {{include "partials/svg/option"}}
-                                    </a>
+                                        编辑
+                                    </button>
+                                    <button action="reset_password" class="btn btn-secondary btn-sm">
+                                        修改密码
+                                    </button>
                                     {{if eq .Status 0}}
-                                    <a data-bind="{{.ID}}" href="javascript:;" action="verify" title="审核" class="btn btn-success btn-icon">
+                                    <button action="verify" class="btn btn-success btn-sm">
                                         {{include "partials/svg/verify"}}
-                                    </a>
+                                        审核
+                                    </button>
                                     {{end}}
-                                    <a data-bind="{{.ID}}" href="javascript:;" action="forbidden" title="删除" class="btn btn-danger btn-icon">
+                                    <button action="forbidden" class="btn btn-danger btn-sm">
                                         {{include "partials/svg/forbidden"}}
-                                    </a>
+                                        禁用
+                                    </button>
                                     {{end}}
                                 </div>
                             </td>
@@ -90,27 +104,8 @@
 {{define "script"}}
 <script type="text/javascript">
     $(document).ready(function () {
-        $("table").delegate("a[action=forbidden]", "click", function () {
-            var id = $(this).attr("data-bind");
-            $.getJSON("/user/forbidden?id=" + id, function (data) {
-                if (data.code == 200) {
-                    alert("操作成功");
-                    window.location.reload(true)
-                } else {
-                    alert(data.message);
-                }
-            })
-        }).delegate("a[action=verify]", "click", function () {
-            var id = $(this).attr("data-bind");
-            $.getJSON("/user/verify?id=" + id, function (data) {
-                if (data.code == 200) {
-                    alert("操作成功");
-                    window.location.reload(true)
-                } else {
-                    alert(data.message);
-                }
-            })
-        })
+        $('#status').selectize({});
+        Asgard.init("#main", "user");
     });
 </script>
 {{end}}

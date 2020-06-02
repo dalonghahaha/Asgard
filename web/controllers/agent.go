@@ -18,6 +18,7 @@ func NewAgentController() *AgentController {
 }
 
 func (c *AgentController) List(ctx *gin.Context) {
+	user := utils.GetUser(ctx)
 	page := utils.DefaultInt(ctx, "page", 1)
 	status := utils.DefaultInt(ctx, "status", -99)
 	alias := ctx.Query("alias")
@@ -44,6 +45,7 @@ func (c *AgentController) List(ctx *gin.Context) {
 		"StatusList": constants.AGENT_STATUS,
 		"Alias":      alias,
 		"Status":     status,
+		"Role":       user.Role,
 		"Pagination": utils.PagerHtml(total, page, mpurl),
 	})
 }
@@ -51,12 +53,12 @@ func (c *AgentController) List(ctx *gin.Context) {
 func (c *AgentController) Edit(ctx *gin.Context) {
 	id := utils.DefaultInt64(ctx, "id", 0)
 	if id == 0 {
-		utils.JumpError(ctx)
+		utils.JumpWarning(ctx, "id参数异常")
 		return
 	}
 	agent := providers.AgentService.GetAgentByID(id)
 	if agent == nil {
-		utils.JumpError(ctx)
+		utils.JumpWarning(ctx, "获取实例信息异常")
 		return
 	}
 	utils.Render(ctx, "agent/edit", gin.H{
@@ -83,5 +85,6 @@ func (c *AgentController) Update(ctx *gin.Context) {
 		utils.APIError(ctx, "实例更新失败")
 		return
 	}
+	utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_AGENT, agent.ID, constants.ACTION_UPDATE)
 	utils.APIOK(ctx)
 }

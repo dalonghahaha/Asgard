@@ -6,15 +6,13 @@
 </header>
 
 <body class="antialiased">
-    <div class="wrapper">
-        {{include "layouts/sidebar"}}
-        <div class="content">
-            {{include "layouts/top"}}
-            <div class="content-page">
-                <main class="container my-4 flex-fill">
-                    {{template "content" .}}
-                </main>
-            </div>
+    {{include "layouts/sidebar"}}
+    <div class="content">
+        {{include "layouts/top"}}
+        <div class="content-page">
+            <main class="container my-4 flex-fill">
+                {{template "content" .}}
+            </main>
         </div>
     </div>
 </body>

@@ -20,6 +20,7 @@ func NewGroupController() *GroupController {
 }
 
 func (c *GroupController) List(ctx *gin.Context) {
+	user := utils.GetUser(ctx)
 	page := utils.DefaultInt(ctx, "page", 1)
 	status := utils.DefaultInt(ctx, "status", -99)
 	name := ctx.Query("name")
@@ -46,6 +47,7 @@ func (c *GroupController) List(ctx *gin.Context) {
 		"StatusList": constants.GROUP_STATUS,
 		"Name":       name,
 		"Status":     status,
+		"Role":       user.Role,
 		"Pagination": utils.PagerHtml(total, page, mpurl),
 	})
 }
@@ -75,6 +77,7 @@ func (c *GroupController) Create(ctx *gin.Context) {
 		utils.APIError(ctx, "创建分组失败")
 		return
 	}
+	utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_GROUP, group.ID, constants.ACTION_CREATE)
 	utils.APIOK(ctx)
 }
 
@@ -111,6 +114,7 @@ func (c *GroupController) Update(ctx *gin.Context) {
 		utils.APIError(ctx, "更新分组失败")
 		return
 	}
+	utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_GROUP, group.ID, constants.ACTION_UPDATE)
 	utils.APIOK(ctx)
 }
 
@@ -121,5 +125,6 @@ func (c *GroupController) Delete(ctx *gin.Context) {
 		utils.APIError(ctx, "更新分组状态失败")
 		return
 	}
+	utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_GROUP, group.ID, constants.ACTION_DELETE)
 	utils.APIOK(ctx)
 }

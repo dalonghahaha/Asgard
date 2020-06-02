@@ -8,7 +8,9 @@ import (
 	"github.com/dalonghahaha/avenger/tools/uuid"
 )
 
-var APPs = map[int64]*App{}
+var (
+	APPs = map[int64]*App{}
+)
 
 func AppStopAll() {
 	MoniterStop()
@@ -71,6 +73,7 @@ type App struct {
 	Command
 	ID          int64
 	AutoRestart bool
+	RestartTime int
 }
 
 func (a *App) Run() {
@@ -87,8 +90,14 @@ func (a *App) Run() {
 
 func (a *App) restart() {
 	if a.AutoRestart && !processExit {
-		logger.Info(a.Name + " Restart.....")
-		go a.Run()
+		//最多重启5次
+		if !a.Successed && a.RestartTime <= 5 {
+			a.RestartTime += 1
+			logger.Infof("%s Restart.....", a.Name)
+			go a.Run()
+		} else {
+			logger.Warnf("%s Restart Reach Max", a.Name)
+		}
 	}
 }
 

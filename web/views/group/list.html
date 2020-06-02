@@ -55,6 +55,7 @@
                             </td>
                             <td class="text-right">
                                 <div class="cmd-info btn-list" data-bind="{{.ID}}">
+                                    {{if eq $.Role "Administrator"}}
                                     {{if ne .Status -1}}
                                     <button action="edit" class="btn btn-secondary btn-sm ml-auto">
                                         {{include "partials/svg/edit"}}
@@ -74,10 +75,12 @@
                                         {{include "partials/svg/job"}}
                                         计划任务列表
                                     </button>
-                                    <button url="/timing/list?group_id={{.ID}}" action="jump" class="btn btn-info btn-sm">
+                                    <button url="/timing/list?group_id={{.ID}}" action="jump"
+                                        class="btn btn-info btn-sm">
                                         {{include "partials/svg/timing"}}
                                         定时任务列表
                                     </button>
+                                    {{end}}
                                     {{end}}
                                 </div>
                             </td>

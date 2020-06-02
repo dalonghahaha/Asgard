@@ -4,7 +4,11 @@
         <select id="agent_id" name="agent_id" class="form-select">
             <option value="0">全部</option>
             {{- range .AgentList}}
-            <option value="{{.ID}}" {{if eq $.AgentID .ID}}selected{{end}}>{{.IP}}:{{.Port}}({{.Alias}})</option>
+            {{if ne .Alias ""}}
+            <option value="{{.ID}}" {{if eq $.AgentID .ID}}selected{{end}}>{{.Alias}}</option>
+            {{else}}
+            <option value="{{.ID}}" {{if eq $.AgentID .ID}}selected{{end}}>{{.IP}}:{{.Port}}</option>
+            {{end}}
             {{- end}}
         </select>
     </div>

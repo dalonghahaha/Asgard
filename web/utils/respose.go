@@ -39,6 +39,22 @@ func JumpWarningByCode(ctx *gin.Context, code int) {
 	ctx.HTML(http.StatusOK, "warning", gin.H{"Message": GetErrorMessage(code)})
 }
 
+func Warning(ctx *gin.Context, message string) {
+	if ctx.Request.Method == "GET" {
+		JumpWarning(ctx, message)
+	} else if ctx.Request.Method == "POST" {
+		APIError(ctx, message)
+	}
+}
+
+func WarningByCode(ctx *gin.Context, code int) {
+	if ctx.Request.Method == "GET" {
+		JumpWarningByCode(ctx, code)
+	} else if ctx.Request.Method == "POST" {
+		APIErrorByCode(ctx, code)
+	}
+}
+
 func JumpError(ctx *gin.Context) {
 	ctx.Redirect(http.StatusInternalServerError, constants.WEB_ERROR_URL)
 }

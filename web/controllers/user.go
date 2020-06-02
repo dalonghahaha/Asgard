@@ -3,6 +3,7 @@ package controllers
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/dalonghahaha/avenger/tools/coding"
 	"github.com/dalonghahaha/avenger/tools/random"
@@ -22,24 +23,45 @@ func NewUserController() *UserController {
 }
 
 func (c *UserController) List(ctx *gin.Context) {
-	userID := utils.GetUserID(ctx)
-	if userID == 0 {
-		utils.APIBadRequest(ctx, "用户ID错误")
-		return
-	}
-	user := providers.UserService.GetUserByID(userID)
-	if user == nil {
-		utils.APIBadRequest(ctx, "用户不存在")
-		return
-	}
+	user := utils.GetUser(ctx)
 	page := utils.DefaultInt(ctx, "page", 1)
-	where := map[string]interface{}{}
+	status := utils.DefaultInt(ctx, "status", -99)
+	nickname := ctx.Query("nickname")
+	phone := ctx.Query("phone")
+	email := ctx.Query("email")
+	where := map[string]interface{}{
+		"status": status,
+	}
+	querys := []string{}
+	if nickname != "" {
+		where["nickname"] = nickname
+		querys = append(querys, "nickname="+nickname)
+	}
+	if phone != "" {
+		where["phone"] = phone
+		querys = append(querys, "phone="+phone)
+	}
+	if email != "" {
+		where["email"] = email
+		querys = append(querys, "email="+email)
+	}
+	if status != -99 {
+		querys = append(querys, "status="+strconv.Itoa(status))
+	}
 	list, total := providers.UserService.GetUserPageList(where, page, constants.WEB_LIST_PAGE_SIZE)
 	mpurl := "/user/list"
+	if len(querys) > 0 {
+		mpurl = "/user/list?" + strings.Join(querys, "&")
+	}
 	ctx.HTML(200, "user/list", gin.H{
 		"Subtitle":   "用户列表",
 		"List":       list,
 		"Total":      total,
+		"StatusList": constants.USER_STATUS,
+		"Nickname":   nickname,
+		"Phone":      phone,
+		"Email":      email,
+		"Status":     status,
 		"Role":       user.Role,
 		"Pagination": utils.PagerHtml(total, page, mpurl),
 	})
@@ -110,6 +132,7 @@ func (c *UserController) Create(ctx *gin.Context) {
 		utils.APIError(ctx, "创建用户")
 		return
 	}
+	utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_USER, user.ID, constants.ACTION_CREATE)
 	utils.APIOK(ctx)
 }
 
@@ -146,7 +169,7 @@ func (c *UserController) Edit(ctx *gin.Context) {
 }
 
 func (c *UserController) Update(ctx *gin.Context) {
-	id := utils.DefaultInt64(ctx, "id", 0)
+	id := utils.FormDefaultInt64(ctx, "id", 0)
 	nickname := ctx.PostForm("nickname")
 	email := ctx.PostForm("email")
 	mobile := ctx.PostForm("mobile")
@@ -183,6 +206,7 @@ func (c *UserController) Update(ctx *gin.Context) {
 		utils.APIError(ctx, "保存设置失败")
 		return
 	}
+	utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_USER, user.ID, constants.ACTION_UPDATE)
 	utils.APIOK(ctx)
 }
 
@@ -245,7 +269,7 @@ func (c *UserController) DoSetting(ctx *gin.Context) {
 }
 
 func (c *UserController) Verify(ctx *gin.Context) {
-	id := utils.DefaultInt64(ctx, "id", 0)
+	id := utils.FormDefaultInt64(ctx, "id", 0)
 	if id == 0 {
 		utils.APIBadRequest(ctx, "ID格式错误")
 		return
@@ -265,7 +289,7 @@ func (c *UserController) Verify(ctx *gin.Context) {
 }
 
 func (c *UserController) Forbidden(ctx *gin.Context) {
-	id := utils.DefaultInt64(ctx, "id", 0)
+	id := utils.FormDefaultInt64(ctx, "id", 0)
 	if id == 0 {
 		utils.APIBadRequest(ctx, "ID格式错误")
 		return

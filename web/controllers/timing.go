@@ -27,10 +27,14 @@ func (c *TimingController) List(ctx *gin.Context) {
 	status := utils.DefaultInt(ctx, "status", -99)
 	name := ctx.Query("name")
 	page := utils.DefaultInt(ctx, "page", 1)
+	user := utils.GetUser(ctx)
 	where := map[string]interface{}{
 		"status": status,
 	}
 	querys := []string{}
+	if user.Role != constants.USER_ROLE_ADMIN {
+		where["creator"] = user.ID
+	}
 	if groupID != 0 {
 		where["group_id"] = groupID
 		querys = append(querys, "group_id="+strconv.Itoa(groupID))
@@ -112,6 +116,7 @@ func (c *TimingController) Create(ctx *gin.Context) {
 		utils.APIError(ctx, "创建定时任务失败")
 		return
 	}
+	utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_TIMING, timing.ID, constants.ACTION_CREATE)
 	utils.APIOK(ctx)
 }
 
@@ -147,6 +152,7 @@ func (c *TimingController) Update(ctx *gin.Context) {
 		utils.APIError(ctx, "更新定时任务失败")
 		return
 	}
+	utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_TIMING, timing.ID, constants.ACTION_UPDATE)
 	utils.APIOK(ctx)
 }
 
@@ -171,6 +177,7 @@ func (c *TimingController) Copy(ctx *gin.Context) {
 		utils.APIError(ctx, "复制定时任务失败")
 		return
 	}
+	utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_TIMING, timing.ID, constants.ACTION_COPY)
 	utils.APIOK(ctx)
 }
 
@@ -205,6 +212,7 @@ func (c *TimingController) Start(ctx *gin.Context) {
 		utils.APIError(ctx, "更新定时任务状态失败")
 		return
 	}
+	utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_TIMING, timing.ID, constants.ACTION_START)
 	utils.APIOK(ctx)
 }
 
@@ -234,6 +242,7 @@ func (c *TimingController) ReStart(ctx *gin.Context) {
 			return
 		}
 	}
+	utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_TIMING, timing.ID, constants.ACTION_RESTART)
 	utils.APIOK(ctx)
 }
 
@@ -262,6 +271,7 @@ func (c *TimingController) Pause(ctx *gin.Context) {
 		utils.APIError(ctx, "更新定时任务状态失败")
 		return
 	}
+	utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_TIMING, timing.ID, constants.ACTION_PAUSE)
 	utils.APIOK(ctx)
 }
 
@@ -294,6 +304,7 @@ func (c *TimingController) Delete(ctx *gin.Context) {
 		utils.APIError(ctx, "更新定时任务状态失败")
 		return
 	}
+	utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_TIMING, timing.ID, constants.ACTION_DELETE)
 	utils.APIOK(ctx)
 }
 
@@ -320,6 +331,7 @@ func (c *TimingController) BatchStart(ctx *gin.Context) {
 			}
 		}
 		providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_RUNNING, utils.GetUserID(ctx))
+		utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_TIMING, timing.ID, constants.ACTION_START)
 	}
 	utils.APIOK(ctx)
 }
@@ -348,6 +360,7 @@ func (c *TimingController) BatchReStart(ctx *gin.Context) {
 				logger.Errorf("Timing BatchReStart UpdateAgentJob Error:[%d][%s]", timing.ID, err.Error())
 			}
 		}
+		utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_TIMING, timing.ID, constants.ACTION_RESTART)
 	}
 	utils.APIOK(ctx)
 }
@@ -372,6 +385,7 @@ func (c *TimingController) BatchPause(ctx *gin.Context) {
 			}
 		}
 		providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_PAUSE, utils.GetUserID(ctx))
+		utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_TIMING, timing.ID, constants.ACTION_PAUSE)
 	}
 	utils.APIOK(ctx)
 }
@@ -399,6 +413,7 @@ func (c *TimingController) BatchDelete(ctx *gin.Context) {
 			}
 		}
 		providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_DELETED, utils.GetUserID(ctx))
+		utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_TIMING, timing.ID, constants.ACTION_DELETE)
 	}
 	utils.APIOK(ctx)
 }
