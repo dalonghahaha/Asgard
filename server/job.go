@@ -15,6 +15,7 @@ func AddJob(id int64, request *rpc.Job) error {
 	err := applications.JobRegister(
 		id,
 		rpc.BuildJobConfig(request),
+		providers.MasterClient.Reports,
 		providers.MasterClient.JobMonitorChan,
 		providers.MasterClient.JobArchiveChan,
 	)

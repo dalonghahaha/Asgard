@@ -15,6 +15,7 @@ func AddTiming(id int64, request *rpc.Timing) error {
 	err := applications.TimingRegister(
 		id,
 		rpc.BuildTimingConfig(request),
+		providers.MasterClient.Reports,
 		providers.MasterClient.TimingMonitorChan,
 		providers.MasterClient.TimingArchiveChan,
 	)
