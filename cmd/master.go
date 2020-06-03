@@ -9,6 +9,7 @@ import (
 	"github.com/dalonghahaha/avenger/components/cache"
 	"github.com/dalonghahaha/avenger/components/db"
 	"github.com/dalonghahaha/avenger/components/logger"
+	"github.com/dalonghahaha/avenger/components/mail"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc/reflection"
@@ -53,6 +54,24 @@ func InitMaster() {
 	moniter := viper.GetInt("master.moniter")
 	if moniter != 0 {
 		constants.MASTER_MONITER = moniter
+	}
+	notify := viper.GetBool("master.notify")
+	if notify {
+		err = mail.Register()
+		if err != nil {
+			panic(err)
+		}
+		constants.MASTER_NOTIFY = notify
+		receiver := viper.GetString("master.receiver")
+		if receiver == "" {
+			panic("receiver can not be empty when receiver enable!")
+		}
+		constants.MASTER_RECEIVER = receiver
+		mailUser := viper.GetString("component.mail." + constants.MAIL_NAME + ".user")
+		if mailUser == "" {
+			panic(fmt.Errorf("mail user can not be empty!"))
+		}
+		constants.MAIL_USER = mailUser
 	}
 }
 

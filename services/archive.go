@@ -22,8 +22,8 @@ func (s *ArchiveService) GetArchivePageList(where map[string]interface{}, page i
 	return
 }
 
-func (s *ArchiveService) CreateArchive(monitor *models.Archive) bool {
-	err := models.Create(monitor)
+func (s *ArchiveService) CreateArchive(archive *models.Archive) bool {
+	err := models.Create(archive)
 	if err != nil {
 		logger.Error("CreateArchive Error:", err)
 		return false

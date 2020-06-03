@@ -14,6 +14,7 @@ var (
 	MoniterService      *services.MonitorService
 	ArchiveService      *services.ArchiveService
 	OperationLogService *services.OperationLogService
+	NoticeService       *services.NoticeService
 )
 
 func init() {
@@ -26,4 +27,5 @@ func init() {
 	MoniterService = services.NewMonitorService()
 	ArchiveService = services.NewArchiveService()
 	OperationLogService = services.NewOperationLogService()
+	NoticeService = services.NewNoticeService()
 }

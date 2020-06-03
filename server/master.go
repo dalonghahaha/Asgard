@@ -119,6 +119,15 @@ func (s *MasterServer) AppArchiveReport(ctx context.Context, request *rpc.AppArc
 	if !ok {
 		return s.Error("add app archive failed")
 	}
+	if constants.MASTER_NOTIFY && request.GetArchive().GetStatus() != 0 {
+		app := providers.AppService.GetAppByID(request.GetApp().GetId())
+		if app != nil {
+			agent := providers.AgentService.GetAgentByID(app.AgentID)
+			if agent != nil {
+				go providers.NoticeService.AppUnsuccessNotify(app, agent, request)
+			}
+		}
+	}
 	return s.OK()
 }
 
@@ -126,6 +135,15 @@ func (s *MasterServer) JobArchiveReport(ctx context.Context, request *rpc.JobArc
 	ok := providers.ArchiveService.CreateArchive(rpc.ParseArchive(constants.TYPE_JOB, request.GetJob().GetId(), request.GetArchive()))
 	if !ok {
 		return s.Error("add job archive failed")
+	}
+	if constants.MASTER_NOTIFY && request.GetArchive().GetStatus() != 0 {
+		job := providers.JobService.GetJobByID(request.GetJob().GetId())
+		if job != nil {
+			agent := providers.AgentService.GetAgentByID(job.AgentID)
+			if agent != nil {
+				go providers.NoticeService.JobUnsuccessNotify(job, agent, request)
+			}
+		}
 	}
 	return s.OK()
 }
@@ -138,6 +156,12 @@ func (s *MasterServer) TimingArchiveReport(ctx context.Context, request *rpc.Tim
 	timing := providers.TimingService.GetTimingByID(request.GetTiming().GetId())
 	if timing != nil {
 		providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_FINISHED, 0)
+	}
+	if constants.MASTER_NOTIFY && request.GetArchive().GetStatus() != 0 {
+		agent := providers.AgentService.GetAgentByID(timing.AgentID)
+		if agent != nil {
+			go providers.NoticeService.TimingUnsuccessNotify(timing, agent, request)
+		}
 	}
 	return s.OK()
 }
