@@ -2,19 +2,26 @@ package applications
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/dalonghahaha/avenger/components/logger"
-	"github.com/spf13/viper"
+	"github.com/dalonghahaha/avenger/tools/uuid"
+
+	"Asgard/constants"
 )
 
-var Timings = map[int64]*Timing{}
+var (
+	Timings    = map[int64]*Timing{}
+	timingLock sync.Mutex
+)
 
 func TimingStopAll() {
-	MoniterStop()
-	processExit = true
+	if constants.SYSTEM_TIMER_TICKER != nil {
+		constants.SYSTEM_TIMER_TICKER.Stop()
+	}
 	for _, timing := range Timings {
-		if !timing.Finished {
+		if timing.Running {
 			timing.stop()
 		}
 	}
@@ -28,9 +35,8 @@ func TimingStartAll(moniter bool) {
 }
 
 func TimingRun() {
-	duration := viper.GetInt("system.timer")
-	ticker = time.NewTicker(time.Second * time.Duration(duration))
-	for range ticker.C {
+	constants.SYSTEM_TIMER_TICKER = time.NewTicker(time.Second * time.Duration(constants.SYSTEM_TIMER))
+	for range constants.SYSTEM_TIMER_TICKER.C {
 		now := time.Now().Unix()
 		for _, timing := range Timings {
 			if timing.Time.Unix() < now && !timing.Executed {
@@ -40,45 +46,14 @@ func TimingRun() {
 	}
 }
 
-func TimingAdd(id int64, timing *Timing) {
-	Timings[id] = timing
-}
-
-func TimingStart(name string) bool {
-	for _, timing := range Timings {
-		if timing.Name == name {
-			go timing.Run()
-			return true
-		}
-	}
-	return false
-}
-
-func TimingStartByID(id int64) bool {
+func TimingStop(id int64) bool {
 	timing, ok := Timings[id]
 	if !ok {
 		return false
 	}
-	go timing.Run()
-	return true
-}
-
-func TimingStop(name string) bool {
-	for _, timing := range Timings {
-		if timing.Name == name {
-			timing.stop()
-			return true
-		}
+	if timing.Running {
+		timing.stop()
 	}
-	return false
-}
-
-func TimingStopByID(id int64) bool {
-	timing, ok := Timings[id]
-	if !ok {
-		return false
-	}
-	timing.stop()
 	return true
 }
 
@@ -151,7 +126,7 @@ func NewTiming(config map[string]interface{}) (*Timing, error) {
 	return timing, nil
 }
 
-func TimingRegister(id int64, config map[string]interface{}, timingMonitorChan chan TimingMonitor, timingArchiveChan chan TimingArchive) error {
+func TimingRegister(id int64, config map[string]interface{}, reports *sync.Map, mc chan TimingMonitor, ac chan TimingArchive) error {
 	timing, err := NewTiming(config)
 	if err != nil {
 		return err
@@ -159,18 +134,38 @@ func TimingRegister(id int64, config map[string]interface{}, timingMonitorChan c
 	timing.ID = id
 	timing.MonitorReport = func(monitor *Monitor) {
 		timingMonitor := TimingMonitor{
+			UUID:    uuid.GenerateV4(),
 			Timing:  timing,
 			Monitor: monitor,
 		}
-		timingMonitorChan <- timingMonitor
+		if reports != nil {
+			reports.Store(timingMonitor.UUID, 1)
+		}
+		if mc != nil {
+			mc <- timingMonitor
+		}
 	}
 	timing.ArchiveReport = func(archive *Archive) {
 		timingArchive := TimingArchive{
+			UUID:    uuid.GenerateV4(),
 			Timing:  timing,
 			Archive: archive,
 		}
-		timingArchiveChan <- timingArchive
+		if reports != nil {
+			reports.Store(timingArchive.UUID, 1)
+		}
+		if ac != nil {
+			ac <- timingArchive
+		}
 	}
+	timingLock.Lock()
 	Timings[id] = timing
+	timingLock.Unlock()
 	return nil
+}
+
+func TimingUnRegister(id int64) {
+	timingLock.Lock()
+	delete(Timings, id)
+	timingLock.Unlock()
 }

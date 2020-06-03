@@ -8,6 +8,10 @@ import (
 )
 
 func AddTiming(id int64, request *rpc.Timing) error {
+	_, ok := applications.Timings[id]
+	if ok {
+		return nil
+	}
 	err := applications.TimingRegister(
 		id,
 		rpc.BuildTimingConfig(request),
@@ -17,7 +21,6 @@ func AddTiming(id int64, request *rpc.Timing) error {
 	if err != nil {
 		return err
 	}
-	applications.TimingAdd(id, applications.Timings[id])
 	return nil
 }
 
@@ -30,10 +33,14 @@ func UpdateTiming(id int64, timing *applications.Timing, request *rpc.Timing) er
 }
 
 func DeleteTiming(id int64, timing *applications.Timing) error {
-	ok := applications.TimingStopByID(id)
+	_, ok := applications.Timings[id]
+	if !ok {
+		return nil
+	}
+	ok = applications.TimingStop(id)
 	if !ok {
 		return fmt.Errorf("app %d stop failed", id)
 	}
-	delete(applications.Timings, id)
+	applications.TimingUnRegister(id)
 	return nil
 }

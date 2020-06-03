@@ -87,6 +87,7 @@ func StartMasterRpcServer() {
 	logger.Info("Master Rpc Server Started!")
 	logger.Debugf("Server Port:%s", constants.MASTER_PORT)
 	logger.Debugf("Server Pid:%d", os.Getpid())
+	logger.Debugf("Moniter Notify:%v", constants.MASTER_NOTIFY)
 	logger.Debugf("Moniter Loop:%d", constants.MASTER_MONITER)
 	err = s.Serve(listen)
 	if err != nil {

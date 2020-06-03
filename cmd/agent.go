@@ -156,16 +156,21 @@ func StartAgent() {
 	applications.JobStartAll(false)
 	applications.TimingStartAll(false)
 	logger.Info("Agent Started!")
-	logger.Debugf("Master: %s:%s", constants.MASTER_IP, constants.MASTER_PORT)
-	logger.Debugf("Agent: %s:%s", constants.AGENT_IP, constants.AGENT_PORT)
+	logger.Debugf("Agent Master: %s:%s", constants.MASTER_IP, constants.MASTER_PORT)
+	logger.Debugf("Agent Address: %s:%s", constants.AGENT_IP, constants.AGENT_PORT)
+	logger.Debugf("Agent Loop:%d", constants.AGENT_MONITER)
 	applications.MoniterStart()
 }
 
 func StopAgent() {
+	applications.Exit()
+	applications.MoniterStop()
+	time.Sleep(time.Millisecond * 100)
 	constants.AGENT_MONITER_TICKER.Stop()
 	applications.AppStopAll()
 	applications.JobStopAll()
 	applications.TimingStopAll()
+	//make sure all data report to master
 	maxWait := 10
 	countWait := 0
 	for {
@@ -188,7 +193,6 @@ func StartAgentRpcServer() {
 	s := server.NewRPCServer()
 	rpc.RegisterAgentServer(s, &server.AgentServer{})
 	reflection.Register(s)
-	logger.Info("Agent RPC Server Started!")
 	err = s.Serve(listen)
 	if err != nil {
 		logger.Error("failed to serve:", err)
@@ -249,6 +253,7 @@ func JobsRegister() error {
 		err := applications.JobRegister(
 			job.GetId(),
 			config,
+			providers.MasterClient.Reports,
 			providers.MasterClient.JobMonitorChan,
 			providers.MasterClient.JobArchiveChan,
 		)
@@ -270,6 +275,7 @@ func TimingsRegister() error {
 		err := applications.TimingRegister(
 			timing.GetId(),
 			config,
+			providers.MasterClient.Reports,
 			providers.MasterClient.TimingMonitorChan,
 			providers.MasterClient.TimingArchiveChan,
 		)

@@ -2,18 +2,16 @@ package applications
 
 import (
 	"math"
-	"sync"
 	"time"
 
 	"github.com/shirou/gopsutil/process"
-	"github.com/spf13/viper"
+
+	"Asgard/constants"
 )
 
 var (
 	cupUnit    = 0.001
 	memoryUnit = 0.0001
-	lock       sync.Mutex
-	ticker     *time.Ticker
 )
 
 var moniters = map[int]func(info *process.Process){}
@@ -44,6 +42,7 @@ type JobMonitor struct {
 }
 
 type TimingMonitor struct {
+	UUID    string
 	Timing  *Timing
 	Monitor *Monitor
 }
@@ -82,9 +81,8 @@ func MoniterRemove(pid int) {
 }
 
 func MoniterStart() {
-	duration := viper.GetInt("system.moniter")
-	ticker = time.NewTicker(time.Second * time.Duration(duration))
-	for range ticker.C {
+	constants.SYSTEM_MONITER_TICKER = time.NewTicker(time.Second * time.Duration(constants.SYSTEM_MONITER))
+	for range constants.SYSTEM_MONITER_TICKER.C {
 		for pid, function := range moniters {
 			info, err := process.NewProcess(int32(pid))
 			if err != nil {
@@ -96,7 +94,7 @@ func MoniterStart() {
 }
 
 func MoniterStop() {
-	if ticker != nil {
-		ticker.Stop()
+	if constants.SYSTEM_MONITER_TICKER != nil {
+		constants.SYSTEM_MONITER_TICKER.Stop()
 	}
 }

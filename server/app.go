@@ -47,7 +47,7 @@ func AddApp(id int64, appRequest *rpc.App) error {
 	if err != nil {
 		return err
 	}
-	ok = applications.AppStartByID(id)
+	ok = applications.AppStart(id)
 	if !ok {
 		return fmt.Errorf("app %d start failed", id)
 	}
@@ -66,17 +66,20 @@ func UpdateApp(id int64, appRequest *rpc.App) error {
 }
 
 func DeleteApp(id int64) error {
-	if app, ok := applications.APPs[id]; ok {
-		app.AutoRestart = false
-		if ok := applications.AppStopByID(id); !ok {
-			return fmt.Errorf("app %d stop failed", id)
-		} else {
-			delete(applications.APPs, id)
-			return nil
-		}
-	} else {
+	app, ok := applications.APPs[id]
+	if !ok {
 		return nil
 	}
+	//stop all auto restart
+	app.AutoRestart = false
+	//kill running app
+	ok = applications.AppStop(id)
+	if !ok {
+		return fmt.Errorf("app %d stop failed", id)
+	}
+	//remove app
+	applications.AppUnRegister(id)
+	return nil
 }
 
 func DeleteAppByName(name string) error {

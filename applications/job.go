@@ -2,21 +2,23 @@ package applications
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/dalonghahaha/avenger/components/logger"
+	"github.com/dalonghahaha/avenger/tools/uuid"
 	"github.com/robfig/cron/v3"
 )
 
-var crontab *cron.Cron
-
-var Jobs = map[int64]*Job{}
+var (
+	crontab *cron.Cron
+	Jobs    = map[int64]*Job{}
+	jobLock sync.Mutex
+)
 
 func JobStopAll() {
-	MoniterStop()
-	processExit = true
 	for _, job := range Jobs {
-		if !job.Finished {
+		if job.Running {
 			job.stop()
 		}
 	}
@@ -42,41 +44,14 @@ func JobAdd(job *Job) {
 	job.CronID = id
 }
 
-func JobStart(name string) bool {
-	for _, job := range Jobs {
-		if job.Name == name {
-			go job.Run()
-			return true
-		}
-	}
-	return false
-}
-
-func JobStartByID(id int64) bool {
+func JobStop(id int64) bool {
 	job, ok := Jobs[id]
 	if !ok {
 		return false
 	}
-	go job.Run()
-	return true
-}
-
-func JobStop(name string) error {
-	for _, job := range Jobs {
-		if job.Name == name {
-			job.stop()
-			crontab.Remove(job.CronID)
-		}
+	if job.Running {
+		job.stop()
 	}
-	return nil
-}
-
-func JobStopByID(id int64) bool {
-	job, ok := Jobs[id]
-	if !ok {
-		return false
-	}
-	job.stop()
 	crontab.Remove(job.CronID)
 	return true
 }
@@ -148,17 +123,7 @@ func NewJob(config map[string]interface{}) (*Job, error) {
 	return job, nil
 }
 
-func JobAppend(id int64, config map[string]interface{}) (*Job, error) {
-	job, err := NewJob(config)
-	if err != nil {
-		return nil, err
-	}
-	Jobs[id] = job
-	JobAdd(job)
-	return job, nil
-}
-
-func JobRegister(id int64, config map[string]interface{}, jobMonitorChan chan JobMonitor, jobArchiveChan chan JobArchive) error {
+func JobRegister(id int64, config map[string]interface{}, reports *sync.Map, mc chan JobMonitor, ac chan JobArchive) error {
 	job, err := NewJob(config)
 	if err != nil {
 		return err
@@ -166,18 +131,38 @@ func JobRegister(id int64, config map[string]interface{}, jobMonitorChan chan Jo
 	job.ID = id
 	job.MonitorReport = func(monitor *Monitor) {
 		jobMonitor := JobMonitor{
+			UUID:    uuid.GenerateV4(),
 			Job:     job,
 			Monitor: monitor,
 		}
-		jobMonitorChan <- jobMonitor
+		if reports != nil {
+			reports.Store(jobMonitor.UUID, 1)
+		}
+		if mc != nil {
+			mc <- jobMonitor
+		}
 	}
 	job.ArchiveReport = func(archive *Archive) {
 		jobArchive := JobArchive{
+			UUID:    uuid.GenerateV4(),
 			Job:     job,
 			Archive: archive,
 		}
-		jobArchiveChan <- jobArchive
+		if reports != nil {
+			reports.Store(jobArchive.UUID, 1)
+		}
+		if ac != nil {
+			ac <- jobArchive
+		}
 	}
+	jobLock.Lock()
 	Jobs[id] = job
+	jobLock.Unlock()
 	return nil
+}
+
+func JobUnRegister(id int64) {
+	jobLock.Lock()
+	delete(Jobs, id)
+	jobLock.Unlock()
 }

@@ -8,6 +8,10 @@ import (
 )
 
 func AddJob(id int64, request *rpc.Job) error {
+	_, ok := applications.Jobs[id]
+	if ok {
+		return nil
+	}
 	err := applications.JobRegister(
 		id,
 		rpc.BuildJobConfig(request),
@@ -30,10 +34,14 @@ func UpdateJob(id int64, job *applications.Job, request *rpc.Job) error {
 }
 
 func DeleteJob(id int64, job *applications.Job) error {
-	ok := applications.JobStopByID(id)
+	_, ok := applications.Jobs[id]
+	if !ok {
+		return nil
+	}
+	ok = applications.JobStop(id)
 	if !ok {
 		return fmt.Errorf("app %d stop failed", id)
 	}
-	delete(applications.Jobs, id)
+	applications.JobUnRegister(id)
 	return nil
 }

@@ -16,7 +16,10 @@ import (
 	"github.com/shirou/gopsutil/process"
 )
 
-var processExit = false
+var (
+	processExit = false
+	lock        sync.Mutex
+)
 
 type Command struct {
 	lock            sync.Mutex
@@ -31,7 +34,7 @@ type Command struct {
 	UUID            string
 	Begin           time.Time
 	End             time.Time
-	Finished        bool
+	Running         bool
 	Successed       bool
 	Status          int
 	Signal          string
@@ -39,6 +42,11 @@ type Command struct {
 	ExceptionReport func(message string)
 	MonitorReport   func(monitor *Monitor)
 	ArchiveReport   func(archive *Archive)
+}
+
+func Exit() {
+	logger.Info("exit!")
+	processExit = true
 }
 
 func (c *Command) configure(config map[string]interface{}) error {
@@ -129,11 +137,10 @@ func (c *Command) start() error {
 	err := c.Cmd.Start()
 	if err != nil {
 		logger.Errorf("%s start fail: %s", c.Name, err)
-		c.Finished = true
-		c.Successed = false
+		c.finish()
 		return err
 	}
-	c.Finished = false
+	c.runing()
 	c.Pid = c.Cmd.Process.Pid
 	logger.Infof("%s started at %d", c.Name, c.Pid)
 	if c.IsMonitor {
@@ -144,7 +151,7 @@ func (c *Command) start() error {
 
 func (c *Command) wait(callback func()) {
 	_ = c.Cmd.Wait()
-	if c.Finished {
+	if !c.Running {
 		return
 	}
 	c.finish()
@@ -160,14 +167,13 @@ func (c *Command) wait(callback func()) {
 		}
 	}
 	if c.ArchiveReport != nil {
-		logger.Debugf("archive Send from wait:[%s][%d][%s]", c.Name, c.Status, c.Signal)
 		c.ArchiveReport(buildArchive(c))
 	}
 	callback()
 }
 
 func (c *Command) stop() {
-	if c.Finished {
+	if !c.Running {
 		return
 	}
 	c.finish()
@@ -181,6 +187,7 @@ func (c *Command) stop() {
 			c.Status = -2
 			c.Signal = "kill"
 		} else {
+			fmt.Println(err)
 			if c.Cmd.ProcessState != nil {
 				c.Status = c.Cmd.ProcessState.ExitCode()
 				status, ok := c.Cmd.ProcessState.Sys().(syscall.WaitStatus)
@@ -191,7 +198,6 @@ func (c *Command) stop() {
 		}
 	}
 	if c.ArchiveReport != nil {
-		logger.Debugf("achive Send from stop:[%s][%d][%s]", c.Name, c.Status, c.Signal)
 		c.ArchiveReport(buildArchive(c))
 	}
 }
@@ -203,7 +209,13 @@ func (c *Command) finish() {
 		MoniterRemove(c.Pid)
 	}
 	c.End = time.Now()
-	c.Finished = true
+	c.Running = false
+	c.lock.Unlock()
+}
+
+func (c *Command) runing() {
+	c.lock.Lock()
+	c.Running = true
 	c.lock.Unlock()
 }
 

@@ -3,18 +3,13 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/dalonghahaha/avenger/components/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"Asgard/applications"
-	"Asgard/providers"
-)
-
-var (
-	appMonitorChan chan applications.AppMonitor
-	appArchiveChan chan applications.AppArchive
 )
 
 func init() {
@@ -58,12 +53,7 @@ func StartGuard() {
 			}
 			config[_k] = v
 		}
-		err := applications.AppRegister(
-			int64(index),
-			config,
-			providers.MasterClient.Reports,
-			appMonitorChan,
-			appArchiveChan)
+		err := applications.AppRegister(int64(index), config, nil, nil, nil)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -71,4 +61,11 @@ func StartGuard() {
 	}
 	logger.Info("guard started at ", os.Getpid())
 	applications.AppStartAll(true)
+}
+
+func StopGuard() {
+	applications.Exit()
+	applications.MoniterStop()
+	time.Sleep(time.Millisecond * 100)
+	applications.AppStopAll()
 }

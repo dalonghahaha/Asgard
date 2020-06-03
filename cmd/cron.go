@@ -3,17 +3,13 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/dalonghahaha/avenger/components/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"Asgard/applications"
-)
-
-var (
-	jobMonitorChan chan applications.JobMonitor
-	jobArchiveChan chan applications.JobArchive
 )
 
 func init() {
@@ -27,7 +23,7 @@ var cronCommonCmd = &cobra.Command{
 	PreRun: PreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		StartCron()
-		NotityKill(applications.JobStopAll)
+		NotityKill(StopCron)
 	},
 }
 
@@ -57,12 +53,7 @@ func StartCron() {
 			}
 			config[_k] = v
 		}
-		err := applications.JobRegister(
-			int64(index),
-			config,
-			jobMonitorChan,
-			jobArchiveChan,
-		)
+		err := applications.JobRegister(int64(index), config, nil, nil, nil)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -70,4 +61,11 @@ func StartCron() {
 	}
 	logger.Info("cron started at ", os.Getpid())
 	applications.JobStartAll(true)
+}
+
+func StopCron() {
+	applications.Exit()
+	applications.MoniterStop()
+	time.Sleep(time.Millisecond * 100)
+	applications.JobStopAll()
 }

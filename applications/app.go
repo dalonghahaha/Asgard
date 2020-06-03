@@ -9,14 +9,13 @@ import (
 )
 
 var (
-	APPs = map[int64]*App{}
+	APPs    = map[int64]*App{}
+	appLock sync.Mutex
 )
 
 func AppStopAll() {
-	MoniterStop()
-	processExit = true
 	for _, app := range APPs {
-		if !app.Finished {
+		if app.Running {
 			app.stop()
 		}
 	}
@@ -31,36 +30,19 @@ func AppStartAll(moniter bool) {
 	}
 }
 
-func AppStart(name string) bool {
-	for _, app := range APPs {
-		if app.Name == name {
-			go app.Run()
-			return true
-		}
-	}
-	return false
-}
-
-func AppStartByID(id int64) bool {
+func AppStart(id int64) bool {
 	app, ok := APPs[id]
 	if !ok {
 		return false
+	}
+	if app.Running {
+		return true
 	}
 	go app.Run()
 	return true
 }
 
-func AppStop(name string) bool {
-	for _, app := range APPs {
-		if app.Name == name {
-			app.stop()
-			return true
-		}
-	}
-	return false
-}
-
-func AppStopByID(id int64) bool {
+func AppStop(id int64) bool {
 	app, ok := APPs[id]
 	if !ok {
 		return false
@@ -115,7 +97,7 @@ func NewApp(config map[string]interface{}) (*App, error) {
 	return app, nil
 }
 
-func AppRegister(id int64, config map[string]interface{}, reports *sync.Map, appMonitorChan chan AppMonitor, appArchiveChan chan AppArchive) error {
+func AppRegister(id int64, config map[string]interface{}, reports *sync.Map, mc chan AppMonitor, ac chan AppArchive) error {
 	app, err := NewApp(config)
 	if err != nil {
 		return err
@@ -127,8 +109,12 @@ func AppRegister(id int64, config map[string]interface{}, reports *sync.Map, app
 			App:     app,
 			Monitor: monitor,
 		}
-		reports.Store(appMonitor.UUID, 1)
-		appMonitorChan <- appMonitor
+		if reports != nil {
+			reports.Store(appMonitor.UUID, 1)
+		}
+		if mc != nil {
+			mc <- appMonitor
+		}
 	}
 	app.ArchiveReport = func(archive *Archive) {
 		appArchive := AppArchive{
@@ -136,9 +122,21 @@ func AppRegister(id int64, config map[string]interface{}, reports *sync.Map, app
 			App:     app,
 			Archive: archive,
 		}
-		reports.Store(appArchive.UUID, 1)
-		appArchiveChan <- appArchive
+		if reports != nil {
+			reports.Store(appArchive.UUID, 1)
+		}
+		if ac != nil {
+			ac <- appArchive
+		}
 	}
+	appLock.Lock()
 	APPs[id] = app
+	appLock.Unlock()
 	return nil
+}
+
+func AppUnRegister(id int64) {
+	appLock.Lock()
+	delete(APPs, id)
+	appLock.Unlock()
 }
