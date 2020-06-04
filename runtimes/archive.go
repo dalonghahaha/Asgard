@@ -1,4 +1,4 @@
-package applications
+package runtimes
 
 type Archive struct {
 	UUID      string

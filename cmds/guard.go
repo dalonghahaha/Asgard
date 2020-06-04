@@ -1,4 +1,4 @@
-package cmd
+package cmds
 
 import (
 	"fmt"
@@ -8,8 +8,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"Asgard/applications"
 	"Asgard/managers"
+	"Asgard/runtimes"
 )
 
 func init() {
@@ -17,15 +17,13 @@ func init() {
 	rootCmd.AddCommand(guardCommonCmd)
 }
 
-var appManager *managers.AppManager
-
 var guardCommonCmd = &cobra.Command{
 	Use:    "guard",
 	Short:  "guard apps",
 	PreRun: PreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		StartGuard()
-		NotityKill(applications.AppStopAll)
+		NotityKill(StopGuard)
 	},
 }
 
@@ -40,11 +38,7 @@ func StartGuard() {
 		fmt.Println("apps config wrong!")
 		return
 	}
-	_appManager, err := managers.NewAppManager()
-	if err != nil {
-		fmt.Println("init app manager config wrong!")
-	}
-	appManager = _appManager
+	appManager = managers.NewAppManager()
 	for index, v := range _configs {
 		_v, ok := v.(map[interface{}]interface{})
 		if !ok {
@@ -60,7 +54,7 @@ func StartGuard() {
 			}
 			config[_k] = v
 		}
-		err := applications.AppRegister(int64(index), config, nil, nil, nil, nil)
+		err := appManager.Register(int64(index), config)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -71,6 +65,6 @@ func StartGuard() {
 }
 
 func StopGuard() {
-	applications.Exit()
+	runtimes.Exit()
 	appManager.StopAll()
 }

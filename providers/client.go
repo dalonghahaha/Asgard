@@ -1,32 +1,20 @@
 package providers
 
 import (
-	"Asgard/client"
-	"Asgard/constants"
+	"Asgard/clients"
 	"Asgard/models"
 )
 
 var (
-	MasterClient *client.Master
-	AgentClients = map[int64]*client.Agent{}
+	AgentClients = map[int64]*clients.Agent{}
 )
 
-func RegisterMaster() error {
-	masterClient, err := client.NewMaster(constants.MASTER_IP, constants.MASTER_PORT)
-	if err != nil {
-		return err
-	}
-	MasterClient = masterClient
-	go MasterClient.Report()
-	return nil
-}
-
-func GetAgent(agent *models.Agent) (*client.Agent, error) {
-	_client, ok := AgentClients[agent.ID]
+func GetAgent(agent *models.Agent) (*clients.Agent, error) {
+	client, ok := AgentClients[agent.ID]
 	if ok {
-		return _client, nil
+		return client, nil
 	}
-	client, err := client.NewAgent(agent.IP, agent.Port)
+	client, err := clients.NewAgent(agent.IP, agent.Port)
 	if err != nil {
 		return nil, err
 	}

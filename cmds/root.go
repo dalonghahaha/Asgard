@@ -1,4 +1,4 @@
-package cmd
+package cmds
 
 import (
 	"fmt"
@@ -10,7 +10,16 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"Asgard/clients"
 	"Asgard/constants"
+	"Asgard/managers"
+)
+
+var (
+	jobManager    *managers.JobManager
+	appManager    *managers.AppManager
+	timingManager *managers.TimingManager
+	masterClient  *clients.Master
 )
 
 var rootCmd = &cobra.Command{

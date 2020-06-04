@@ -2,40 +2,39 @@ package server
 
 import (
 	"context"
-	"fmt"
 
-	"Asgard/applications"
+	"Asgard/managers"
 	"Asgard/rpc"
 )
 
 type CronServer struct {
 	baseServer
+	jobManager *managers.JobManager
+}
+
+func (s *CronServer) SetJobManager(jobManager *managers.JobManager) {
+	s.jobManager = jobManager
 }
 
 func (s *CronServer) List(ctx context.Context, request *rpc.Empty) (*rpc.JobListResponse, error) {
+	jobs := s.jobManager.GetList()
 	list := []*rpc.Job{}
-	for _, job := range applications.Jobs {
+	for _, job := range jobs {
 		list = append(list, rpc.BuildJob(job))
 	}
 	return &rpc.JobListResponse{Code: rpc.OK, Jobs: list}, nil
 }
 
 func (s *CronServer) Get(ctx context.Context, request *rpc.Name) (*rpc.JobResponse, error) {
-	for _, job := range applications.Jobs {
-		if request.GetName() == job.Name {
-			return &rpc.JobResponse{Code: rpc.OK, Job: rpc.BuildJob(job)}, nil
-		}
+	job := s.jobManager.GetByName(request.GetName())
+	if job != nil {
+		return &rpc.JobResponse{Code: rpc.OK, Job: rpc.BuildJob(job)}, nil
 	}
 	return &rpc.JobResponse{Code: rpc.Nofound, Job: nil}, nil
 }
 
 func (s *CronServer) Add(ctx context.Context, request *rpc.Job) (*rpc.Response, error) {
-	id := request.GetId()
-	_, ok := applications.Jobs[id]
-	if ok {
-		return s.OK()
-	}
-	err := AddJob(id, request)
+	err := s.jobManager.Add(request.GetId(), rpc.BuildJobConfig(request))
 	if err != nil {
 		return s.Error(err.Error())
 	}
@@ -43,12 +42,7 @@ func (s *CronServer) Add(ctx context.Context, request *rpc.Job) (*rpc.Response, 
 }
 
 func (s *CronServer) Update(ctx context.Context, request *rpc.Job) (*rpc.Response, error) {
-	id := request.GetId()
-	job, ok := applications.Jobs[id]
-	if !ok {
-		return s.Error(fmt.Sprintf("no job %d", id))
-	}
-	err := UpdateJob(id, job, request)
+	err := s.jobManager.Update(request.GetId(), rpc.BuildJobConfig(request))
 	if err != nil {
 		return s.Error(err.Error())
 	}
@@ -56,14 +50,13 @@ func (s *CronServer) Update(ctx context.Context, request *rpc.Job) (*rpc.Respons
 }
 
 func (s *CronServer) Remove(ctx context.Context, request *rpc.Name) (*rpc.Response, error) {
-	for _, job := range applications.Jobs {
-		if request.GetName() == job.Name {
-			err := DeleteJob(job.ID, job)
-			if err != nil {
-				return s.Error(err.Error())
-			}
-			return s.OK()
-		}
+	job := s.jobManager.GetByName(request.GetName())
+	if job == nil {
+		return s.OK()
+	}
+	err := s.jobManager.Remove(job.ID)
+	if err != nil {
+		return s.Error(err.Error())
 	}
 	return s.OK()
 }

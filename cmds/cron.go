@@ -1,4 +1,4 @@
-package cmd
+package cmds
 
 import (
 	"fmt"
@@ -8,16 +8,14 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"Asgard/applications"
 	"Asgard/managers"
+	"Asgard/runtimes"
 )
 
 func init() {
 	cronCommonCmd.PersistentFlags().StringP("conf", "c", "conf", "config path")
 	rootCmd.AddCommand(cronCommonCmd)
 }
-
-var jobManager *managers.JobManager
 
 var cronCommonCmd = &cobra.Command{
 	Use:    "cron",
@@ -40,11 +38,7 @@ func StartCron() {
 		fmt.Println("crons config wrong!")
 		return
 	}
-	_jobManager, err := managers.NewJobManager()
-	if err != nil {
-		fmt.Println("init job manager config wrong!")
-	}
-	jobManager = _jobManager
+	jobManager := managers.NewJobManager()
 	for index, v := range _configs {
 		_v, ok := v.(map[interface{}]interface{})
 		if !ok {
@@ -71,6 +65,6 @@ func StartCron() {
 }
 
 func StopCron() {
-	applications.Exit()
+	runtimes.Exit()
 	jobManager.StopAll()
 }

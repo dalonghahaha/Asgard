@@ -1,4 +1,4 @@
-package applications
+package runtimes
 
 import (
 	"fmt"
@@ -17,7 +17,6 @@ import (
 
 var (
 	processExit = false
-	lock        sync.Mutex
 )
 
 type Command struct {
@@ -38,9 +37,9 @@ type Command struct {
 	Status          int
 	Signal          string
 	Cmd             *exec.Cmd
-	MonitorMamager  *MonitorMamager
+	Monitor         *Monitor
 	ExceptionReport func(message string)
-	MonitorReport   func(monitor *Monitor)
+	MonitorReport   func(monitor *MonitorInfo)
 	ArchiveReport   func(archive *Archive)
 }
 
@@ -144,8 +143,8 @@ func (c *Command) start() error {
 	c.runing()
 	c.Pid = c.Cmd.Process.Pid
 	logger.Infof("%s started at %d", c.Name, c.Pid)
-	if c.IsMonitor && c.MonitorMamager != nil {
-		c.MonitorMamager.Add(c.Pid, c.MonitorReport)
+	if c.IsMonitor && c.Monitor != nil {
+		c.Monitor.Add(c.Pid, c.MonitorReport)
 	}
 	return nil
 }
@@ -206,8 +205,8 @@ func (c *Command) Kill() {
 func (c *Command) finish() {
 	c.lock.Lock()
 	logger.Info(c.Name + " finish")
-	if c.IsMonitor && c.MonitorMamager != nil {
-		c.MonitorMamager.Remove(c.Pid)
+	if c.IsMonitor && c.Monitor != nil {
+		c.Monitor.Remove(c.Pid)
 	}
 	c.End = time.Now()
 	c.Running = false

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"runtime/debug"
 
-	"Asgard/cmd"
+	"Asgard/cmds"
 )
 
 func main() {
@@ -15,5 +15,5 @@ func main() {
 			return
 		}
 	}()
-	cmd.Execute()
+	cmds.Execute()
 }

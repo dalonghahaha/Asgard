@@ -3,9 +3,9 @@ package rpc
 import (
 	"time"
 
-	"Asgard/applications"
 	"Asgard/constants"
 	"Asgard/models"
+	"Asgard/runtimes"
 )
 
 var (
@@ -58,7 +58,7 @@ func FormatTiming(job *models.Timing) *Timing {
 	}
 }
 
-func BuildApp(app *applications.App) *App {
+func BuildApp(app *runtimes.App) *App {
 	return &App{
 		Id:          app.ID,
 		Name:        app.Name,
@@ -72,7 +72,7 @@ func BuildApp(app *applications.App) *App {
 	}
 }
 
-func BuildJob(job *applications.Job) *Job {
+func BuildJob(job *runtimes.Job) *Job {
 	return &Job{
 		Id:        job.ID,
 		Name:      job.Name,
@@ -87,7 +87,7 @@ func BuildJob(job *applications.Job) *Job {
 	}
 }
 
-func BuildTiming(job *applications.Timing) *Timing {
+func BuildTiming(job *runtimes.Timing) *Timing {
 	return &Timing{
 		Id:        job.ID,
 		Name:      job.Name,
@@ -102,7 +102,7 @@ func BuildTiming(job *applications.Timing) *Timing {
 	}
 }
 
-func BuildArchive(archive *applications.Archive) *Archive {
+func BuildArchive(archive *runtimes.Archive) *Archive {
 	return &Archive{
 		Uuid:      archive.UUID,
 		Pid:       archive.Pid,
@@ -113,7 +113,7 @@ func BuildArchive(archive *applications.Archive) *Archive {
 	}
 }
 
-func BuildAgentMonitor(ip, port string, monitor *applications.Monitor) *AgentMonitor {
+func BuildAgentMonitor(ip, port string, monitor *runtimes.MonitorInfo) *AgentMonitor {
 	return &AgentMonitor{
 		Agent: &AgentInfo{
 			Ip:   ip,
@@ -129,7 +129,7 @@ func BuildAgentMonitor(ip, port string, monitor *applications.Monitor) *AgentMon
 	}
 }
 
-func BuildAppMonitor(app *applications.App, monitor *applications.Monitor) *AppMonitor {
+func BuildAppMonitor(app *runtimes.App, monitor *runtimes.MonitorInfo) *AppMonitor {
 	return &AppMonitor{
 		App: BuildApp(app),
 		Monitor: &Monitor{
@@ -142,7 +142,7 @@ func BuildAppMonitor(app *applications.App, monitor *applications.Monitor) *AppM
 	}
 }
 
-func BuildJobMonior(job *applications.Job, monitor *applications.Monitor) *JobMonior {
+func BuildJobMonior(job *runtimes.Job, monitor *runtimes.MonitorInfo) *JobMonior {
 	return &JobMonior{
 		Job: BuildJob(job),
 		Monitor: &Monitor{
@@ -155,7 +155,7 @@ func BuildJobMonior(job *applications.Job, monitor *applications.Monitor) *JobMo
 	}
 }
 
-func BuildTimingMonior(timing *applications.Timing, monitor *applications.Monitor) *TimingMonior {
+func BuildTimingMonior(timing *runtimes.Timing, monitor *runtimes.MonitorInfo) *TimingMonior {
 	return &TimingMonior{
 		Timing: BuildTiming(timing),
 		Monitor: &Monitor{
@@ -168,21 +168,21 @@ func BuildTimingMonior(timing *applications.Timing, monitor *applications.Monito
 	}
 }
 
-func BuildAppArchive(app *applications.App, archive *applications.Archive) *AppArchive {
+func BuildAppArchive(app *runtimes.App, archive *runtimes.Archive) *AppArchive {
 	return &AppArchive{
 		App:     BuildApp(app),
 		Archive: BuildArchive(archive),
 	}
 }
 
-func BuildJobArchive(job *applications.Job, archive *applications.Archive) *JobArchive {
+func BuildJobArchive(job *runtimes.Job, archive *runtimes.Archive) *JobArchive {
 	return &JobArchive{
 		Job:     BuildJob(job),
 		Archive: BuildArchive(archive),
 	}
 }
 
-func BuildTimingArchive(timing *applications.Timing, archive *applications.Archive) *TimingArchive {
+func BuildTimingArchive(timing *runtimes.Timing, archive *runtimes.Archive) *TimingArchive {
 	return &TimingArchive{
 		Timing:  BuildTiming(timing),
 		Archive: BuildArchive(archive),

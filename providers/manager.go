@@ -1,14 +1,14 @@
 package providers
 
 import (
-	"Asgard/applications"
+	"Asgard/runtimes"
 )
 
 var (
-	MonitorMamager *applications.MonitorMamager
+	MonitorMamager *runtimes.Monitor
 )
 
 func RegisterMonitorMamager() {
-	MonitorMamager = applications.NewMonitorMamager()
+	MonitorMamager = runtimes.NewMonitor()
 	go MonitorMamager.Start()
 }

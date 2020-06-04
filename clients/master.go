@@ -1,4 +1,4 @@
-package client
+package clients
 
 import (
 	"context"
@@ -8,22 +8,22 @@ import (
 	"github.com/dalonghahaha/avenger/components/logger"
 	"google.golang.org/grpc"
 
-	"Asgard/applications"
 	"Asgard/constants"
 	"Asgard/rpc"
+	"Asgard/runtimes"
 )
 
 type Master struct {
 	Reports           *sync.Map
 	agent             *rpc.AgentInfo
 	rpcClient         rpc.MasterClient
-	AgentMonitorChan  chan applications.AgentMonitor
-	AppMonitorChan    chan applications.AppMonitor
-	AppArchiveChan    chan applications.AppArchive
-	JobMonitorChan    chan applications.JobMonitor
-	JobArchiveChan    chan applications.JobArchive
-	TimingMonitorChan chan applications.TimingMonitor
-	TimingArchiveChan chan applications.TimingArchive
+	AgentMonitorChan  chan runtimes.AgentMonitor
+	AppMonitorChan    chan runtimes.AppMonitor
+	AppArchiveChan    chan runtimes.AppArchive
+	JobMonitorChan    chan runtimes.JobMonitor
+	JobArchiveChan    chan runtimes.JobArchive
+	TimingMonitorChan chan runtimes.TimingMonitor
+	TimingArchiveChan chan runtimes.TimingArchive
 }
 
 func NewMaster(ip, port string) (*Master, error) {
@@ -45,46 +45,51 @@ func NewMaster(ip, port string) (*Master, error) {
 		},
 		rpcClient:         rpc.NewMasterClient(conn),
 		Reports:           new(sync.Map),
-		AgentMonitorChan:  make(chan applications.AgentMonitor, 100),
-		AppMonitorChan:    make(chan applications.AppMonitor, 100),
-		AppArchiveChan:    make(chan applications.AppArchive, 100),
-		JobMonitorChan:    make(chan applications.JobMonitor, 100),
-		JobArchiveChan:    make(chan applications.JobArchive, 100),
-		TimingMonitorChan: make(chan applications.TimingMonitor, 100),
-		TimingArchiveChan: make(chan applications.TimingArchive, 100),
+		AgentMonitorChan:  make(chan runtimes.AgentMonitor, 100),
+		AppMonitorChan:    make(chan runtimes.AppMonitor, 100),
+		AppArchiveChan:    make(chan runtimes.AppArchive, 100),
+		JobMonitorChan:    make(chan runtimes.JobMonitor, 100),
+		JobArchiveChan:    make(chan runtimes.JobArchive, 100),
+		TimingMonitorChan: make(chan runtimes.TimingMonitor, 100),
+		TimingArchiveChan: make(chan runtimes.TimingArchive, 100),
 	}
 	return &master, nil
 }
 
-func (m *Master) IsRunning() bool {
+func (c *Master) IsRunning() bool {
 	count := 0
-	m.Reports.Range(func(k, v interface{}) bool {
+	c.Reports.Range(func(k, v interface{}) bool {
 		count += 1
 		return true
 	})
 	return count > 0
 }
 
-func (m *Master) Report() {
+func (c *Master) Report() {
 	logger.Debug("master report litsen!")
 	for {
 		select {
-		case agentMonitor := <-m.AgentMonitorChan:
-			m.agentMonitorReport(rpc.BuildAgentMonitor(agentMonitor.Ip, agentMonitor.Port, agentMonitor.Monitor))
-		case appMonitor := <-m.AppMonitorChan:
-			m.appMonitorReport(rpc.BuildAppMonitor(appMonitor.App, appMonitor.Monitor))
-		case appArchive := <-m.AppArchiveChan:
-			m.appArchiveReport(rpc.BuildAppArchive(appArchive.App, appArchive.Archive))
-			m.Reports.Delete(appArchive.UUID)
-			logger.Debug("appArchive Report: ", appArchive.App.Name)
-		case jobMonitor := <-m.JobMonitorChan:
-			m.jobMonitorReport(rpc.BuildJobMonior(jobMonitor.Job, jobMonitor.Monitor))
-		case jobArchive := <-m.JobArchiveChan:
-			m.jobArchiveReport(rpc.BuildJobArchive(jobArchive.Job, jobArchive.Archive))
-		case timingMonitor := <-m.TimingMonitorChan:
-			m.timingMonitorReport(rpc.BuildTimingMonior(timingMonitor.Timing, timingMonitor.Monitor))
-		case timingArchive := <-m.TimingArchiveChan:
-			m.timingArchiveReport(rpc.BuildTimingArchive(timingArchive.Timing, timingArchive.Archive))
+		case m := <-c.AgentMonitorChan:
+			c.agentMonitorReport(rpc.BuildAgentMonitor(m.Ip, m.Port, m.Monitor))
+			c.Reports.Delete(m.UUID)
+		case m := <-c.AppMonitorChan:
+			c.appMonitorReport(rpc.BuildAppMonitor(m.App, m.Monitor))
+			c.Reports.Delete(m.UUID)
+		case a := <-c.AppArchiveChan:
+			c.appArchiveReport(rpc.BuildAppArchive(a.App, a.Archive))
+			c.Reports.Delete(a.UUID)
+		case m := <-c.JobMonitorChan:
+			c.jobMonitorReport(rpc.BuildJobMonior(m.Job, m.Monitor))
+			c.Reports.Delete(m.UUID)
+		case a := <-c.JobArchiveChan:
+			c.jobArchiveReport(rpc.BuildJobArchive(a.Job, a.Archive))
+			c.Reports.Delete(a.UUID)
+		case m := <-c.TimingMonitorChan:
+			c.timingMonitorReport(rpc.BuildTimingMonior(m.Timing, m.Monitor))
+			c.Reports.Delete(m.UUID)
+		case a := <-c.TimingArchiveChan:
+			c.timingArchiveReport(rpc.BuildTimingArchive(a.Timing, a.Archive))
+			c.Reports.Delete(a.UUID)
 		}
 	}
 }
@@ -129,10 +134,10 @@ func (m *Master) GetJobList() ([]*rpc.Job, error) {
 	return response.GetJobs(), nil
 }
 
-func (m *Master) GetTimingList() ([]*rpc.Timing, error) {
+func (c *Master) GetTimingList() ([]*rpc.Timing, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
-	response, err := m.rpcClient.TimingList(ctx, m.agent)
+	response, err := c.rpcClient.TimingList(ctx, c.agent)
 	if err != nil {
 		return nil, fmt.Errorf("get job list error: %v", err.Error())
 	}
@@ -142,10 +147,10 @@ func (m *Master) GetTimingList() ([]*rpc.Timing, error) {
 	return response.GetTimings(), nil
 }
 
-func (m *Master) agentMonitorReport(agentMonitor *rpc.AgentMonitor) {
+func (c *Master) agentMonitorReport(agentMonitor *rpc.AgentMonitor) {
 	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
-	response, err := m.rpcClient.AgentMonitorReport(ctx, agentMonitor)
+	response, err := c.rpcClient.AgentMonitorReport(ctx, agentMonitor)
 	if err != nil {
 		logger.Errorf("agent moniter report failed：%s", err.Error())
 		return
@@ -156,10 +161,10 @@ func (m *Master) agentMonitorReport(agentMonitor *rpc.AgentMonitor) {
 	}
 }
 
-func (m *Master) appMonitorReport(appMonitor *rpc.AppMonitor) {
+func (c *Master) appMonitorReport(appMonitor *rpc.AppMonitor) {
 	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
-	response, err := m.rpcClient.AppMonitorReport(ctx, appMonitor)
+	response, err := c.rpcClient.AppMonitorReport(ctx, appMonitor)
 	if err != nil {
 		logger.Errorf("app moniter report failed：%s", err.Error())
 		return
@@ -170,24 +175,24 @@ func (m *Master) appMonitorReport(appMonitor *rpc.AppMonitor) {
 	}
 }
 
-func (m *Master) jobMonitorReport(jobMonitor *rpc.JobMonior) {
+func (c *Master) jobMonitorReport(jobMonitor *rpc.JobMonior) {
 	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
-	response, err := m.rpcClient.JobMoniorReport(ctx, jobMonitor)
+	response, err := c.rpcClient.JobMoniorReport(ctx, jobMonitor)
 	if err != nil {
 		logger.Errorf("job moniter report failed：%s", err.Error())
 		return
 	}
 	if response.GetCode() != 200 {
-		logger.Error("job moniter report failed：%s", response.GetMessage())
+		logger.Errorf("job moniter report failed：%s", response.GetMessage())
 		return
 	}
 }
 
-func (m *Master) timingMonitorReport(timingMonitor *rpc.TimingMonior) {
+func (c *Master) timingMonitorReport(timingMonitor *rpc.TimingMonior) {
 	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
-	response, err := m.rpcClient.TimingMoniorReport(ctx, timingMonitor)
+	response, err := c.rpcClient.TimingMoniorReport(ctx, timingMonitor)
 	if err != nil {
 		logger.Errorf("timing moniter report failed：%s", err.Error())
 		return
@@ -198,24 +203,24 @@ func (m *Master) timingMonitorReport(timingMonitor *rpc.TimingMonior) {
 	}
 }
 
-func (m *Master) appArchiveReport(appArchive *rpc.AppArchive) {
+func (c *Master) appArchiveReport(appArchive *rpc.AppArchive) {
 	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
-	response, err := m.rpcClient.AppArchiveReport(ctx, appArchive)
+	response, err := c.rpcClient.AppArchiveReport(ctx, appArchive)
 	if err != nil {
 		logger.Errorf("app archive report failed：%s", err.Error())
 		return
 	}
 	if response.GetCode() != 200 {
-		logger.Error("app archive report failed：%s", response.GetMessage())
+		logger.Errorf("app archive report failed：%s", response.GetMessage())
 		return
 	}
 }
 
-func (m *Master) jobArchiveReport(jobArchive *rpc.JobArchive) {
+func (c *Master) jobArchiveReport(jobArchive *rpc.JobArchive) {
 	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
-	response, err := m.rpcClient.JobArchiveReport(ctx, jobArchive)
+	response, err := c.rpcClient.JobArchiveReport(ctx, jobArchive)
 	if err != nil {
 		logger.Errorf("job archive report failed：%s", err.Error())
 		return
@@ -226,10 +231,10 @@ func (m *Master) jobArchiveReport(jobArchive *rpc.JobArchive) {
 	}
 }
 
-func (m *Master) timingArchiveReport(timingArchive *rpc.TimingArchive) {
+func (c *Master) timingArchiveReport(timingArchive *rpc.TimingArchive) {
 	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()
-	response, err := m.rpcClient.TimingArchiveReport(ctx, timingArchive)
+	response, err := c.rpcClient.TimingArchiveReport(ctx, timingArchive)
 	if err != nil {
 		logger.Errorf("timing archive report failed：%s", err.Error())
 		return

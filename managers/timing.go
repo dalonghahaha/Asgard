@@ -5,45 +5,116 @@ import (
 	"sync"
 	"time"
 
-	"Asgard/applications"
-	"Asgard/client"
+	"Asgard/clients"
 	"Asgard/constants"
+	"Asgard/runtimes"
 
+	"github.com/dalonghahaha/avenger/components/logger"
 	"github.com/dalonghahaha/avenger/tools/uuid"
 )
 
 type TimingManager struct {
-	lock           sync.Mutex
-	timings        map[int64]*applications.Timing
-	masterClient   *client.Master
-	monitorManager *applications.MonitorMamager
+	lock         sync.Mutex
+	timings      map[int64]*runtimes.Timing
+	masterClient *clients.Master
+	monitor      *runtimes.Monitor
 }
 
-func NewTimingManager() (*TimingManager, error) {
+func NewTimingManager() *TimingManager {
 	manager := &TimingManager{
-		timings:        make(map[int64]*applications.Timing),
-		monitorManager: applications.NewMonitorMamager(),
+		timings: make(map[int64]*runtimes.Timing),
+		monitor: runtimes.NewMonitor(),
 	}
-	return manager, nil
+	return manager
 }
 
-func (m *TimingManager) SetMaster(masterClient *client.Master) {
+func (m *TimingManager) SetMaster(masterClient *clients.Master) {
 	m.masterClient = masterClient
 }
 
 func (m *TimingManager) StartMonitor() {
-	m.monitorManager.Start()
+	logger.Debug("timing manager monitor start!")
+	go m.monitor.Start()
 }
 
 func (m *TimingManager) StopMonitor() {
-	m.monitorManager.Stop()
+	logger.Debug("timing manager monitor stop!")
+	m.monitor.Stop()
+}
+
+func (m *TimingManager) NewTiming(config map[string]interface{}) (*runtimes.Timing, error) {
+	timing := new(runtimes.Timing)
+	err := timing.Configure(config)
+	if err != nil {
+		return nil, err
+	}
+	_time, ok := config["time"].(int64)
+	if !ok {
+		return nil, fmt.Errorf("config timeout type wrong")
+	}
+	timing.Time = time.Unix(_time, 0)
+	timeout, ok := config["timeout"].(int64)
+	if !ok {
+		return nil, fmt.Errorf("config timeout type wrong")
+	}
+	timing.TimeOut = time.Duration(timeout)
+	return timing, nil
+}
+
+func (m *TimingManager) Register(id int64, config map[string]interface{}) error {
+	timing, err := m.NewTiming(config)
+	if err != nil {
+		return err
+	}
+	timing.ID = id
+	timing.Monitor = m.monitor
+	timing.MonitorReport = func(monitor *runtimes.MonitorInfo) {
+		timingMonitor := runtimes.TimingMonitor{
+			UUID:    uuid.GenerateV4(),
+			Timing:  timing,
+			Monitor: monitor,
+		}
+		if m.masterClient != nil {
+			m.masterClient.Reports.Store(timingMonitor.UUID, 1)
+			m.masterClient.TimingMonitorChan <- timingMonitor
+		}
+	}
+	timing.ArchiveReport = func(archive *runtimes.Archive) {
+		timingArchive := runtimes.TimingArchive{
+			UUID:    uuid.GenerateV4(),
+			Timing:  timing,
+			Archive: archive,
+		}
+		if m.masterClient != nil {
+			m.masterClient.Reports.Store(timingArchive.UUID, 1)
+			m.masterClient.TimingArchiveChan <- timingArchive
+		}
+	}
+	m.lock.Lock()
+	m.timings[id] = timing
+	m.lock.Unlock()
+	return nil
+}
+
+func (m *TimingManager) UnRegister(id int64) {
+	m.lock.Lock()
+	delete(m.timings, id)
+	m.lock.Unlock()
 }
 
 func (m *TimingManager) Count() int {
 	return len(m.timings)
 }
 
-func (m *TimingManager) GetTiming(id int64) *applications.Timing {
+func (m *TimingManager) GetList() []*runtimes.Timing {
+	list := []*runtimes.Timing{}
+	for _, timing := range m.timings {
+		list = append(list, timing)
+	}
+	return list
+}
+
+func (m *TimingManager) Get(id int64) *runtimes.Timing {
 	app, ok := m.timings[id]
 	if !ok {
 		return nil
@@ -51,7 +122,16 @@ func (m *TimingManager) GetTiming(id int64) *applications.Timing {
 	return app
 }
 
-func (m *TimingManager) StartAll(moniter bool) {
+func (m *TimingManager) GetByName(name string) *runtimes.Timing {
+	for _, timing := range m.timings {
+		if timing.Name == name {
+			return timing
+		}
+	}
+	return nil
+}
+
+func (m *TimingManager) StartAll() {
 	go m.Run()
 }
 
@@ -60,6 +140,9 @@ func (m *TimingManager) Run() {
 	for range constants.SYSTEM_TIMER_TICKER.C {
 		now := time.Now().Unix()
 		for _, timing := range m.timings {
+			if timing.Executed {
+				m.UnRegister(timing.ID)
+			}
 			if timing.Time.Unix() < now && !timing.Executed {
 				go timing.Run()
 			}
@@ -78,8 +161,8 @@ func (m *TimingManager) StopAll() {
 	}
 }
 
-func (m *TimingManager) Remove(id int64) bool {
-	timing := m.GetTiming(id)
+func (m *TimingManager) Stop(id int64) bool {
+	timing := m.Get(id)
 	if timing == nil {
 		return true
 	}
@@ -89,62 +172,19 @@ func (m *TimingManager) Remove(id int64) bool {
 	return true
 }
 
-func (m *TimingManager) NewTiming(config map[string]interface{}) (*applications.Timing, error) {
-	timing := new(applications.Timing)
-	err := timing.Configure(config)
-	if err != nil {
-		return nil, err
-	}
-	_time, ok := config["time"].(int64)
-	if !ok {
-		return nil, fmt.Errorf("config timeout type wrong")
-	}
-	timing.Time = time.Unix(_time, 0)
-	timeout, ok := config["timeout"].(int64)
-	if !ok {
-		return nil, fmt.Errorf("config timeout type wrong")
-	}
-	timing.TimeOut = time.Duration(timeout)
-	return timing, nil
-}
-
-func (m *TimingManager) TimingRegister(id int64, config map[string]interface{}) error {
-	timing, err := m.NewTiming(config)
+func (m *TimingManager) Update(id int64, config map[string]interface{}) error {
+	err := m.Remove(id)
 	if err != nil {
 		return err
 	}
-	timing.ID = id
-	timing.MonitorMamager = m.monitorManager
-	timing.MonitorReport = func(monitor *applications.Monitor) {
-		timingMonitor := applications.TimingMonitor{
-			UUID:    uuid.GenerateV4(),
-			Timing:  timing,
-			Monitor: monitor,
-		}
-		if m.masterClient != nil {
-			m.masterClient.Reports.Store(timingMonitor.UUID, 1)
-			m.masterClient.TimingMonitorChan <- timingMonitor
-		}
-	}
-	timing.ArchiveReport = func(archive *applications.Archive) {
-		timingArchive := applications.TimingArchive{
-			UUID:    uuid.GenerateV4(),
-			Timing:  timing,
-			Archive: archive,
-		}
-		if m.masterClient != nil {
-			m.masterClient.Reports.Store(timingArchive.UUID, 1)
-			m.masterClient.TimingArchiveChan <- timingArchive
-		}
-	}
-	m.lock.Lock()
-	m.timings[id] = timing
-	m.lock.Unlock()
-	return nil
+	return m.Register(id, config)
 }
 
-func (m *TimingManager) TimingUnRegister(id int64) {
-	m.lock.Lock()
-	delete(m.timings, id)
-	m.lock.Unlock()
+func (m *TimingManager) Remove(id int64) error {
+	ok := m.Stop(id)
+	if !ok {
+		return fmt.Errorf("timing stop failed!")
+	}
+	m.UnRegister(id)
+	return nil
 }

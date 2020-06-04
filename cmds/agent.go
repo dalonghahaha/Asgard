@@ -1,4 +1,4 @@
-package cmd
+package cmds
 
 import (
 	"fmt"
@@ -14,11 +14,11 @@ import (
 	"github.com/spf13/viper"
 	"google.golang.org/grpc/reflection"
 
-	"Asgard/applications"
-	"Asgard/client"
+	"Asgard/clients"
 	"Asgard/constants"
-	"Asgard/providers"
+	"Asgard/managers"
 	"Asgard/rpc"
+	"Asgard/runtimes"
 	"Asgard/server"
 )
 
@@ -43,6 +43,7 @@ var agentCommonCmd = &cobra.Command{
 			}
 		}()
 		InitAgent()
+		go masterClient.Report()
 		go StartAgent()
 		go StartAgentRpcServer()
 		go MoniterAgent()
@@ -55,22 +56,22 @@ var statusCommonCmd = &cobra.Command{
 	Short: "show agent running status",
 	Run: func(cmd *cobra.Command, args []string) {
 		port := cmd.Flag("port").Value.String()
-		_client, err := client.NewAgent("127.0.0.1", port)
+		client, err := clients.NewAgent("127.0.0.1", port)
 		if err != nil {
 			fmt.Printf("fail connect to agent:%s\n", err.Error())
 			return
 		}
-		apps, err := _client.GetAppList()
+		apps, err := client.GetAppList()
 		if err != nil {
 			fmt.Printf("fail connect to get app list:%s\n", err.Error())
 			return
 		}
-		jobs, err := _client.GetJobList()
+		jobs, err := client.GetJobList()
 		if err != nil {
 			fmt.Printf("fail connect to get app list:%s\n", err.Error())
 			return
 		}
-		timings, err := _client.GetTimingList()
+		timings, err := client.GetTimingList()
 		if err != nil {
 			fmt.Printf("fail connect to get app list:%s\n", err.Error())
 			return
@@ -129,15 +130,25 @@ func InitAgent() {
 		constants.AGENT_MONITER = duration
 	}
 	constants.AGENT_MONITER_TICKER = time.NewTicker(time.Second * time.Duration(constants.AGENT_MONITER))
-	err := providers.RegisterMaster()
+
+	_masterClient, err := clients.NewMaster(constants.MASTER_IP, constants.MASTER_PORT)
+	if err != nil {
+		panic("init master client failed:" + err.Error())
+	}
+	masterClient = _masterClient
 	if err != nil {
 		panic("register master failed:" + err.Error())
 	}
-	providers.RegisterMonitorMamager()
+	appManager = managers.NewAppManager()
+	appManager.SetMaster(masterClient)
+	jobManager = managers.NewJobManager()
+	jobManager.SetMaster(masterClient)
+	timingManager = managers.NewTimingManager()
+	timingManager.SetMaster(masterClient)
 }
 
 func StartAgent() {
-	err := providers.MasterClient.AgentRegister()
+	err := masterClient.AgentRegister()
 	if err != nil {
 		panic(err)
 	}
@@ -153,29 +164,32 @@ func StartAgent() {
 	if err != nil {
 		panic(err)
 	}
-	applications.AppStartAll(false)
-	applications.JobStartAll(false)
-	applications.TimingStartAll(false)
+	appManager.StartAll()
+	appManager.StartMonitor()
+	jobManager.StartAll()
+	jobManager.StartMonitor()
+	timingManager.StartAll()
+	timingManager.StartMonitor()
 	logger.Info("Agent Started!")
 	logger.Debugf("Agent Master: %s:%s", constants.MASTER_IP, constants.MASTER_PORT)
 	logger.Debugf("Agent Address: %s:%s", constants.AGENT_IP, constants.AGENT_PORT)
 	logger.Debugf("Agent Loop:%d", constants.AGENT_MONITER)
-	applications.MoniterStart()
 }
 
 func StopAgent() {
-	applications.Exit()
-	applications.MoniterStop()
-	time.Sleep(time.Millisecond * 100)
+	runtimes.Exit()
 	constants.AGENT_MONITER_TICKER.Stop()
-	applications.AppStopAll()
-	applications.JobStopAll()
-	applications.TimingStopAll()
+	appManager.StopAll()
+	appManager.StopMonitor()
+	jobManager.StopAll()
+	jobManager.StopMonitor()
+	timingManager.StopAll()
+	timingManager.StopMonitor()
 	//make sure all data report to master
 	maxWait := 10
 	countWait := 0
 	for {
-		if providers.MasterClient.IsRunning() && countWait <= maxWait {
+		if masterClient.IsRunning() && countWait <= maxWait {
 			time.Sleep(time.Second * 1)
 			countWait += 1
 		} else {
@@ -192,7 +206,11 @@ func StartAgentRpcServer() {
 		panic(err)
 	}
 	s := server.NewRPCServer()
-	rpc.RegisterAgentServer(s, &server.AgentServer{})
+	agentServer := &server.AgentServer{}
+	agentServer.SetAppManager(appManager)
+	agentServer.SetJobManager(jobManager)
+	agentServer.SetTimingManager(timingManager)
+	rpc.RegisterAgentServer(s, agentServer)
 	reflection.Register(s)
 	err = s.Serve(listen)
 	if err != nil {
@@ -213,30 +231,21 @@ func AgentMonitorReport() {
 		logger.Error("get process failed:", err)
 		return
 	}
-	agentMonitor := applications.AgentMonitor{
+	agentMonitor := runtimes.AgentMonitor{
 		Ip:      constants.AGENT_IP,
 		Port:    constants.AGENT_PORT,
-		Monitor: applications.BuildMonitor(info),
+		Monitor: runtimes.BuildMonitorInfo(info),
 	}
-	providers.MasterClient.AgentMonitorChan <- agentMonitor
+	masterClient.AgentMonitorChan <- agentMonitor
 }
 
 func AppsRegister() error {
-	apps, err := providers.MasterClient.GetAppList()
+	apps, err := masterClient.GetAppList()
 	if err != nil {
 		return err
 	}
 	for _, app := range apps {
-		logger.Debug("app register: ", app.GetName())
-		config := rpc.BuildAppConfig(app)
-		err := applications.AppRegister(
-			app.GetId(),
-			config,
-			providers.MonitorMamager,
-			providers.MasterClient.Reports,
-			providers.MasterClient.AppMonitorChan,
-			providers.MasterClient.AppArchiveChan,
-		)
+		err := appManager.Register(app.GetId(), rpc.BuildAppConfig(app))
 		if err != nil {
 			return err
 		}
@@ -245,21 +254,12 @@ func AppsRegister() error {
 }
 
 func JobsRegister() error {
-	jobs, err := providers.MasterClient.GetJobList()
+	jobs, err := masterClient.GetJobList()
 	if err != nil {
 		return err
 	}
 	for _, job := range jobs {
-		logger.Debugf("job register: %s %s", job.GetName(), job.GetSpec())
-		config := rpc.BuildJobConfig(job)
-		err := applications.JobRegister(
-			job.GetId(),
-			config,
-			providers.MonitorMamager,
-			providers.MasterClient.Reports,
-			providers.MasterClient.JobMonitorChan,
-			providers.MasterClient.JobArchiveChan,
-		)
+		err := jobManager.Register(job.GetId(), rpc.BuildJobConfig(job))
 		if err != nil {
 			return err
 		}
@@ -268,21 +268,12 @@ func JobsRegister() error {
 }
 
 func TimingsRegister() error {
-	timings, err := providers.MasterClient.GetTimingList()
+	timings, err := masterClient.GetTimingList()
 	if err != nil {
 		return err
 	}
 	for _, timing := range timings {
-		logger.Debugf("timing register: %s %s", timing.GetName(), time.Unix(timing.GetTime(), 0).Format("2006-01-02 15:04:05"))
-		config := rpc.BuildTimingConfig(timing)
-		err := applications.TimingRegister(
-			timing.GetId(),
-			config,
-			providers.MonitorMamager,
-			providers.MasterClient.Reports,
-			providers.MasterClient.TimingMonitorChan,
-			providers.MasterClient.TimingArchiveChan,
-		)
+		err := timingManager.Register(timing.GetId(), rpc.BuildTimingConfig(timing))
 		if err != nil {
 			return err
 		}
