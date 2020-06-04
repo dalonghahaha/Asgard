@@ -1,10 +1,11 @@
 package server
 
 import (
+	"fmt"
+
 	"Asgard/applications"
 	"Asgard/providers"
 	"Asgard/rpc"
-	"fmt"
 )
 
 func AddJob(id int64, request *rpc.Job) error {
@@ -15,6 +16,7 @@ func AddJob(id int64, request *rpc.Job) error {
 	err := applications.JobRegister(
 		id,
 		rpc.BuildJobConfig(request),
+		providers.MonitorMamager,
 		providers.MasterClient.Reports,
 		providers.MasterClient.JobMonitorChan,
 		providers.MasterClient.JobArchiveChan,

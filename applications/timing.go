@@ -22,7 +22,7 @@ func TimingStopAll() {
 	}
 	for _, timing := range Timings {
 		if timing.Running {
-			timing.stop()
+			timing.Kill()
 		}
 	}
 }
@@ -52,7 +52,7 @@ func TimingStop(id int64) bool {
 		return false
 	}
 	if timing.Running {
-		timing.stop()
+		timing.Kill()
 	}
 	return true
 }
@@ -109,7 +109,7 @@ func (t *Timing) record() {
 
 func NewTiming(config map[string]interface{}) (*Timing, error) {
 	timing := new(Timing)
-	err := timing.configure(config)
+	err := timing.Configure(config)
 	if err != nil {
 		return nil, err
 	}
@@ -126,12 +126,13 @@ func NewTiming(config map[string]interface{}) (*Timing, error) {
 	return timing, nil
 }
 
-func TimingRegister(id int64, config map[string]interface{}, reports *sync.Map, mc chan TimingMonitor, ac chan TimingArchive) error {
+func TimingRegister(id int64, config map[string]interface{}, monitorMamager *MonitorMamager, reports *sync.Map, mc chan TimingMonitor, ac chan TimingArchive) error {
 	timing, err := NewTiming(config)
 	if err != nil {
 		return err
 	}
 	timing.ID = id
+	timing.MonitorMamager = monitorMamager
 	timing.MonitorReport = func(monitor *Monitor) {
 		timingMonitor := TimingMonitor{
 			UUID:    uuid.GenerateV4(),

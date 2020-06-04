@@ -3,19 +3,21 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/dalonghahaha/avenger/components/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"Asgard/applications"
+	"Asgard/managers"
 )
 
 func init() {
 	guardCommonCmd.PersistentFlags().StringP("conf", "c", "conf", "config path")
 	rootCmd.AddCommand(guardCommonCmd)
 }
+
+var appManager *managers.AppManager
 
 var guardCommonCmd = &cobra.Command{
 	Use:    "guard",
@@ -38,6 +40,11 @@ func StartGuard() {
 		fmt.Println("apps config wrong!")
 		return
 	}
+	_appManager, err := managers.NewAppManager()
+	if err != nil {
+		fmt.Println("init app manager config wrong!")
+	}
+	appManager = _appManager
 	for index, v := range _configs {
 		_v, ok := v.(map[interface{}]interface{})
 		if !ok {
@@ -53,19 +60,17 @@ func StartGuard() {
 			}
 			config[_k] = v
 		}
-		err := applications.AppRegister(int64(index), config, nil, nil, nil)
+		err := applications.AppRegister(int64(index), config, nil, nil, nil, nil)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 	}
 	logger.Info("guard started at ", os.Getpid())
-	applications.AppStartAll(true)
+	appManager.StartAll()
 }
 
 func StopGuard() {
 	applications.Exit()
-	applications.MoniterStop()
-	time.Sleep(time.Millisecond * 100)
-	applications.AppStopAll()
+	appManager.StopAll()
 }

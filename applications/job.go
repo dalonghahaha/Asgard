@@ -19,7 +19,7 @@ var (
 func JobStopAll() {
 	for _, job := range Jobs {
 		if job.Running {
-			job.stop()
+			job.Kill()
 		}
 	}
 }
@@ -50,7 +50,7 @@ func JobStop(id int64) bool {
 		return false
 	}
 	if job.Running {
-		job.stop()
+		job.Kill()
 	}
 	crontab.Remove(job.CronID)
 	return true
@@ -106,7 +106,7 @@ func (j *Job) record() {
 
 func NewJob(config map[string]interface{}) (*Job, error) {
 	job := new(Job)
-	err := job.configure(config)
+	err := job.Configure(config)
 	if err != nil {
 		return nil, err
 	}
@@ -123,12 +123,13 @@ func NewJob(config map[string]interface{}) (*Job, error) {
 	return job, nil
 }
 
-func JobRegister(id int64, config map[string]interface{}, reports *sync.Map, mc chan JobMonitor, ac chan JobArchive) error {
+func JobRegister(id int64, config map[string]interface{}, monitorMamager *MonitorMamager, reports *sync.Map, mc chan JobMonitor, ac chan JobArchive) error {
 	job, err := NewJob(config)
 	if err != nil {
 		return err
 	}
 	job.ID = id
+	job.MonitorMamager = monitorMamager
 	job.MonitorReport = func(monitor *Monitor) {
 		jobMonitor := JobMonitor{
 			UUID:    uuid.GenerateV4(),

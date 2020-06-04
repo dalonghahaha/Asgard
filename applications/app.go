@@ -16,7 +16,7 @@ var (
 func AppStopAll() {
 	for _, app := range APPs {
 		if app.Running {
-			app.stop()
+			app.Kill()
 		}
 	}
 }
@@ -47,7 +47,7 @@ func AppStop(id int64) bool {
 	if !ok {
 		return false
 	}
-	app.stop()
+	app.Kill()
 	return true
 }
 
@@ -85,7 +85,7 @@ func (a *App) restart() {
 
 func NewApp(config map[string]interface{}) (*App, error) {
 	app := new(App)
-	err := app.configure(config)
+	err := app.Configure(config)
 	if err != nil {
 		return nil, err
 	}
@@ -97,12 +97,13 @@ func NewApp(config map[string]interface{}) (*App, error) {
 	return app, nil
 }
 
-func AppRegister(id int64, config map[string]interface{}, reports *sync.Map, mc chan AppMonitor, ac chan AppArchive) error {
+func AppRegister(id int64, config map[string]interface{}, monitorMamager *MonitorMamager, reports *sync.Map, mc chan AppMonitor, ac chan AppArchive) error {
 	app, err := NewApp(config)
 	if err != nil {
 		return err
 	}
 	app.ID = id
+	app.MonitorMamager = monitorMamager
 	app.MonitorReport = func(monitor *Monitor) {
 		appMonitor := AppMonitor{
 			UUID:    uuid.GenerateV4(),

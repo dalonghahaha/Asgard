@@ -133,6 +133,7 @@ func InitAgent() {
 	if err != nil {
 		panic("register master failed:" + err.Error())
 	}
+	providers.RegisterMonitorMamager()
 }
 
 func StartAgent() {
@@ -231,6 +232,7 @@ func AppsRegister() error {
 		err := applications.AppRegister(
 			app.GetId(),
 			config,
+			providers.MonitorMamager,
 			providers.MasterClient.Reports,
 			providers.MasterClient.AppMonitorChan,
 			providers.MasterClient.AppArchiveChan,
@@ -253,6 +255,7 @@ func JobsRegister() error {
 		err := applications.JobRegister(
 			job.GetId(),
 			config,
+			providers.MonitorMamager,
 			providers.MasterClient.Reports,
 			providers.MasterClient.JobMonitorChan,
 			providers.MasterClient.JobArchiveChan,
@@ -275,6 +278,7 @@ func TimingsRegister() error {
 		err := applications.TimingRegister(
 			timing.GetId(),
 			config,
+			providers.MonitorMamager,
 			providers.MasterClient.Reports,
 			providers.MasterClient.TimingMonitorChan,
 			providers.MasterClient.TimingArchiveChan,

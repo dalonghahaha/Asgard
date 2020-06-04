@@ -13,7 +13,6 @@ import (
 	"github.com/dalonghahaha/avenger/components/logger"
 	"github.com/dalonghahaha/avenger/tools/file"
 	"github.com/dalonghahaha/avenger/tools/uuid"
-	"github.com/shirou/gopsutil/process"
 )
 
 var (
@@ -39,17 +38,19 @@ type Command struct {
 	Status          int
 	Signal          string
 	Cmd             *exec.Cmd
+	MonitorMamager  *MonitorMamager
 	ExceptionReport func(message string)
 	MonitorReport   func(monitor *Monitor)
 	ArchiveReport   func(archive *Archive)
 }
 
 func Exit() {
-	logger.Info("exit!")
 	processExit = true
+	logger.Info("exit!")
+	time.Sleep(time.Millisecond * 100)
 }
 
-func (c *Command) configure(config map[string]interface{}) error {
+func (c *Command) Configure(config map[string]interface{}) error {
 	name, ok := config["name"].(string)
 	if !ok {
 		return fmt.Errorf("config name type wrong")
@@ -143,8 +144,8 @@ func (c *Command) start() error {
 	c.runing()
 	c.Pid = c.Cmd.Process.Pid
 	logger.Infof("%s started at %d", c.Name, c.Pid)
-	if c.IsMonitor {
-		MoniterAdd(c.Pid, c.monitor)
+	if c.IsMonitor && c.MonitorMamager != nil {
+		c.MonitorMamager.Add(c.Pid, c.MonitorReport)
 	}
 	return nil
 }
@@ -172,7 +173,7 @@ func (c *Command) wait(callback func()) {
 	callback()
 }
 
-func (c *Command) stop() {
+func (c *Command) Kill() {
 	if !c.Running {
 		return
 	}
@@ -205,8 +206,8 @@ func (c *Command) stop() {
 func (c *Command) finish() {
 	c.lock.Lock()
 	logger.Info(c.Name + " finish")
-	if c.IsMonitor {
-		MoniterRemove(c.Pid)
+	if c.IsMonitor && c.MonitorMamager != nil {
+		c.MonitorMamager.Remove(c.Pid)
 	}
 	c.End = time.Now()
 	c.Running = false
@@ -217,11 +218,4 @@ func (c *Command) runing() {
 	c.lock.Lock()
 	c.Running = true
 	c.lock.Unlock()
-}
-
-func (c *Command) monitor(info *process.Process) {
-	monitor := BuildMonitor(info)
-	if c.MonitorReport != nil {
-		c.MonitorReport(monitor)
-	}
 }

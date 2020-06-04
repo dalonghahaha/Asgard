@@ -5,20 +5,36 @@ import (
 	"fmt"
 
 	"Asgard/applications"
+	"Asgard/managers"
 	"Asgard/rpc"
 )
 
 type AgentServer struct {
 	baseServer
+	appManager    *managers.AppManager
+	jobManager    *managers.JobManager
+	timingManager *managers.TimingManager
+}
+
+func (s *AgentServer) SetAppManager(appManager *managers.AppManager) {
+	s.appManager = appManager
+}
+
+func (s *AgentServer) SetJobManager(jobManager *managers.JobManager) {
+	s.jobManager = jobManager
+}
+
+func (s *AgentServer) SetTimingManager(timingManager *managers.TimingManager) {
+	s.timingManager = timingManager
 }
 
 func (s *AgentServer) Stat(ctx context.Context, request *rpc.Empty) (*rpc.AgentStatResponse, error) {
 	stat := &rpc.AgentStatResponse{
 		Code: rpc.OK,
 		AgentStat: &rpc.AgentStat{
-			Apps:    int64(len(applications.APPs)),
-			Jobs:    int64(len(applications.Jobs)),
-			Timings: int64(len(applications.Timings)),
+			Apps:    int64(s.appManager.Count()),
+			Jobs:    int64(s.jobManager.Count()),
+			Timings: int64(s.timingManager.Count()),
 		},
 	}
 	return stat, nil
@@ -29,35 +45,79 @@ func (s *AgentServer) Log(ctx context.Context, request *rpc.LogRuquest) (*rpc.Lo
 }
 
 func (s *AgentServer) AppList(ctx context.Context, request *rpc.Empty) (*rpc.AppListResponse, error) {
-	return &rpc.AppListResponse{Code: rpc.OK, Apps: GetAppList()}, nil
+	apps := s.appManager.GetAppList()
+	list := []*rpc.App{}
+	for _, app := range apps {
+		list = append(list, rpc.BuildApp(app))
+	}
+	return &rpc.AppListResponse{Code: rpc.OK, Apps: list}, nil
 }
 
 func (s *AgentServer) AppGet(ctx context.Context, request *rpc.ID) (*rpc.AppResponse, error) {
-	app := GetApp(request.GetId())
+	app := s.appManager.GetApp(request.GetId())
 	if app != nil {
-		return &rpc.AppResponse{Code: rpc.OK, App: app}, nil
+		return &rpc.AppResponse{Code: rpc.OK, App: rpc.BuildApp(app)}, nil
 	}
-	return &rpc.AppResponse{Code: rpc.Nofound, App: app}, nil
+	return &rpc.AppResponse{Code: rpc.Nofound, App: nil}, nil
 }
 
 func (s *AgentServer) AppAdd(ctx context.Context, request *rpc.App) (*rpc.Response, error) {
-	if err := AddApp(request.GetId(), request); err != nil {
-		return s.Error(err.Error())
+	app := s.appManager.GetApp(request.GetId())
+	if app != nil {
+		if !app.Running {
+			ok := s.appManager.Start(request.GetId())
+			if !ok {
+				return s.Error("app start failed!")
+			}
+		}
+		return s.OK()
+	}
+	err := s.appManager.Register(request.GetId(), rpc.BuildAppConfig(request))
+	if err != nil {
+		return s.Error(fmt.Sprintf("app register failed:%s", err.Error()))
+	}
+	ok := s.appManager.Start(request.GetId())
+	if !ok {
+		return s.Error("app start failed!")
 	}
 	return s.OK()
 }
 
 func (s *AgentServer) AppUpdate(ctx context.Context, request *rpc.App) (*rpc.Response, error) {
-	if err := UpdateApp(request.GetId(), request); err != nil {
-		return s.Error(err.Error())
+	app := s.appManager.GetApp(request.GetId())
+	if app == nil {
+		return s.Error("no such app in agent")
+	}
+	if app.Running {
+		ok := s.appManager.Stop(request.GetId())
+		if !ok {
+			return s.Error("app stop failed!")
+		}
+	}
+	s.appManager.UnRegister(request.GetId())
+	err := s.appManager.Register(request.GetId(), rpc.BuildAppConfig(request))
+	if err != nil {
+		return s.Error(fmt.Sprintf("app register failed:%s", err.Error()))
+	}
+	ok := s.appManager.Start(request.GetId())
+	if !ok {
+		return s.Error("app start failed!")
 	}
 	return s.OK()
 }
 
 func (s *AgentServer) AppRemove(ctx context.Context, request *rpc.ID) (*rpc.Response, error) {
-	if err := DeleteApp(request.GetId()); err != nil {
-		return s.Error(err.Error())
+	app := s.appManager.GetApp(request.GetId())
+	if app == nil {
+		return s.OK()
 	}
+	if app.Running {
+		ok := s.appManager.Stop(request.GetId())
+		if !ok {
+			return s.Error("app stop failed!")
+		}
+	}
+	s.appManager.UnRegister(request.GetId())
 	return s.OK()
 }
 

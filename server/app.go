@@ -40,6 +40,7 @@ func AddApp(id int64, appRequest *rpc.App) error {
 	err := applications.AppRegister(
 		id,
 		rpc.BuildAppConfig(appRequest),
+		providers.MonitorMamager,
 		providers.MasterClient.Reports,
 		providers.MasterClient.AppMonitorChan,
 		providers.MasterClient.AppArchiveChan,

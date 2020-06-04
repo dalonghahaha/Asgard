@@ -2,6 +2,7 @@ package applications
 
 import (
 	"math"
+	"sync"
 	"time"
 
 	"github.com/shirou/gopsutil/process"
@@ -14,7 +15,7 @@ var (
 	memoryUnit = 0.0001
 )
 
-var moniters = map[int]func(info *process.Process){}
+var moniters = map[int]func(monitor *Monitor){}
 
 type Monitor struct {
 	CPUPercent float64
@@ -68,7 +69,7 @@ func BuildMonitor(info *process.Process) *Monitor {
 	return monitor
 }
 
-func MoniterAdd(pid int, callback func(info *process.Process)) {
+func MoniterAdd(pid int, callback func(monitor *Monitor)) {
 	lock.Lock()
 	moniters[pid] = callback
 	lock.Unlock()
@@ -88,12 +89,56 @@ func MoniterStart() {
 			if err != nil {
 				continue
 			}
-			function(info)
+			function(BuildMonitor(info))
 		}
 	}
 }
 
 func MoniterStop() {
+	if constants.SYSTEM_MONITER_TICKER != nil {
+		constants.SYSTEM_MONITER_TICKER.Stop()
+	}
+}
+
+type MonitorMamager struct {
+	lock     sync.Mutex
+	moniters map[int]func(monitor *Monitor)
+}
+
+func NewMonitorMamager() *MonitorMamager {
+	return &MonitorMamager{
+		moniters: make(map[int]func(monitor *Monitor)),
+	}
+}
+
+func (m *MonitorMamager) Add(pid int, callback func(monitor *Monitor)) {
+	m.lock.Lock()
+	m.moniters[pid] = callback
+	m.lock.Unlock()
+}
+
+func (m *MonitorMamager) Remove(pid int) {
+	m.lock.Lock()
+	delete(m.moniters, pid)
+	m.lock.Unlock()
+}
+
+func (m *MonitorMamager) Start() {
+	constants.SYSTEM_MONITER_TICKER = time.NewTicker(time.Second * time.Duration(constants.SYSTEM_MONITER))
+	for range constants.SYSTEM_MONITER_TICKER.C {
+		for pid, function := range moniters {
+			info, err := process.NewProcess(int32(pid))
+			if err != nil {
+				continue
+			}
+			if function != nil {
+				function(BuildMonitor(info))
+			}
+		}
+	}
+}
+
+func (m *MonitorMamager) Stop() {
 	if constants.SYSTEM_MONITER_TICKER != nil {
 		constants.SYSTEM_MONITER_TICKER.Stop()
 	}

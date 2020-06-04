@@ -3,19 +3,21 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/dalonghahaha/avenger/components/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"Asgard/applications"
+	"Asgard/managers"
 )
 
 func init() {
 	cronCommonCmd.PersistentFlags().StringP("conf", "c", "conf", "config path")
 	rootCmd.AddCommand(cronCommonCmd)
 }
+
+var jobManager *managers.JobManager
 
 var cronCommonCmd = &cobra.Command{
 	Use:    "cron",
@@ -38,6 +40,11 @@ func StartCron() {
 		fmt.Println("crons config wrong!")
 		return
 	}
+	_jobManager, err := managers.NewJobManager()
+	if err != nil {
+		fmt.Println("init job manager config wrong!")
+	}
+	jobManager = _jobManager
 	for index, v := range _configs {
 		_v, ok := v.(map[interface{}]interface{})
 		if !ok {
@@ -53,19 +60,17 @@ func StartCron() {
 			}
 			config[_k] = v
 		}
-		err := applications.JobRegister(int64(index), config, nil, nil, nil)
+		err := jobManager.Register(int64(index), config)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 	}
 	logger.Info("cron started at ", os.Getpid())
-	applications.JobStartAll(true)
+	jobManager.StartAll()
 }
 
 func StopCron() {
 	applications.Exit()
-	applications.MoniterStop()
-	time.Sleep(time.Millisecond * 100)
-	applications.JobStopAll()
+	jobManager.StopAll()
 }
