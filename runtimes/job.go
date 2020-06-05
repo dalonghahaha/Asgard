@@ -27,6 +27,10 @@ func (j *Job) Run() {
 	}
 	err = j.start()
 	if err != nil {
+		logger.Errorf("%s start fail: %s", j.Name, err)
+		if j.ExceptionReport != nil {
+			j.ExceptionReport(fmt.Sprintf("start fail: %+v", err))
+		}
 		stop <- true
 		return
 	}
@@ -52,6 +56,10 @@ func (j *Job) timer(ch chan bool) {
 }
 
 func (j *Job) record() {
-	info := fmt.Sprintf("%s finished with %.2f seconds", j.Name, j.End.Sub(j.Begin).Seconds())
-	logger.Info(info)
+	logger.Infof("%s finished with %.2f seconds", j.Name, j.End.Sub(j.Begin).Seconds())
+	if !j.Successed {
+		if j.ExceptionReport != nil {
+			j.ExceptionReport(fmt.Sprintf("finished unseccessed with status: %d", j.Status))
+		}
+	}
 }

@@ -148,4 +148,14 @@ func setupRouter() {
 		errLog.GET("/job/data", middlewares.JobAgentInit, logController.JobErrLogData)
 		errLog.GET("/timing/data", middlewares.TimingAgentInit, logController.TimingErrLogData)
 	}
+	exception := server.Group("/exception")
+	exception.Use(middlewares.Login)
+	{
+		exception.GET("/list", exceptionController.List)
+	}
+	operation := server.Group("/operation")
+	operation.Use(middlewares.Login)
+	{
+		operation.GET("/list", operationController.List)
+	}
 }

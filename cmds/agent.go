@@ -38,17 +38,17 @@ var statusCommonCmd = &cobra.Command{
 		}
 		apps, err := client.GetAppList()
 		if err != nil {
-			fmt.Printf("fail connect to get app list:%s\n", err.Error())
+			fmt.Printf("fail to get app list:%s\n", err.Error())
 			return
 		}
 		jobs, err := client.GetJobList()
 		if err != nil {
-			fmt.Printf("fail connect to get app list:%s\n", err.Error())
+			fmt.Printf("fail to get job list:%s\n", err.Error())
 			return
 		}
 		timings, err := client.GetTimingList()
 		if err != nil {
-			fmt.Printf("fail connect to get app list:%s\n", err.Error())
+			fmt.Printf("fail to get timing list:%s\n", err.Error())
 			return
 		}
 		titleFormat := "%-5s %-50s %-50s %-30s\n"
@@ -98,7 +98,7 @@ var agentCommonCmd = &cobra.Command{
 		InitAgent()
 		go agentManager.StartAll()
 		go StartAgentRpcServer()
-		NotityKill(agentManager.StopAll)
+		Wait(agentManager.StopAll)
 	},
 }
 

@@ -27,6 +27,10 @@ func (t *Timing) Run() {
 	t.Executed = true
 	err = t.start()
 	if err != nil {
+		logger.Errorf("%s start fail: %s", t.Name, err)
+		if t.ExceptionReport != nil {
+			t.ExceptionReport(fmt.Sprintf("start fail: %+v", err))
+		}
 		stop <- true
 		return
 	}
@@ -52,6 +56,10 @@ func (j *Timing) timer(ch chan bool) {
 }
 
 func (t *Timing) record() {
-	info := fmt.Sprintf("%s executed with %.2f seconds", t.Name, t.End.Sub(t.Begin).Seconds())
-	logger.Info(info)
+	logger.Infof("%s finished with %.2f seconds", t.Name, t.End.Sub(t.Begin).Seconds())
+	if !t.Successed {
+		if t.ExceptionReport != nil {
+			t.ExceptionReport(fmt.Sprintf("finished unseccessed with status: %d", t.Status))
+		}
+	}
 }

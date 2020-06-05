@@ -17,6 +17,7 @@ func NewAgentServer(agentManager *managers.AgentManager) *AgentServer {
 		agentManager: agentManager,
 	}
 }
+
 func (s *AgentServer) Stat(ctx context.Context, request *rpc.Empty) (*rpc.AgentStatResponse, error) {
 	stat := &rpc.AgentStatResponse{
 		Code: rpc.OK,

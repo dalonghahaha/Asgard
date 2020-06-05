@@ -34,6 +34,22 @@ func NewAgent(ip, port string) (*Agent, error) {
 	return &agent, nil
 }
 
+func NewLocalAgent(serverFile string) (*Agent, error) {
+	conn, err := grpc.Dial(
+		serverFile,
+		grpc.WithInsecure(),
+		grpc.WithContextDialer(UnixConnectCtx),
+	)
+	if err != nil {
+		return nil, err
+	}
+	client := rpc.NewAgentClient(conn)
+	agent := Agent{
+		client: client,
+	}
+	return &agent, nil
+}
+
 func (a *Agent) GetStat() (*rpc.AgentStat, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
 	defer cancel()

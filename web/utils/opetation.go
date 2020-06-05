@@ -6,10 +6,10 @@ import (
 )
 
 func OpetationLog(userID, _type, relatedID, action int64) {
-	opetationLog := new(models.OperationLog)
-	opetationLog.UserID = userID
-	opetationLog.Type = _type
-	opetationLog.RelatedID = relatedID
-	opetationLog.Action = action
-	providers.OperationLogService.CreateOperationLog(opetationLog)
+	opetation := new(models.Operation)
+	opetation.UserID = userID
+	opetation.Type = _type
+	opetation.RelatedID = relatedID
+	opetation.Action = action
+	providers.OperationService.CreateOperation(opetation)
 }

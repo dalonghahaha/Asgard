@@ -23,7 +23,7 @@ var cronCommonCmd = &cobra.Command{
 	PreRun: PreRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		StartCron()
-		NotityKill(StopCron)
+		Wait(StopCron)
 	},
 }
 
@@ -61,7 +61,7 @@ func StartCron() {
 		}
 	}
 	logger.Info("cron started at ", os.Getpid())
-	jobManager.StartAll()
+	jobManager.StartAll(false)
 }
 
 func StopCron() {

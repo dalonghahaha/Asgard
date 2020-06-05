@@ -157,6 +157,75 @@ func ArchiveFormat(info *models.Archive) gin.H {
 	return data
 }
 
+func ExceptionFormat(info *models.Exception) gin.H {
+	data := gin.H{
+		"ID":        info.ID,
+		"Type":      constants.TYPE_NAME[info.Type],
+		"Name":      GetObjectName(info.Type, info.RelatedID),
+		"Desc":      info.Desc,
+		"CreatedAt": FormatTime(info.CreatedAt),
+	}
+	return data
+}
+
+func OperationFormat(info *models.Operation) gin.H {
+	user := GetObjectName(constants.TYPE_USER, info.UserID)
+	name := GetObjectName(info.Type, info.RelatedID)
+	data := gin.H{
+		"ID":        info.ID,
+		"Desc":      fmt.Sprintf("%s %s %s %s", user, constants.ACTION_NAME[info.Action], constants.TYPE_NAME[info.Type], name),
+		"CreatedAt": FormatTime(info.CreatedAt),
+	}
+	return data
+}
+
+func GetObjectName(ty, id int64) string {
+	switch ty {
+	case constants.TYPE_APP:
+		if app := providers.AppService.GetAppByID(id); app != nil {
+			return app.Name
+		} else {
+			return ""
+		}
+	case constants.TYPE_JOB:
+		if job := providers.JobService.GetJobByID(id); job != nil {
+			return job.Name
+		} else {
+			return ""
+		}
+	case constants.TYPE_TIMING:
+		if timing := providers.TimingService.GetTimingByID(id); timing != nil {
+			return timing.Name
+		} else {
+			return ""
+		}
+	case constants.TYPE_GROUP:
+		if group := providers.GroupService.GetGroupByID(id); group != nil {
+			return group.Name
+		} else {
+			return ""
+		}
+	case constants.TYPE_USER:
+		if user := providers.UserService.GetUserByID(id); user != nil {
+			return user.NickName
+		} else {
+			return ""
+		}
+	case constants.TYPE_AGENT:
+		if agent := providers.AgentService.GetAgentByID(id); agent != nil {
+			if agent.Alias != "" {
+				return agent.Alias
+			} else {
+				return fmt.Sprintf("%s:%s", agent.IP, agent.Port)
+			}
+		} else {
+			return ""
+		}
+	default:
+		return ""
+	}
+}
+
 func GetErrorMessage(code int) (message string) {
 	var ok bool
 	if constants.WEB_LANG == "cn" {

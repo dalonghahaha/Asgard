@@ -36,7 +36,7 @@ message AgentMonitorList {
 }
 
 message AppMonitor {
-    App app = 1;
+    int64 app_id = 1;
     Monitor monitor = 2;
 }
 
@@ -45,8 +45,13 @@ message AppMonitorList {
     repeated Monitor monitors = 2;
 }
 
+message AppException {
+    int64 app_id = 1;
+    string desc = 2;
+}
+
 message JobMonior {
-    Job job = 1;
+    int64 job_id = 1;
     Monitor monitor = 2;
 }
 
@@ -55,8 +60,14 @@ message JobMonitorList {
     repeated Monitor monitors = 2;
 }
 
+message JobException {
+    int64 job_id = 1;
+    string desc = 2;
+}
+
+
 message TimingMonior {
-    Timing timing = 1;
+    int64 timing_id = 1;
     Monitor monitor = 2;
 }
 
@@ -65,18 +76,23 @@ message TimingMoniorList {
     repeated Monitor monitors = 2;
 }
 
+message TimingException {
+    int64 timing_id = 1;
+    string desc = 2;
+}
+
 message AppArchive {
-    App app = 1;
+    int64 app_id = 1;
     Archive archive = 2;
 }
 
 message JobArchive {
-    Job job = 1;
+    int64 job_id = 1;
     Archive archive = 2;
 }
 
 message TimingArchive {
-    Timing timing = 1;
+    int64 timing_id = 1;
     Archive archive = 2;
 }
 
@@ -100,4 +116,8 @@ service Master {
     rpc AppArchiveReport(AppArchive) returns (Response) {}
     rpc JobArchiveReport(JobArchive) returns (Response) {}
     rpc TimingArchiveReport(TimingArchive) returns (Response) {}
+
+    rpc AppExceptionReport(AppException) returns (Response) {}
+    rpc JobExceptionReport(JobException) returns (Response) {}
+    rpc TimingExceptionReport(TimingException) returns (Response) {}
 }

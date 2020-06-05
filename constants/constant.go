@@ -54,6 +54,25 @@ const (
 	TIMING_STATUS_FINISHED = int64(3)
 )
 
+var ACTION_NAME = map[int64]string{
+	ACTION_CREATE:  "创建",
+	ACTION_UPDATE:  "更新",
+	ACTION_DELETE:  "删除",
+	ACTION_COPY:    "复制",
+	ACTION_START:   "启动",
+	ACTION_RESTART: "重启",
+	ACTION_PAUSE:   "停止",
+}
+
+var TYPE_NAME = map[int64]string{
+	TYPE_AGENT:  "实例",
+	TYPE_APP:    "应用",
+	TYPE_JOB:    "计划任务",
+	TYPE_TIMING: "定时任务",
+	TYPE_GROUP:  "分组",
+	TYPE_USER:   "用户",
+}
+
 var USER_STATUS = []structs.M{
 	{
 		"ID":   USER_STATUS_UNVERIFIED,

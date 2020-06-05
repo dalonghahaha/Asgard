@@ -112,9 +112,9 @@ func (a *AgentManager) StartAll() {
 	if err != nil {
 		panic(err)
 	}
-	a.appManager.StartAll()
-	a.jobManager.StartAll()
-	a.timingManager.StartAll()
+	a.appManager.StartAll(true)
+	a.jobManager.StartAll(true)
+	a.timingManager.StartAll(true)
 	logger.Info("Agent Started!")
 	logger.Debugf("Agent Master: %s:%s", constants.MASTER_IP, constants.MASTER_PORT)
 	logger.Debugf("Agent Address: %s:%s", constants.AGENT_IP, constants.AGENT_PORT)

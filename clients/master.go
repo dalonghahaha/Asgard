@@ -14,16 +14,25 @@ import (
 )
 
 type Master struct {
-	Reports           *sync.Map
-	agent             *rpc.AgentInfo
-	rpcClient         rpc.MasterClient
+	Reports   *sync.Map
+	agent     *rpc.AgentInfo
+	rpcClient rpc.MasterClient
+
+	//monitor chans
 	AgentMonitorChan  chan runtimes.AgentMonitor
 	AppMonitorChan    chan runtimes.AppMonitor
-	AppArchiveChan    chan runtimes.AppArchive
 	JobMonitorChan    chan runtimes.JobMonitor
-	JobArchiveChan    chan runtimes.JobArchive
 	TimingMonitorChan chan runtimes.TimingMonitor
+
+	//archive chans
+	AppArchiveChan    chan runtimes.AppArchive
+	JobArchiveChan    chan runtimes.JobArchive
 	TimingArchiveChan chan runtimes.TimingArchive
+
+	//exception chans
+	AppExceptionChan    chan runtimes.AppException
+	JobExceptionChan    chan runtimes.JobException
+	TimingExceptionChan chan runtimes.TimingException
 }
 
 func NewMaster(ip, port string) (*Master, error) {
@@ -43,15 +52,21 @@ func NewMaster(ip, port string) (*Master, error) {
 			Ip:   constants.AGENT_IP,
 			Port: constants.AGENT_PORT,
 		},
-		rpcClient:         rpc.NewMasterClient(conn),
-		Reports:           new(sync.Map),
+		rpcClient: rpc.NewMasterClient(conn),
+		Reports:   new(sync.Map),
+
 		AgentMonitorChan:  make(chan runtimes.AgentMonitor, 100),
+		JobMonitorChan:    make(chan runtimes.JobMonitor, 100),
+		TimingMonitorChan: make(chan runtimes.TimingMonitor, 100),
+
 		AppMonitorChan:    make(chan runtimes.AppMonitor, 100),
 		AppArchiveChan:    make(chan runtimes.AppArchive, 100),
-		JobMonitorChan:    make(chan runtimes.JobMonitor, 100),
 		JobArchiveChan:    make(chan runtimes.JobArchive, 100),
-		TimingMonitorChan: make(chan runtimes.TimingMonitor, 100),
 		TimingArchiveChan: make(chan runtimes.TimingArchive, 100),
+
+		AppExceptionChan:    make(chan runtimes.AppException, 100),
+		JobExceptionChan:    make(chan runtimes.JobException, 100),
+		TimingExceptionChan: make(chan runtimes.TimingException, 100),
 	}
 	return &master, nil
 }
@@ -69,27 +84,42 @@ func (c *Master) Report() {
 	logger.Debug("master report litsen!")
 	for {
 		select {
+
+		//monitor report
 		case m := <-c.AgentMonitorChan:
 			c.agentMonitorReport(rpc.BuildAgentMonitor(m.Ip, m.Port, m.Monitor))
 			c.Reports.Delete(m.UUID)
 		case m := <-c.AppMonitorChan:
 			c.appMonitorReport(rpc.BuildAppMonitor(m.App, m.Monitor))
 			c.Reports.Delete(m.UUID)
-		case a := <-c.AppArchiveChan:
-			c.appArchiveReport(rpc.BuildAppArchive(a.App, a.Archive))
-			c.Reports.Delete(a.UUID)
 		case m := <-c.JobMonitorChan:
 			c.jobMonitorReport(rpc.BuildJobMonior(m.Job, m.Monitor))
 			c.Reports.Delete(m.UUID)
-		case a := <-c.JobArchiveChan:
-			c.jobArchiveReport(rpc.BuildJobArchive(a.Job, a.Archive))
-			c.Reports.Delete(a.UUID)
 		case m := <-c.TimingMonitorChan:
 			c.timingMonitorReport(rpc.BuildTimingMonior(m.Timing, m.Monitor))
 			c.Reports.Delete(m.UUID)
+
+		//archive report
+		case a := <-c.AppArchiveChan:
+			c.appArchiveReport(rpc.BuildAppArchive(a.App, a.Archive))
+			c.Reports.Delete(a.UUID)
+		case a := <-c.JobArchiveChan:
+			c.jobArchiveReport(rpc.BuildJobArchive(a.Job, a.Archive))
+			c.Reports.Delete(a.UUID)
 		case a := <-c.TimingArchiveChan:
 			c.timingArchiveReport(rpc.BuildTimingArchive(a.Timing, a.Archive))
 			c.Reports.Delete(a.UUID)
+
+		//exception report
+		case e := <-c.AppExceptionChan:
+			c.appExceptionReport(rpc.BuildAppException(e))
+			c.Reports.Delete(e.UUID)
+		case e := <-c.JobExceptionChan:
+			c.jobExceptionReport(rpc.BuildJobException(e))
+			c.Reports.Delete(e.UUID)
+		case e := <-c.TimingExceptionChan:
+			c.timingExceptionReport(rpc.BuildTimingException(e))
+			c.Reports.Delete(e.UUID)
 		}
 	}
 }
@@ -241,6 +271,48 @@ func (c *Master) timingArchiveReport(timingArchive *rpc.TimingArchive) {
 	}
 	if response.GetCode() != 200 {
 		logger.Errorf("timing archive report failed：%s", response.GetMessage())
+		return
+	}
+}
+
+func (c *Master) appExceptionReport(appException *rpc.AppException) {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
+	defer cancel()
+	response, err := c.rpcClient.AppExceptionReport(ctx, appException)
+	if err != nil {
+		logger.Errorf("app exception report failed：%s", err.Error())
+		return
+	}
+	if response.GetCode() != 200 {
+		logger.Errorf("app exception report failed：%s", response.GetMessage())
+		return
+	}
+}
+
+func (c *Master) jobExceptionReport(jobException *rpc.JobException) {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
+	defer cancel()
+	response, err := c.rpcClient.JobExceptionReport(ctx, jobException)
+	if err != nil {
+		logger.Errorf("job exception report failed：%s", err.Error())
+		return
+	}
+	if response.GetCode() != 200 {
+		logger.Errorf("job exception report failed：%s", response.GetMessage())
+		return
+	}
+}
+
+func (c *Master) timingExceptionReport(timingException *rpc.TimingException) {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
+	defer cancel()
+	response, err := c.rpcClient.TimingExceptionReport(ctx, timingException)
+	if err != nil {
+		logger.Errorf("timing exception report failed：%s", err.Error())
+		return
+	}
+	if response.GetCode() != 200 {
+		logger.Errorf("timing exception report failed：%s", response.GetMessage())
 		return
 	}
 }

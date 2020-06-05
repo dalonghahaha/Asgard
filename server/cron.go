@@ -12,6 +12,12 @@ type CronServer struct {
 	jobManager *managers.JobManager
 }
 
+func NewCronServer(jobManager *managers.JobManager) *CronServer {
+	return &CronServer{
+		jobManager: jobManager,
+	}
+}
+
 func (s *CronServer) SetJobManager(jobManager *managers.JobManager) {
 	s.jobManager = jobManager
 }

@@ -131,7 +131,7 @@ func BuildAgentMonitor(ip, port string, monitor *runtimes.MonitorInfo) *AgentMon
 
 func BuildAppMonitor(app *runtimes.App, monitor *runtimes.MonitorInfo) *AppMonitor {
 	return &AppMonitor{
-		App: BuildApp(app),
+		AppId: app.ID,
 		Monitor: &Monitor{
 			Uuid:    app.UUID,
 			Pid:     int32(app.Pid),
@@ -144,7 +144,7 @@ func BuildAppMonitor(app *runtimes.App, monitor *runtimes.MonitorInfo) *AppMonit
 
 func BuildJobMonior(job *runtimes.Job, monitor *runtimes.MonitorInfo) *JobMonior {
 	return &JobMonior{
-		Job: BuildJob(job),
+		JobId: job.ID,
 		Monitor: &Monitor{
 			Uuid:    job.UUID,
 			Pid:     int32(job.Pid),
@@ -157,7 +157,7 @@ func BuildJobMonior(job *runtimes.Job, monitor *runtimes.MonitorInfo) *JobMonior
 
 func BuildTimingMonior(timing *runtimes.Timing, monitor *runtimes.MonitorInfo) *TimingMonior {
 	return &TimingMonior{
-		Timing: BuildTiming(timing),
+		TimingId: timing.ID,
 		Monitor: &Monitor{
 			Uuid:    timing.UUID,
 			Pid:     int32(timing.Pid),
@@ -170,22 +170,55 @@ func BuildTimingMonior(timing *runtimes.Timing, monitor *runtimes.MonitorInfo) *
 
 func BuildAppArchive(app *runtimes.App, archive *runtimes.Archive) *AppArchive {
 	return &AppArchive{
-		App:     BuildApp(app),
+		AppId:   app.ID,
 		Archive: BuildArchive(archive),
 	}
 }
 
 func BuildJobArchive(job *runtimes.Job, archive *runtimes.Archive) *JobArchive {
 	return &JobArchive{
-		Job:     BuildJob(job),
+		JobId:   job.ID,
 		Archive: BuildArchive(archive),
 	}
 }
 
 func BuildTimingArchive(timing *runtimes.Timing, archive *runtimes.Archive) *TimingArchive {
 	return &TimingArchive{
-		Timing:  BuildTiming(timing),
-		Archive: BuildArchive(archive),
+		TimingId: timing.ID,
+		Archive:  BuildArchive(archive),
+	}
+}
+
+func BuildAppException(appException runtimes.AppException) *AppException {
+	return &AppException{
+		AppId: appException.AppID,
+		Desc:  appException.Desc,
+	}
+}
+
+func BuildJobException(jobException runtimes.JobException) *JobException {
+	return &JobException{
+		JobId: jobException.JobID,
+		Desc:  jobException.Desc,
+	}
+}
+
+func BuildTimingException(timingException runtimes.TimingException) *TimingException {
+	return &TimingException{
+		TimingId: timingException.TimingID,
+		Desc:     timingException.Desc,
+	}
+}
+
+func ParseMonitor(tp int64, relatedID int64, moniter *Monitor) *models.Monitor {
+	return &models.Monitor{
+		Type:      tp,
+		RelatedID: relatedID,
+		UUID:      moniter.GetUuid(),
+		PID:       int64(moniter.GetPid()),
+		CPU:       float64(moniter.GetCpu()),
+		Memory:    float64(moniter.GetMemory()),
+		CreatedAt: time.Now(),
 	}
 }
 
@@ -203,14 +236,11 @@ func ParseArchive(tp int64, relatedID int64, archive *Archive) *models.Archive {
 	}
 }
 
-func ParseMonitor(tp int64, relatedID int64, moniter *Monitor) *models.Monitor {
-	return &models.Monitor{
+func ParseException(tp, relatedID int64, desc string) *models.Exception {
+	return &models.Exception{
 		Type:      tp,
 		RelatedID: relatedID,
-		UUID:      moniter.GetUuid(),
-		PID:       int64(moniter.GetPid()),
-		CPU:       float64(moniter.GetCpu()),
-		Memory:    float64(moniter.GetMemory()),
+		Desc:      desc,
 		CreatedAt: time.Now(),
 	}
 }

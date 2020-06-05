@@ -12,7 +12,7 @@
             <div class="card-body">
                 <h3 class="card-title">CPU占比</h3>
                 <div id="cpu"></div>
-                <h3 class="card-title">内存占比</h3>
+                <h3 class="card-title">内存占用</h3>
                 <div id="memory"></div>
             </div>
             <div class="card-footer text-right">
@@ -42,7 +42,7 @@
                 opacity: 1,
             },
             stroke: {
-                width: 2,
+                width: 1,
                 lineCap: "round",
                 curve: "smooth",
             },
@@ -86,12 +86,12 @@
                 opacity: 1,
             },
             stroke: {
-                width: 2,
+                width: 1,
                 lineCap: "round",
                 curve: "smooth",
             },
             series: [{
-                name: "Memory Percent",
+                name: "Memory Uage (MB)",
                 data: [
                 {{- range .Memory}}
                     {{.}},

@@ -12,6 +12,12 @@ type GuardServer struct {
 	appManager *managers.AppManager
 }
 
+func NewGuardServer(appManager *managers.AppManager) *GuardServer {
+	return &GuardServer{
+		appManager: appManager,
+	}
+}
+
 func (s *GuardServer) SetAppManager(appManager *managers.AppManager) {
 	s.appManager = appManager
 }

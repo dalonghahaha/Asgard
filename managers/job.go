@@ -62,6 +62,18 @@ func (m *JobManager) Register(id int64, config map[string]interface{}) error {
 	}
 	job.ID = id
 	job.Monitor = m.monitor
+	job.ExceptionReport = func(message string) {
+		logger.Infof("%s ExceptionReport", job.Name)
+		jobException := runtimes.JobException{
+			UUID:  uuid.GenerateV4(),
+			JobID: job.ID,
+			Desc:  message,
+		}
+		if m.masterClient != nil {
+			m.masterClient.Reports.Store(jobException.UUID, 1)
+			m.masterClient.JobExceptionChan <- jobException
+		}
+	}
 	job.MonitorReport = func(monitor *runtimes.MonitorInfo) {
 		jobMonitor := runtimes.JobMonitor{
 			UUID:    uuid.GenerateV4(),
@@ -125,8 +137,10 @@ func (m *JobManager) GetByName(name string) *runtimes.Job {
 	return nil
 }
 
-func (m *JobManager) StartAll() {
-	m.StartMonitor()
+func (m *JobManager) StartAll(monitor bool) {
+	if monitor {
+		m.StartMonitor()
+	}
 	m.crontab = cron.New()
 	for _, job := range m.jobs {
 		m.Create(job)

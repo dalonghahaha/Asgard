@@ -54,6 +54,17 @@ func (m *AppManager) Register(id int64, config map[string]interface{}) error {
 	}
 	app.ID = id
 	app.Monitor = m.monitor
+	app.ExceptionReport = func(message string) {
+		appException := runtimes.AppException{
+			UUID:  uuid.GenerateV4(),
+			AppID: app.ID,
+			Desc:  message,
+		}
+		if m.masterClient != nil {
+			m.masterClient.Reports.Store(appException.UUID, 1)
+			m.masterClient.AppExceptionChan <- appException
+		}
+	}
 	app.MonitorReport = func(monitor *runtimes.MonitorInfo) {
 		appMonitor := runtimes.AppMonitor{
 			UUID:    uuid.GenerateV4(),
@@ -117,8 +128,10 @@ func (m *AppManager) GetByName(name string) *runtimes.App {
 	return nil
 }
 
-func (m *AppManager) StartAll() {
-	m.StartMonitor()
+func (m *AppManager) StartAll(monitor bool) {
+	if monitor {
+		m.StartMonitor()
+	}
 	for _, app := range m.apps {
 		go app.Run()
 	}

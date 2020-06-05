@@ -66,6 +66,18 @@ func (m *TimingManager) Register(id int64, config map[string]interface{}) error 
 	}
 	timing.ID = id
 	timing.Monitor = m.monitor
+	timing.ExceptionReport = func(message string) {
+		logger.Infof("%s ExceptionReport", timing.Name)
+		timingException := runtimes.TimingException{
+			UUID:     uuid.GenerateV4(),
+			TimingID: timing.ID,
+			Desc:     message,
+		}
+		if m.masterClient != nil {
+			m.masterClient.Reports.Store(timingException.UUID, 1)
+			m.masterClient.TimingExceptionChan <- timingException
+		}
+	}
 	timing.MonitorReport = func(monitor *runtimes.MonitorInfo) {
 		timingMonitor := runtimes.TimingMonitor{
 			UUID:    uuid.GenerateV4(),
@@ -129,8 +141,10 @@ func (m *TimingManager) GetByName(name string) *runtimes.Timing {
 	return nil
 }
 
-func (m *TimingManager) StartAll() {
-	m.StartMonitor()
+func (m *TimingManager) StartAll(monitor bool) {
+	if monitor {
+		m.StartMonitor()
+	}
 	go m.Run()
 }
 

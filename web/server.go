@@ -18,17 +18,19 @@ import (
 )
 
 var (
-	server            *gin.Engine
-	appController     *controllers.AppController
-	jobController     *controllers.JobController
-	agentController   *controllers.AgentController
-	useController     *controllers.UserController
-	groupController   *controllers.GroupController
-	timingController  *controllers.TimingController
-	monitorController *controllers.MonitorController
-	archiveController *controllers.ArchiveController
-	logController     *controllers.LogController
-	indexController   *controllers.IndexController
+	server              *gin.Engine
+	appController       *controllers.AppController
+	jobController       *controllers.JobController
+	agentController     *controllers.AgentController
+	useController       *controllers.UserController
+	groupController     *controllers.GroupController
+	timingController    *controllers.TimingController
+	monitorController   *controllers.MonitorController
+	archiveController   *controllers.ArchiveController
+	logController       *controllers.LogController
+	exceptionController *controllers.ExceptionController
+	operationController *controllers.OperationController
+	indexController     *controllers.IndexController
 )
 
 func Server() *gin.Engine {

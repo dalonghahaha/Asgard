@@ -89,11 +89,13 @@ func (c *Command) Configure(config map[string]interface{}) error {
 		return fmt.Errorf("config stderr type wrong")
 	}
 	c.Stderr = stderr
-	isMonitor, ok := config["is_monitor"].(bool)
-	if !ok {
-		return fmt.Errorf("config is_monitor type wrong")
+	if isMonitor, ok := config["is_monitor"]; ok {
+		_isMonitor, ok := isMonitor.(bool)
+		if !ok {
+			return fmt.Errorf("config is_monitor type wrong")
+		}
+		c.IsMonitor = _isMonitor
 	}
-	c.IsMonitor = isMonitor
 	return nil
 }
 
@@ -145,7 +147,6 @@ func (c *Command) start() error {
 	c.Begin = time.Now()
 	err := c.Cmd.Start()
 	if err != nil {
-		logger.Errorf("%s start fail: %s", c.Name, err)
 		c.finish()
 		return err
 	}

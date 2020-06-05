@@ -10,17 +10,14 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"Asgard/clients"
 	"Asgard/constants"
 	"Asgard/managers"
 )
 
 var (
-	agentManager  *managers.AgentManager
-	jobManager    *managers.JobManager
-	appManager    *managers.AppManager
-	timingManager *managers.TimingManager
-	masterClient  *clients.Master
+	agentManager *managers.AgentManager
+	jobManager   *managers.JobManager
+	appManager   *managers.AppManager
 )
 
 var rootCmd = &cobra.Command{
@@ -51,12 +48,12 @@ func PreRun(cmd *cobra.Command, args []string) {
 	}
 }
 
-func NotityKill(function func()) {
+func Wait(function func()) {
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, os.Kill, syscall.SIGTERM, syscall.SIGQUIT)
+	signal.Notify(c, syscall.SIGHUP, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGTSTP)
 	for s := range c {
 		switch s {
-		case os.Interrupt, os.Kill, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT:
+		case syscall.SIGHUP, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGTSTP:
 			function()
 			os.Exit(0)
 		}

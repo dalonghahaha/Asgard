@@ -25,7 +25,7 @@ var webCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		InitWebServer()
 		go StartWebServer()
-		NotityKill(StopWebServer)
+		Wait(StopWebServer)
 	},
 }
 
