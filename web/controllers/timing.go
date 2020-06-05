@@ -204,8 +204,6 @@ func (c *TimingController) Start(ctx *gin.Context) {
 			utils.APIError(ctx, fmt.Sprintf("添加定时任务异常:%s", err.Error()))
 			return
 		}
-		utils.APIOK(ctx)
-		return
 	}
 	ok := providers.TimingService.ChangeTimingStatus(timing, constants.TIMING_STATUS_RUNNING, utils.GetUserID(ctx))
 	if !ok {

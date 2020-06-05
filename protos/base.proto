@@ -14,7 +14,6 @@ message Name {
     string name = 1;
 }
 
-// Response 响应结构
 message Response {
 	int32 code = 1;
     string message = 2;

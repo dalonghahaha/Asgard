@@ -9,30 +9,21 @@ import (
 
 type AgentServer struct {
 	baseServer
-	appManager    *managers.AppManager
-	jobManager    *managers.JobManager
-	timingManager *managers.TimingManager
+	agentManager *managers.AgentManager
 }
 
-func (s *AgentServer) SetAppManager(appManager *managers.AppManager) {
-	s.appManager = appManager
+func NewAgentServer(agentManager *managers.AgentManager) *AgentServer {
+	return &AgentServer{
+		agentManager: agentManager,
+	}
 }
-
-func (s *AgentServer) SetJobManager(jobManager *managers.JobManager) {
-	s.jobManager = jobManager
-}
-
-func (s *AgentServer) SetTimingManager(timingManager *managers.TimingManager) {
-	s.timingManager = timingManager
-}
-
 func (s *AgentServer) Stat(ctx context.Context, request *rpc.Empty) (*rpc.AgentStatResponse, error) {
 	stat := &rpc.AgentStatResponse{
 		Code: rpc.OK,
 		AgentStat: &rpc.AgentStat{
-			Apps:    int64(s.appManager.Count()),
-			Jobs:    int64(s.jobManager.Count()),
-			Timings: int64(s.timingManager.Count()),
+			Apps:    int64(s.agentManager.GetAppManager().Count()),
+			Jobs:    int64(s.agentManager.GetJobManager().Count()),
+			Timings: int64(s.agentManager.GetTimingManager().Count()),
 		},
 	}
 	return stat, nil
@@ -43,7 +34,7 @@ func (s *AgentServer) Log(ctx context.Context, request *rpc.LogRuquest) (*rpc.Lo
 }
 
 func (s *AgentServer) AppList(ctx context.Context, request *rpc.Empty) (*rpc.AppListResponse, error) {
-	apps := s.appManager.GetList()
+	apps := s.agentManager.GetAppManager().GetList()
 	list := []*rpc.App{}
 	for _, app := range apps {
 		list = append(list, rpc.BuildApp(app))
@@ -52,7 +43,7 @@ func (s *AgentServer) AppList(ctx context.Context, request *rpc.Empty) (*rpc.App
 }
 
 func (s *AgentServer) AppGet(ctx context.Context, request *rpc.ID) (*rpc.AppResponse, error) {
-	app := s.appManager.Get(request.GetId())
+	app := s.agentManager.GetAppManager().Get(request.GetId())
 	if app != nil {
 		return &rpc.AppResponse{Code: rpc.OK, App: rpc.BuildApp(app)}, nil
 	}
@@ -60,7 +51,7 @@ func (s *AgentServer) AppGet(ctx context.Context, request *rpc.ID) (*rpc.AppResp
 }
 
 func (s *AgentServer) AppAdd(ctx context.Context, request *rpc.App) (*rpc.Response, error) {
-	err := s.appManager.Add(request.GetId(), rpc.BuildAppConfig(request))
+	err := s.agentManager.GetAppManager().Add(request.GetId(), rpc.BuildAppConfig(request))
 	if err != nil {
 		return s.Error(err.Error())
 	}
@@ -68,23 +59,23 @@ func (s *AgentServer) AppAdd(ctx context.Context, request *rpc.App) (*rpc.Respon
 }
 
 func (s *AgentServer) AppUpdate(ctx context.Context, request *rpc.App) (*rpc.Response, error) {
-	err := s.appManager.Update(request.GetId(), rpc.BuildAppConfig(request))
-	if err == nil {
+	err := s.agentManager.GetAppManager().Update(request.GetId(), rpc.BuildAppConfig(request))
+	if err != nil {
 		return s.Error(err.Error())
 	}
 	return s.OK()
 }
 
 func (s *AgentServer) AppRemove(ctx context.Context, request *rpc.ID) (*rpc.Response, error) {
-	err := s.appManager.Remove(request.GetId())
-	if err == nil {
+	err := s.agentManager.GetAppManager().Remove(request.GetId())
+	if err != nil {
 		return s.Error(err.Error())
 	}
 	return s.OK()
 }
 
 func (s *AgentServer) JobList(ctx context.Context, request *rpc.Empty) (*rpc.JobListResponse, error) {
-	jobs := s.jobManager.GetList()
+	jobs := s.agentManager.GetJobManager().GetList()
 	list := []*rpc.Job{}
 	for _, job := range jobs {
 		list = append(list, rpc.BuildJob(job))
@@ -93,7 +84,7 @@ func (s *AgentServer) JobList(ctx context.Context, request *rpc.Empty) (*rpc.Job
 }
 
 func (s *AgentServer) JobGet(ctx context.Context, request *rpc.ID) (*rpc.JobResponse, error) {
-	job := s.jobManager.Get(request.GetId())
+	job := s.agentManager.GetJobManager().Get(request.GetId())
 	if job != nil {
 		return &rpc.JobResponse{Code: rpc.OK, Job: rpc.BuildJob(job)}, nil
 	}
@@ -101,31 +92,31 @@ func (s *AgentServer) JobGet(ctx context.Context, request *rpc.ID) (*rpc.JobResp
 }
 
 func (s *AgentServer) JobAdd(ctx context.Context, request *rpc.Job) (*rpc.Response, error) {
-	err := s.jobManager.Add(request.GetId(), rpc.BuildJobConfig(request))
-	if err == nil {
+	err := s.agentManager.GetJobManager().Add(request.GetId(), rpc.BuildJobConfig(request))
+	if err != nil {
 		return s.Error(err.Error())
 	}
 	return s.OK()
 }
 
 func (s *AgentServer) JobUpdate(ctx context.Context, request *rpc.Job) (*rpc.Response, error) {
-	err := s.jobManager.Update(request.GetId(), rpc.BuildJobConfig(request))
-	if err == nil {
+	err := s.agentManager.GetJobManager().Update(request.GetId(), rpc.BuildJobConfig(request))
+	if err != nil {
 		return s.Error(err.Error())
 	}
 	return s.OK()
 }
 
 func (s *AgentServer) JobRemove(ctx context.Context, request *rpc.ID) (*rpc.Response, error) {
-	err := s.jobManager.Remove(request.GetId())
-	if err == nil {
+	err := s.agentManager.GetJobManager().Remove(request.GetId())
+	if err != nil {
 		return s.Error(err.Error())
 	}
 	return s.OK()
 }
 
 func (s *AgentServer) TimingList(ctx context.Context, request *rpc.Empty) (*rpc.TimingListResponse, error) {
-	timings := s.timingManager.GetList()
+	timings := s.agentManager.GetTimingManager().GetList()
 	list := []*rpc.Timing{}
 	for _, timing := range timings {
 		if timing.Executed {
@@ -137,7 +128,7 @@ func (s *AgentServer) TimingList(ctx context.Context, request *rpc.Empty) (*rpc.
 }
 
 func (s *AgentServer) TimingGet(ctx context.Context, request *rpc.ID) (*rpc.TimingResponse, error) {
-	timing := s.timingManager.Get(request.GetId())
+	timing := s.agentManager.GetTimingManager().Get(request.GetId())
 	if timing != nil {
 		return &rpc.TimingResponse{Code: rpc.OK, Timing: rpc.BuildTiming(timing)}, nil
 	}
@@ -145,24 +136,24 @@ func (s *AgentServer) TimingGet(ctx context.Context, request *rpc.ID) (*rpc.Timi
 }
 
 func (s *AgentServer) TimingAdd(ctx context.Context, request *rpc.Timing) (*rpc.Response, error) {
-	err := s.timingManager.Register(request.GetId(), rpc.BuildTimingConfig(request))
-	if err == nil {
+	err := s.agentManager.GetTimingManager().Register(request.GetId(), rpc.BuildTimingConfig(request))
+	if err != nil {
 		return s.Error(err.Error())
 	}
 	return s.OK()
 }
 
 func (s *AgentServer) TimingUpdate(ctx context.Context, request *rpc.Timing) (*rpc.Response, error) {
-	err := s.timingManager.Update(request.GetId(), rpc.BuildTimingConfig(request))
-	if err == nil {
+	err := s.agentManager.GetTimingManager().Update(request.GetId(), rpc.BuildTimingConfig(request))
+	if err != nil {
 		return s.Error(err.Error())
 	}
 	return s.OK()
 }
 
 func (s *AgentServer) TimingRemove(ctx context.Context, request *rpc.ID) (*rpc.Response, error) {
-	err := s.timingManager.Remove(request.GetId())
-	if err == nil {
+	err := s.agentManager.GetTimingManager().Remove(request.GetId())
+	if err != nil {
 		return s.Error(err.Error())
 	}
 	return s.OK()

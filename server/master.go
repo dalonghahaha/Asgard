@@ -114,6 +114,37 @@ func (s *MasterServer) TimingMoniorReport(ctx context.Context, request *rpc.Timi
 	return s.OK()
 }
 
+func (s *MasterServer) AgentMonitorBatchReport(ctx context.Context, request *rpc.AgentMonitorList) (*rpc.Response, error) {
+	agent := providers.AgentService.GetAgentByIPAndPort(request.GetAgent().GetIp(), request.GetAgent().GetPort())
+	if agent == nil {
+		return s.Error("no such agent!")
+	}
+	for _, monitor := range request.GetMonitors() {
+		providers.MoniterService.CreateMonitor(rpc.ParseMonitor(constants.TYPE_AGENT, agent.ID, monitor))
+	}
+	return s.OK()
+}
+func (s *MasterServer) AppMonitorBatchReport(ctx context.Context, request *rpc.AppMonitorList) (*rpc.Response, error) {
+	for _, monitor := range request.GetMonitors() {
+		providers.MoniterService.CreateMonitor(rpc.ParseMonitor(constants.TYPE_AGENT, request.GetAppId(), monitor))
+	}
+	return s.OK()
+}
+
+func (s *MasterServer) JobMoniorBatchReport(ctx context.Context, request *rpc.JobMonitorList) (*rpc.Response, error) {
+	for _, monitor := range request.GetMonitors() {
+		providers.MoniterService.CreateMonitor(rpc.ParseMonitor(constants.TYPE_AGENT, request.GetJobId(), monitor))
+	}
+	return s.OK()
+}
+
+func (s *MasterServer) TimingMoniorBatchReport(ctx context.Context, request *rpc.TimingMoniorList) (*rpc.Response, error) {
+	for _, monitor := range request.GetMonitors() {
+		providers.MoniterService.CreateMonitor(rpc.ParseMonitor(constants.TYPE_AGENT, request.GetTimingId(), monitor))
+	}
+	return s.OK()
+}
+
 func (s *MasterServer) AppArchiveReport(ctx context.Context, request *rpc.AppArchive) (*rpc.Response, error) {
 	ok := providers.ArchiveService.CreateArchive(rpc.ParseArchive(constants.TYPE_APP, request.GetApp().GetId(), request.GetArchive()))
 	if !ok {

@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/dalonghahaha/avenger/components/logger"
 	"github.com/shirou/gopsutil/process"
 
 	"Asgard/constants"
@@ -68,13 +69,19 @@ func BuildMonitorInfo(info *process.Process) *MonitorInfo {
 }
 
 type Monitor struct {
-	lock     sync.Mutex
-	monitors map[int]func(monitor *MonitorInfo)
+	name       string
+	lock       sync.Mutex
+	ticker     *time.Ticker
+	exitSingel chan bool
+	monitors   map[int]func(monitor *MonitorInfo)
 }
 
-func NewMonitor() *Monitor {
+func NewMonitor(name string) *Monitor {
 	return &Monitor{
-		monitors: make(map[int]func(monitor *MonitorInfo)),
+		name:       name,
+		ticker:     time.NewTicker(time.Second * time.Duration(constants.SYSTEM_MONITER)),
+		exitSingel: make(chan bool, 1),
+		monitors:   make(map[int]func(monitor *MonitorInfo)),
 	}
 }
 
@@ -91,22 +98,25 @@ func (m *Monitor) Remove(pid int) {
 }
 
 func (m *Monitor) Start() {
-	constants.SYSTEM_MONITER_TICKER = time.NewTicker(time.Second * time.Duration(constants.SYSTEM_MONITER))
-	for range constants.SYSTEM_MONITER_TICKER.C {
-		for pid, function := range m.monitors {
-			info, err := process.NewProcess(int32(pid))
-			if err != nil {
-				continue
+	logger.Debugf("%s monitor ticker start!", m.name)
+	SubscribeExit(m.exitSingel)
+	for {
+		select {
+		case <-m.exitSingel:
+			logger.Debugf("%s monitor ticker stop!", m.name)
+			m.ticker.Stop()
+			break
+		case <-m.ticker.C:
+			for pid, function := range m.monitors {
+				info, err := process.NewProcess(int32(pid))
+				if err != nil {
+					continue
+				}
+				if function != nil {
+					function(BuildMonitorInfo(info))
+				}
 			}
-			if function != nil {
-				function(BuildMonitorInfo(info))
-			}
-		}
-	}
-}
 
-func (m *Monitor) Stop() {
-	if constants.SYSTEM_MONITER_TICKER != nil {
-		constants.SYSTEM_MONITER_TICKER.Stop()
+		}
 	}
 }

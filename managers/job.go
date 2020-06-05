@@ -23,7 +23,7 @@ type JobManager struct {
 func NewJobManager() *JobManager {
 	manager := &JobManager{
 		jobs:    make(map[int64]*runtimes.Job),
-		monitor: runtimes.NewMonitor(),
+		monitor: runtimes.NewMonitor("job"),
 	}
 	return manager
 }
@@ -33,13 +33,7 @@ func (m *JobManager) SetMaster(masterClient *clients.Master) {
 }
 
 func (m *JobManager) StartMonitor() {
-	logger.Debug("job manager monitor start!")
 	go m.monitor.Start()
-}
-
-func (m *JobManager) StopMonitor() {
-	logger.Debug("job manager monitor stop!")
-	m.monitor.Stop()
 }
 
 func (m *JobManager) NewJob(config map[string]interface{}) (*runtimes.Job, error) {
@@ -132,6 +126,7 @@ func (m *JobManager) GetByName(name string) *runtimes.Job {
 }
 
 func (m *JobManager) StartAll() {
+	m.StartMonitor()
 	m.crontab = cron.New()
 	for _, job := range m.jobs {
 		m.Create(job)

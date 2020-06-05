@@ -16,6 +16,7 @@ import (
 )
 
 var (
+	agentManager  *managers.AgentManager
 	jobManager    *managers.JobManager
 	appManager    *managers.AppManager
 	timingManager *managers.TimingManager

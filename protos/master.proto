@@ -30,9 +30,19 @@ message AgentMonitor {
     Monitor monitor =2;
 }
 
+message AgentMonitorList {
+    AgentInfo agent = 1;
+    repeated Monitor monitors = 2;
+}
+
 message AppMonitor {
     App app = 1;
     Monitor monitor = 2;
+}
+
+message AppMonitorList {
+    int64 app_id = 1;
+    repeated Monitor monitors = 2;
 }
 
 message JobMonior {
@@ -40,9 +50,19 @@ message JobMonior {
     Monitor monitor = 2;
 }
 
+message JobMonitorList {
+    int64 job_id = 1;
+    repeated Monitor monitors = 2;
+}
+
 message TimingMonior {
     Timing timing = 1;
     Monitor monitor = 2;
+}
+
+message TimingMoniorList {
+    int64 timing_id = 1;
+    repeated Monitor monitors = 2;
 }
 
 message AppArchive {
@@ -71,6 +91,11 @@ service Master {
     rpc AppMonitorReport(AppMonitor) returns (Response) {}
     rpc JobMoniorReport(JobMonior) returns (Response) {}
     rpc TimingMoniorReport(TimingMonior) returns (Response) {}
+
+    rpc AgentMonitorBatchReport(AgentMonitorList) returns (Response) {}
+    rpc AppMonitorBatchReport(AppMonitorList) returns (Response) {}
+    rpc JobMoniorBatchReport(JobMonitorList) returns (Response) {}
+    rpc TimingMoniorBatchReport(TimingMoniorList) returns (Response) {}
 
     rpc AppArchiveReport(AppArchive) returns (Response) {}
     rpc JobArchiveReport(JobArchive) returns (Response) {}

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/dalonghahaha/avenger/components/logger"
 	"github.com/dalonghahaha/avenger/tools/uuid"
 
 	"Asgard/clients"
@@ -21,7 +20,7 @@ type AppManager struct {
 func NewAppManager() *AppManager {
 	manager := &AppManager{
 		apps:    make(map[int64]*runtimes.App),
-		monitor: runtimes.NewMonitor(),
+		monitor: runtimes.NewMonitor("app"),
 	}
 	return manager
 }
@@ -31,13 +30,7 @@ func (m *AppManager) SetMaster(masterClient *clients.Master) {
 }
 
 func (m *AppManager) StartMonitor() {
-	logger.Debug("app manager monitor start!")
 	go m.monitor.Start()
-}
-
-func (m *AppManager) StopMonitor() {
-	logger.Debug("app manager monitor stop!")
-	m.monitor.Stop()
 }
 
 func (m *AppManager) NewApp(config map[string]interface{}) (*runtimes.App, error) {
@@ -125,6 +118,7 @@ func (m *AppManager) GetByName(name string) *runtimes.App {
 }
 
 func (m *AppManager) StartAll() {
+	m.StartMonitor()
 	for _, app := range m.apps {
 		go app.Run()
 	}

@@ -143,6 +143,7 @@ func checkAgent(agent models.Agent) {
 		providers.AgentService.UpdateAgent(&agent)
 		//更新实例应用运行状态
 		apps, err := client.GetAppList()
+		logger.Debugf("%s runing apps:%d", agent.Alias, len(apps))
 		if err != nil {
 			logger.Error("checkOnlineAgent GetAgentAppList Error:", err)
 		} else {
@@ -150,6 +151,7 @@ func checkAgent(agent models.Agent) {
 		}
 		//更新实例计划任务运行状态
 		jobs, err := client.GetJobList()
+		logger.Debugf("%s runing jobs:%d", agent.Alias, len(jobs))
 		if err != nil {
 			logger.Error("checkOnlineAgent GetAgentJobList Error:", err)
 		} else {
@@ -157,6 +159,7 @@ func checkAgent(agent models.Agent) {
 		}
 		//更新实例计划任务运行状态
 		timings, err := client.GetTimingList()
+		logger.Debugf("%s runing timings:%d", agent.Alias, len(timings))
 		if err != nil {
 			logger.Error("checkOnlineAgent GetAgentTimingList Error:", err)
 		} else {

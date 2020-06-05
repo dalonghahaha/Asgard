@@ -15,6 +15,8 @@ import (
 
 type TimingManager struct {
 	lock         sync.Mutex
+	ticker       *time.Ticker
+	exitSingel   chan bool
 	timings      map[int64]*runtimes.Timing
 	masterClient *clients.Master
 	monitor      *runtimes.Monitor
@@ -22,8 +24,10 @@ type TimingManager struct {
 
 func NewTimingManager() *TimingManager {
 	manager := &TimingManager{
-		timings: make(map[int64]*runtimes.Timing),
-		monitor: runtimes.NewMonitor(),
+		ticker:     time.NewTicker(time.Second * time.Duration(constants.SYSTEM_TIMER)),
+		exitSingel: make(chan bool, 1),
+		timings:    make(map[int64]*runtimes.Timing),
+		monitor:    runtimes.NewMonitor("timing"),
 	}
 	return manager
 }
@@ -33,13 +37,7 @@ func (m *TimingManager) SetMaster(masterClient *clients.Master) {
 }
 
 func (m *TimingManager) StartMonitor() {
-	logger.Debug("timing manager monitor start!")
 	go m.monitor.Start()
-}
-
-func (m *TimingManager) StopMonitor() {
-	logger.Debug("timing manager monitor stop!")
-	m.monitor.Stop()
 }
 
 func (m *TimingManager) NewTiming(config map[string]interface{}) (*runtimes.Timing, error) {
@@ -132,28 +130,34 @@ func (m *TimingManager) GetByName(name string) *runtimes.Timing {
 }
 
 func (m *TimingManager) StartAll() {
+	m.StartMonitor()
 	go m.Run()
 }
 
 func (m *TimingManager) Run() {
-	constants.SYSTEM_TIMER_TICKER = time.NewTicker(time.Second * time.Duration(constants.SYSTEM_TIMER))
-	for range constants.SYSTEM_TIMER_TICKER.C {
-		now := time.Now().Unix()
-		for _, timing := range m.timings {
-			if timing.Executed {
-				m.UnRegister(timing.ID)
-			}
-			if timing.Time.Unix() < now && !timing.Executed {
-				go timing.Run()
+	logger.Debug("timing manager ticker start!")
+	runtimes.SubscribeExit(m.exitSingel)
+	for {
+		select {
+		case <-m.exitSingel:
+			logger.Debug("timing manager ticker stop!")
+			m.ticker.Stop()
+			break
+		case <-m.ticker.C:
+			now := time.Now().Unix()
+			for _, timing := range m.timings {
+				if timing.Executed {
+					m.UnRegister(timing.ID)
+				}
+				if timing.Time.Unix() < now && !timing.Executed {
+					go timing.Run()
+				}
 			}
 		}
 	}
 }
 
 func (m *TimingManager) StopAll() {
-	if constants.SYSTEM_TIMER_TICKER != nil {
-		constants.SYSTEM_TIMER_TICKER.Stop()
-	}
 	for _, timing := range m.timings {
 		if timing.Running {
 			timing.Kill()

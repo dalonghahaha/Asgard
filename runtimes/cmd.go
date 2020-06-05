@@ -17,6 +17,7 @@ import (
 
 var (
 	processExit = false
+	subscribers = []chan bool{}
 )
 
 type Command struct {
@@ -47,6 +48,14 @@ func Exit() {
 	processExit = true
 	logger.Info("exit!")
 	time.Sleep(time.Millisecond * 100)
+	//广播退出
+	for _, subscriber := range subscribers {
+		subscriber <- true
+	}
+}
+
+func SubscribeExit(ch chan bool) {
+	subscribers = append(subscribers, ch)
 }
 
 func (c *Command) Configure(config map[string]interface{}) error {

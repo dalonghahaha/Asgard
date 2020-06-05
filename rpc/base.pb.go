@@ -129,7 +129,6 @@ func (m *Name) GetName() string {
 	return ""
 }
 
-// Response 响应结构
 type Response struct {
 	Code                 int32    `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
 	Message              string   `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
