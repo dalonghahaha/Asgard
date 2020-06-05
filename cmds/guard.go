@@ -23,7 +23,7 @@ func init() {
 	guardCommonCmd.PersistentFlags().StringP("conf", "c", "conf", "config path")
 	guardCommonCmd.PersistentFlags().StringP("sock", "s", "runtime/asgard_guard", "socket file path")
 	guardCommonCmd.AddCommand(GuardStatusCommonCmd)
-	rootCmd.AddCommand(guardCommonCmd)
+	RootCmd.AddCommand(guardCommonCmd)
 }
 
 var guardServerPath string

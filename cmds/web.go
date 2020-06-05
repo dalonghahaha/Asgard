@@ -15,7 +15,7 @@ import (
 
 func init() {
 	webCmd.PersistentFlags().StringP("conf", "c", "conf", "config path")
-	rootCmd.AddCommand(webCmd)
+	RootCmd.AddCommand(webCmd)
 }
 
 var webCmd = &cobra.Command{

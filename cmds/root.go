@@ -10,17 +10,21 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"Asgard/cmds/cron"
 	"Asgard/constants"
 	"Asgard/managers"
 )
 
 var (
 	agentManager *managers.AgentManager
-	jobManager   *managers.JobManager
 	appManager   *managers.AppManager
 )
 
-var rootCmd = &cobra.Command{
+func init() {
+	RootCmd.AddCommand(cron.GetCmd())
+}
+
+var RootCmd = &cobra.Command{
 	Use:   "Asgard",
 	Short: "welcome to use Asgard!",
 }
@@ -61,7 +65,7 @@ func Wait(function func()) {
 }
 
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
+	if err := RootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}

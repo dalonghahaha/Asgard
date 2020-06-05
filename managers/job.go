@@ -47,11 +47,17 @@ func (m *JobManager) NewJob(config map[string]interface{}) (*runtimes.Job, error
 		return nil, fmt.Errorf("config spec type wrong")
 	}
 	job.Spec = spec
-	timeout, ok := config["timeout"].(int64)
-	if !ok {
+	timeout1, ok1 := config["timeout"].(int64)
+	timeout2, ok2 := config["timeout"].(int)
+	if !ok1 && !ok2 {
 		return nil, fmt.Errorf("config timeout type wrong")
 	}
-	job.TimeOut = time.Duration(timeout)
+	if ok1 {
+		job.TimeOut = time.Duration(timeout1)
+	}
+	if ok2 {
+		job.TimeOut = time.Duration(timeout2)
+	}
 	return job, nil
 }
 
@@ -63,7 +69,6 @@ func (m *JobManager) Register(id int64, config map[string]interface{}) error {
 	job.ID = id
 	job.Monitor = m.monitor
 	job.ExceptionReport = func(message string) {
-		logger.Infof("%s ExceptionReport", job.Name)
 		jobException := runtimes.JobException{
 			UUID:  uuid.GenerateV4(),
 			JobID: job.ID,

@@ -23,7 +23,7 @@ func init() {
 	agentCommonCmd.PersistentFlags().StringP("conf", "c", "conf", "config path")
 	statusCommonCmd.PersistentFlags().StringP("port", "p", "27149", "agent port")
 	agentCommonCmd.AddCommand(statusCommonCmd)
-	rootCmd.AddCommand(agentCommonCmd)
+	RootCmd.AddCommand(agentCommonCmd)
 }
 
 var statusCommonCmd = &cobra.Command{

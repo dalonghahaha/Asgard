@@ -48,7 +48,7 @@ func (m *TimingManager) NewTiming(config map[string]interface{}) (*runtimes.Timi
 	}
 	_time, ok := config["time"].(int64)
 	if !ok {
-		return nil, fmt.Errorf("config timeout type wrong")
+		return nil, fmt.Errorf("config time type wrong")
 	}
 	timing.Time = time.Unix(_time, 0)
 	timeout, ok := config["timeout"].(int64)
@@ -67,7 +67,6 @@ func (m *TimingManager) Register(id int64, config map[string]interface{}) error 
 	timing.ID = id
 	timing.Monitor = m.monitor
 	timing.ExceptionReport = func(message string) {
-		logger.Infof("%s ExceptionReport", timing.Name)
 		timingException := runtimes.TimingException{
 			UUID:     uuid.GenerateV4(),
 			TimingID: timing.ID,

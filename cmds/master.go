@@ -23,7 +23,7 @@ import (
 
 func init() {
 	masterCmd.PersistentFlags().StringP("conf", "c", "conf", "config path")
-	rootCmd.AddCommand(masterCmd)
+	RootCmd.AddCommand(masterCmd)
 }
 
 var masterCmd = &cobra.Command{

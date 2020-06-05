@@ -15,7 +15,7 @@ func init() {
 	debugCmd.PersistentFlags().StringP("conf", "c", "conf", "config path")
 	mailCmd.PersistentFlags().StringP("receiver", "r", "", "mail receiver")
 	debugCmd.AddCommand(mailCmd)
-	rootCmd.AddCommand(debugCmd)
+	RootCmd.AddCommand(debugCmd)
 }
 
 var debugCmd = &cobra.Command{

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -42,6 +43,18 @@ type Command struct {
 	ExceptionReport func(message string)
 	MonitorReport   func(monitor *MonitorInfo)
 	ArchiveReport   func(archive *Archive)
+}
+
+func Wait(function func()) {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGHUP, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGTSTP)
+	for s := range c {
+		switch s {
+		case syscall.SIGHUP, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGTSTP:
+			function()
+			os.Exit(0)
+		}
+	}
 }
 
 func Exit() {
