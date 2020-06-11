@@ -172,6 +172,7 @@ func (m *TimingManager) Run() {
 
 func (m *TimingManager) StopAll() {
 	for _, timing := range m.timings {
+		logger.Infof("killing timing %s, runing: %v", timing.Name, timing.Running)
 		if timing.Running {
 			timing.Kill()
 		}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/dalonghahaha/avenger/components/logger"
 	"github.com/dalonghahaha/avenger/tools/uuid"
 
 	"Asgard/clients"
@@ -139,8 +140,9 @@ func (m *AppManager) StartAll(monitor bool) {
 
 func (m *AppManager) StopAll() {
 	for _, app := range m.apps {
+		logger.Infof("killing app %s, runing: %v", app.Name, app.Running)
 		if app.Running {
-			go app.Kill()
+			app.Kill()
 		}
 	}
 }

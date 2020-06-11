@@ -155,6 +155,7 @@ func (m *JobManager) StartAll(monitor bool) {
 
 func (m *JobManager) StopAll() {
 	for _, job := range m.jobs {
+		logger.Infof("killing job %s, runing: %v", job.Name, job.Running)
 		if job.Running {
 			job.Kill()
 		}

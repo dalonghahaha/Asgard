@@ -19,6 +19,7 @@ import (
 var (
 	processExit = false
 	subscribers = []chan bool{}
+	ExitSinal   = make(chan os.Signal, 1)
 )
 
 type Command struct {
@@ -46,13 +47,26 @@ type Command struct {
 }
 
 func Wait(function func()) {
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGHUP, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGTSTP)
-	for s := range c {
+	logger.Info("waiting signal to quit")
+	signal.Notify(ExitSinal,
+		syscall.SIGKILL,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGQUIT,
+		syscall.SIGTERM,
+		syscall.SIGUSR1,
+		syscall.SIGUSR2,
+	)
+	for s := range ExitSinal {
 		switch s {
-		case syscall.SIGHUP, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGTSTP:
+		case syscall.SIGKILL, syscall.SIGHUP, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM:
+			logger.Infof("signal:%+v", s)
 			function()
 			os.Exit(0)
+		case syscall.SIGUSR1:
+			logger.Infof("usr1:%+v", s)
+		case syscall.SIGUSR2:
+			logger.Infof("usr2:%+v", s)
 		}
 	}
 }
@@ -210,7 +224,6 @@ func (c *Command) Kill() {
 			c.Status = -2
 			c.Signal = "kill"
 		} else {
-			fmt.Println(err)
 			if c.Cmd.ProcessState != nil {
 				c.Status = c.Cmd.ProcessState.ExitCode()
 				status, ok := c.Cmd.ProcessState.Sys().(syscall.WaitStatus)

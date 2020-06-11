@@ -75,7 +75,7 @@ func (s *TimingService) GetTimingByID(id int64) *models.Timing {
 }
 
 func (s *TimingService) GetTimingByAgentID(id int64) (list []models.Timing) {
-	err := models.Where(&list, "agent_id = ? and status != ? and status != ?", id, constants.TIMING_STATUS_PAUSE, constants.TIMING_STATUS_FINISHED)
+	err := models.Where(&list, "agent_id = ?", id)
 	if err != nil {
 		logger.Error("GetTimingByAgentID Error:", err)
 		return nil

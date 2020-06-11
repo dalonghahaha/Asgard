@@ -2,7 +2,6 @@ package server
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"os/exec"
 	"strconv"
@@ -26,17 +25,6 @@ func (s *baseServer) OK() (*rpc.Response, error) {
 
 func (s *baseServer) Error(msg string) (*rpc.Response, error) {
 	return &rpc.Response{Code: rpc.Error, Message: msg}, nil
-}
-
-func recoverInterceptor() grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (res interface{}, err error) {
-		defer func() {
-			if r := recover(); r != nil {
-				res = &rpc.Response{Code: 200, Message: fmt.Sprintf("%v", r)}
-			}
-		}()
-		return handler(ctx, req)
-	}
 }
 
 func NewRPCServer() *grpc.Server {

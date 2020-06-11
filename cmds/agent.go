@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"runtime/debug"
+	"syscall"
 
 	"github.com/dalonghahaha/avenger/components/logger"
 	"github.com/dalonghahaha/avenger/tools/uuid"
@@ -16,6 +17,7 @@ import (
 	"Asgard/constants"
 	"Asgard/managers"
 	"Asgard/rpc"
+	"Asgard/runtimes"
 	"Asgard/server"
 )
 
@@ -98,7 +100,7 @@ var agentCommonCmd = &cobra.Command{
 		InitAgent()
 		go agentManager.StartAll()
 		go StartAgentRpcServer()
-		Wait(agentManager.StopAll)
+		runtimes.Wait(agentManager.StopAll)
 	},
 }
 
@@ -133,9 +135,8 @@ func InitAgent() {
 func StartAgentRpcServer() {
 	defer func() {
 		if err := recover(); err != nil {
-			agentManager.StopAll()
-			fmt.Println("panic:", err)
-			fmt.Println("stack:", string(debug.Stack()))
+			logger.Error("agent rpc server start failed:", err)
+			runtimes.ExitSinal <- syscall.SIGTERM
 			return
 		}
 	}()

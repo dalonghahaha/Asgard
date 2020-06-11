@@ -6,7 +6,7 @@ import (
 	"Asgard/rpc"
 	"Asgard/runtimes"
 	"fmt"
-	"runtime/debug"
+	"syscall"
 	"time"
 
 	"github.com/dalonghahaha/avenger/components/logger"
@@ -88,9 +88,8 @@ func (a *AgentManager) AgentMonitorReport() {
 func (a *AgentManager) StartAll() {
 	defer func() {
 		if err := recover(); err != nil {
-			a.StopAll()
-			fmt.Println("panic:", err)
-			fmt.Println("stack:", string(debug.Stack()))
+			logger.Error("anget manager start failed :", err)
+			runtimes.ExitSinal <- syscall.SIGTERM
 			return
 		}
 	}()
