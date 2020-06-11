@@ -29,7 +29,7 @@ func setupRouter() {
 		user.POST("/create", middlewares.Admin, useController.Create)
 		user.GET("/edit", middlewares.Admin, useController.Edit)
 		user.POST("/update", middlewares.Admin, useController.Update)
-		user.GET("/forbidden", middlewares.Admin, useController.Forbidden)
+		user.POST("/forbidden", middlewares.Admin, useController.Forbidden)
 		user.GET("/reset_password", middlewares.Admin, useController.ResetPassword)
 		user.POST("/reset_password", middlewares.Admin, useController.DoResetPassword)
 	}
@@ -37,8 +37,9 @@ func setupRouter() {
 	agent.Use(middlewares.Login)
 	{
 		agent.GET("/list", agentController.List)
-		agent.GET("/edit", agentController.Edit)
-		agent.POST("/update", middlewares.AgentInit, agentController.Update)
+		agent.GET("/edit", middlewares.Admin, agentController.Edit)
+		agent.POST("/forbidden", middlewares.Admin, middlewares.AgentInit, agentController.Forbidden)
+		agent.POST("/update", middlewares.Admin, middlewares.AgentInit, agentController.Update)
 	}
 	group := server.Group("/group")
 	group.Use(middlewares.Login)

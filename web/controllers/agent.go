@@ -70,21 +70,41 @@ func (c *AgentController) Edit(ctx *gin.Context) {
 
 func (c *AgentController) Update(ctx *gin.Context) {
 	alias := ctx.PostForm("alias")
-	status := ctx.PostForm("status")
 	if alias == "" {
 		utils.APIBadRequest(ctx, "别名不能为空")
 		return
 	}
 	agent := utils.GetAgent(ctx)
 	agent.Alias = alias
-	if status != "" {
-		agent.Status = constants.AGENT_FORBIDDEN
-	}
 	ok := providers.AgentService.UpdateAgent(agent)
 	if !ok {
 		utils.APIError(ctx, "实例更新失败")
 		return
 	}
 	utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_AGENT, agent.ID, constants.ACTION_UPDATE)
+	utils.APIOK(ctx)
+}
+
+func (c *AgentController) Forbidden(ctx *gin.Context) {
+	agent := utils.GetAgent(ctx)
+	agent.Status = constants.AGENT_FORBIDDEN
+	ok := providers.AgentService.UpdateAgent(agent)
+	if !ok {
+		utils.APIError(ctx, "实例更新失败")
+		return
+	}
+	utils.OpetationLog(utils.GetUserID(ctx), constants.TYPE_AGENT, agent.ID, constants.ACTION_DELETE)
+	apps := providers.AppService.GetAppByAgentID(agent.ID)
+	for _, app := range apps {
+		providers.AppService.ChangeAPPStatus(&app, constants.APP_STATUS_DELETED, utils.GetUserID(ctx))
+	}
+	jobs := providers.JobService.GetJobByAgentID(agent.ID)
+	for _, job := range jobs {
+		providers.JobService.ChangeJobStatus(&job, constants.JOB_STATUS_DELETED, utils.GetUserID(ctx))
+	}
+	timings := providers.TimingService.GetTimingByAgentID(agent.ID)
+	for _, timing := range timings {
+		providers.TimingService.ChangeTimingStatus(&timing, constants.TIMING_STATUS_DELETED, utils.GetUserID(ctx))
+	}
 	utils.APIOK(ctx)
 }

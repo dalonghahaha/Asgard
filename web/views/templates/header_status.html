@@ -1,9 +1,4 @@
 {{define "header_status"}}
-<h3 class="card-title ml-6">
-    <span class="badge bg-teal">{{.GroupName}}</span>
-    <br />
-    <span class="badge bg-lime">{{.AgentName}}</span>
-</h3>
 <h2 class="card-title ml-4">
     <input data-bind="{{.ID}}" status="{{.Status}}" type="checkbox" class="batch form-check-input" style="display: none;">
     {{.Name}}
@@ -21,4 +16,8 @@
 {{else if eq .Status 3}}
     {{include "partials/badge/finished"}}
 {{end}}
+<h3 class="card-title ml-auto">
+    <span class="badge bg-teal">{{.GroupName}}</span>
+    <span class="badge bg-lime">{{.AgentName}}</span>
+</h3>
 {{end}}

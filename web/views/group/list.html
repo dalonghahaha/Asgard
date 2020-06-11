@@ -69,16 +69,16 @@
                                     {{if eq .Status 1}}
                                     <button url="/app/list?group_id={{.ID}}" action="jump" class="btn btn-info btn-sm">
                                         {{include "partials/svg/app"}}
-                                        应用列表
+                                        应用
                                     </button>
                                     <button url="/job/list?group_id={{.ID}}" action="jump" class="btn btn-info btn-sm">
                                         {{include "partials/svg/job"}}
-                                        计划任务列表
+                                        计划任务
                                     </button>
                                     <button url="/timing/list?group_id={{.ID}}" action="jump"
                                         class="btn btn-info btn-sm">
                                         {{include "partials/svg/timing"}}
-                                        定时任务列表
+                                        定时任务
                                     </button>
                                     {{end}}
                                     {{end}}

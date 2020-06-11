@@ -3,7 +3,7 @@
     <div class="row align-items-center">
         <div class="col-auto">
             <h2 class="page-title">
-                {{.Subtitle}}-{{.Name}}-{{.Agent.Alias}}({{.Agent.IP}}:{{.Agent.Port}})
+                {{.Subtitle}}-{{.Name}}
             </h2>
         </div>
     </div>
@@ -27,8 +27,7 @@
             </div>
             <div class="list list-row list-hoverable">
                 {{- range .Content}}
-                <div class="list-item">
-                    <div><span class="badge"></span></div>
+                <div class="list-item" style="border-top:0px">
                     <div>
                         {{.}}
                     </div>
