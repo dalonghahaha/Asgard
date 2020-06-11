@@ -165,10 +165,10 @@ func (m *JobManager) Create(job *runtimes.Job) bool {
 	id, err := m.crontab.AddJob(job.Spec, job)
 	if err != nil {
 		logger.Error(job.Name+" add fail:", err)
-		return true
+		return false
 	}
 	job.CronID = id
-	return false
+	return true
 }
 
 func (m *JobManager) Stop(id int64) bool {
