@@ -8,7 +8,7 @@ import (
 	"Asgard/clients"
 )
 
-var showCommonCmd = &cobra.Command{
+var showCmd = &cobra.Command{
 	Use:   "show",
 	Short: "show job status",
 	Run: func(cmd *cobra.Command, args []string) {

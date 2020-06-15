@@ -1,4 +1,4 @@
-package cmds
+package master
 
 import (
 	"fmt"
@@ -18,12 +18,36 @@ import (
 	"Asgard/models"
 	"Asgard/providers"
 	"Asgard/rpc"
+	"Asgard/runtimes"
 	"Asgard/server"
 )
 
-func init() {
+func GetCmd() *cobra.Command {
 	masterCmd.PersistentFlags().StringP("conf", "c", "conf", "config path")
-	RootCmd.AddCommand(masterCmd)
+	return masterCmd
+}
+
+func PreRun(cmd *cobra.Command, args []string) {
+	confPath := cmd.Flag("conf").Value.String()
+	viper.SetConfigName("app")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(confPath)
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(err)
+	}
+	err = logger.Register()
+	if err != nil {
+		panic(err)
+	}
+	systemMoniter := viper.GetInt("system.moniter")
+	if systemMoniter > 0 {
+		constants.SYSTEM_MONITER = systemMoniter
+	}
+	systemTimer := viper.GetInt("system.timer")
+	if systemMoniter > 0 {
+		constants.SYSTEM_TIMER = systemTimer
+	}
 }
 
 var masterCmd = &cobra.Command{
@@ -34,7 +58,7 @@ var masterCmd = &cobra.Command{
 		InitMaster()
 		go StartMasterRpcServer()
 		go MoniterMaster()
-		Wait(StopMaster)
+		runtimes.Wait(StopMaster)
 	},
 }
 

@@ -8,7 +8,7 @@ import (
 	"Asgard/clients"
 )
 
-var statusCommonCmd = &cobra.Command{
+var statusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "show cron runing jobs",
 	Run: func(cmd *cobra.Command, args []string) {

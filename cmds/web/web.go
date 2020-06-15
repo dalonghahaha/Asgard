@@ -1,6 +1,7 @@
-package cmds
+package web
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/dalonghahaha/avenger/components/cache"
@@ -10,12 +11,36 @@ import (
 	"github.com/spf13/viper"
 
 	"Asgard/constants"
+	"Asgard/runtimes"
 	"Asgard/web"
 )
 
-func init() {
+func GetCmd() *cobra.Command {
 	webCmd.PersistentFlags().StringP("conf", "c", "conf", "config path")
-	RootCmd.AddCommand(webCmd)
+	return webCmd
+}
+
+func PreRun(cmd *cobra.Command, args []string) {
+	confPath := cmd.Flag("conf").Value.String()
+	viper.SetConfigName("app")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(confPath)
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(err)
+	}
+	err = logger.Register()
+	if err != nil {
+		panic(err)
+	}
+	systemMoniter := viper.GetInt("system.moniter")
+	if systemMoniter > 0 {
+		constants.SYSTEM_MONITER = systemMoniter
+	}
+	systemTimer := viper.GetInt("system.timer")
+	if systemMoniter > 0 {
+		constants.SYSTEM_TIMER = systemTimer
+	}
 }
 
 var webCmd = &cobra.Command{
@@ -23,20 +48,23 @@ var webCmd = &cobra.Command{
 	Short:  "run as web server",
 	PreRun: PreRun,
 	Run: func(cmd *cobra.Command, args []string) {
-		InitWebServer()
+		if err := InitWebServer(); err != nil {
+			fmt.Println(err)
+			return
+		}
 		go StartWebServer()
-		Wait(StopWebServer)
+		runtimes.Wait(StopWebServer)
 	},
 }
 
-func InitWebServer() {
+func InitWebServer() error {
 	err := db.Register()
 	if err != nil {
-		panic(err)
+		return err
 	}
 	err = cache.Register()
 	if err != nil {
-		panic(err)
+		return err
 	}
 	port := viper.GetInt("web.port")
 	if port != 0 {
@@ -54,6 +82,7 @@ func InitWebServer() {
 	if cookieSalt != "" {
 		constants.WEB_COOKIE_SALT = cookieSalt
 	}
+	return nil
 }
 
 func StartWebServer() {

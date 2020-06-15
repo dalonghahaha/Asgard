@@ -1,4 +1,4 @@
-package cron
+package guard
 
 import (
 	"fmt"
@@ -17,21 +17,21 @@ import (
 )
 
 var (
-	jobManager *managers.JobManager
+	appManager *managers.AppManager
 	serverPath string
 )
 
 func GetCmd() *cobra.Command {
-	cronCmd.PersistentFlags().StringP("conf", "c", "conf", "config path")
-	cronCmd.PersistentFlags().StringP("socket", "s", "runtime/asgard_cron", "socket file path")
-	cronCmd.AddCommand(statusCmd)
-	cronCmd.AddCommand(showCmd)
-	return cronCmd
+	guardCmd.PersistentFlags().StringP("conf", "c", "conf", "config path")
+	guardCmd.PersistentFlags().StringP("socket", "s", "runtime/asgard_guard", "socket file path")
+	guardCmd.AddCommand(statusCmd)
+	guardCmd.AddCommand(showCmd)
+	return guardCmd
 }
 
-var cronCmd = &cobra.Command{
-	Use:   "cron",
-	Short: "cron jobs",
+var guardCmd = &cobra.Command{
+	Use:   "guard",
+	Short: "guard apps",
 	Run: func(cmd *cobra.Command, args []string) {
 		confPath := cmd.Flag("conf").Value.String()
 		serverPath = cmd.Flag("socket").Value.String()
@@ -41,40 +41,40 @@ var cronCmd = &cobra.Command{
 			fmt.Println(err)
 			return
 		}
-		if err := InitCron(); err != nil {
+		if err := InitGuard(); err != nil {
 			fmt.Println(err)
 			return
 		}
-		go StartCron()
+		go StartGuard()
 		go StartRpcServer()
-		runtimes.Wait(StopCron)
+		runtimes.Wait(StopGuard)
 	},
 }
 
-func InitCron() error {
-	configs := viper.Get("cron")
+func InitGuard() error {
+	configs := viper.Get("app")
 	if configs == nil {
-		return fmt.Errorf("no crons!")
+		return fmt.Errorf("no apps!")
 	}
 	_configs, ok := configs.([]interface{})
 	if !ok {
-		return fmt.Errorf("crons config wrong!")
+		return fmt.Errorf("apps config wrong!")
 	}
-	jobManager = managers.NewJobManager()
+	appManager = managers.NewAppManager()
 	for index, v := range _configs {
 		_v, ok := v.(map[interface{}]interface{})
 		if !ok {
-			return fmt.Errorf("crons config wrong!")
+			return fmt.Errorf("apps config wrong!")
 		}
 		config := map[string]interface{}{}
 		for k, v := range _v {
 			_k, ok := k.(string)
 			if !ok {
-				return fmt.Errorf("crons config wrong!")
+				return fmt.Errorf("apps config wrong!")
 			}
 			config[_k] = v
 		}
-		err := jobManager.Register(int64(index), config)
+		err := appManager.Register(int64(index), config)
 		if err != nil {
 			return err
 		}
@@ -82,33 +82,33 @@ func InitCron() error {
 	return nil
 }
 
-func StartCron() {
+func StartGuard() {
 	defer func() {
 		if err := recover(); err != nil {
-			StopCron()
-			fmt.Println("cron server panic:", err)
+			StopGuard()
+			fmt.Println("guard server panic:", err)
 			return
 		}
 	}()
-	logger.Info("Cron Server start")
-	logger.Infof("Jobs:%d", jobManager.Count())
-	jobManager.StartAll(false)
+	logger.Info("Guard Server start")
+	logger.Infof("apps:%d", appManager.Count())
+	appManager.StartAll(false)
 }
 
-func StopCron() {
+func StopGuard() {
 	runtimes.Exit()
-	jobManager.StopAll()
-	logger.Info("cron Server stop")
+	appManager.StopAll()
+	logger.Info("Guard Server stop")
 	err := file.Remove(serverPath)
 	if err != nil {
-		logger.Errorf("remove cron server path failed:%s", err.Error())
+		logger.Errorf("remove guard server path failed:%s", err.Error())
 	}
 }
 
 func StartRpcServer() {
 	defer func() {
 		if err := recover(); err != nil {
-			StopCron()
+			StopGuard()
 			fmt.Println("rpc server panic:", err)
 			return
 		}
@@ -124,7 +124,7 @@ func StartRpcServer() {
 		panic(err)
 	}
 	s := server.NewRPCServer()
-	rpc.RegisterCronServer(s, server.NewCronServer(jobManager))
+	rpc.RegisterGuardServer(s, server.NewGuardServer(appManager))
 	reflection.Register(s)
 	logger.Info("rpc server start!")
 	err = s.Serve(listen)

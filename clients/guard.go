@@ -38,3 +38,13 @@ func (a *Guard) GetList() ([]*rpc.App, error) {
 	}
 	return response.GetApps(), nil
 }
+
+func (a *Guard) Get(name string) (*rpc.App, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
+	defer cancel()
+	response, err := a.client.Get(ctx, &rpc.Name{Name: name})
+	if err != nil {
+		return nil, err
+	}
+	return response.GetApp(), nil
+}

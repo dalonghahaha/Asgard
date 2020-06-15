@@ -1,4 +1,4 @@
-package cmds
+package debug
 
 import (
 	"fmt"
@@ -10,21 +10,6 @@ import (
 	"Asgard/constants"
 	"Asgard/providers"
 )
-
-func init() {
-	debugCmd.PersistentFlags().StringP("conf", "c", "conf", "config path")
-	mailCmd.PersistentFlags().StringP("receiver", "r", "", "mail receiver")
-	debugCmd.AddCommand(mailCmd)
-	RootCmd.AddCommand(debugCmd)
-}
-
-var debugCmd = &cobra.Command{
-	Use:   "debug",
-	Short: "debug cmds",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("there are cmds for debug")
-	},
-}
 
 var mailCmd = &cobra.Command{
 	Use:   "mail",
