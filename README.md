@@ -18,9 +18,25 @@ Asgard是设计用于综合解决常驻进程应用、计划任务、定时任�
 
 启动为管理单机系统常驻进程应用守护服务，类似supervisor
 
+#### Asgard guard status
+
+查看单机常驻进程应用列表
+
+#### Asgard guard show xxxxxx
+
+查看单机常驻进程应用xxxxxx信息
+
 ### Asgard cron
 
 启动为管理单机系统的计划任务守护服务，类似crontab
+
+#### Asgard cron status
+
+查看单机计划任务列表
+
+#### Asgard cron show xxxxxx
+
+查看单机计划任务xxxxxx信息
 
 ### Asgard web
 
@@ -36,4 +52,4 @@ Asgard是设计用于综合解决常驻进程应用、计划任务、定时任�
 
 ### Asgard agent status
 
-查看agent节点运行状态
+查看agent节点运行的常驻进程应用、计划任务、定时任务综合信息
