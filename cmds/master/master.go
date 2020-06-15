@@ -27,49 +27,31 @@ func GetCmd() *cobra.Command {
 	return masterCmd
 }
 
-func PreRun(cmd *cobra.Command, args []string) {
-	confPath := cmd.Flag("conf").Value.String()
-	viper.SetConfigName("app")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath(confPath)
-	err := viper.ReadInConfig()
-	if err != nil {
-		panic(err)
-	}
-	err = logger.Register()
-	if err != nil {
-		panic(err)
-	}
-	systemMoniter := viper.GetInt("system.moniter")
-	if systemMoniter > 0 {
-		constants.SYSTEM_MONITER = systemMoniter
-	}
-	systemTimer := viper.GetInt("system.timer")
-	if systemMoniter > 0 {
-		constants.SYSTEM_TIMER = systemTimer
-	}
-}
-
 var masterCmd = &cobra.Command{
-	Use:    "master",
-	Short:  "run as master",
-	PreRun: PreRun,
+	Use:   "master",
+	Short: "run as master",
 	Run: func(cmd *cobra.Command, args []string) {
-		InitMaster()
+		confPath := cmd.Flag("conf").Value.String()
+		runtimes.ParseConfig(confPath)
+		if err := InitMaster(); err != nil {
+			fmt.Println(err)
+			return
+		}
 		go StartMasterRpcServer()
 		go MoniterMaster()
 		runtimes.Wait(StopMaster)
 	},
 }
 
-func InitMaster() {
-	err := db.Register()
-	if err != nil {
-		panic(err)
+func InitMaster() error {
+	if err := logger.Register(); err != nil {
+		return fmt.Errorf("init logger failed:%+v", err)
 	}
-	err = cache.Register()
-	if err != nil {
-		panic(err)
+	if err := db.Register(); err != nil {
+		return fmt.Errorf("init db failed:%+v", err)
+	}
+	if err := cache.Register(); err != nil {
+		return fmt.Errorf("init cache failed:%+v", err)
 	}
 	port := viper.GetString("master.port")
 	if port != "" {
@@ -81,22 +63,22 @@ func InitMaster() {
 	}
 	notify := viper.GetBool("master.notify")
 	if notify {
-		err = mail.Register()
-		if err != nil {
-			panic(err)
+		if err := mail.Register(); err != nil {
+			return fmt.Errorf("init mail failed:%+v", err)
 		}
 		constants.MASTER_NOTIFY = notify
 		receiver := viper.GetString("master.receiver")
 		if receiver == "" {
-			panic("receiver can not be empty when receiver enable!")
+			return fmt.Errorf("receiver can not be empty when receiver enable!")
 		}
 		constants.MASTER_RECEIVER = receiver
 		mailUser := viper.GetString("component.mail." + constants.MAIL_NAME + ".user")
 		if mailUser == "" {
-			panic(fmt.Errorf("mail user can not be empty!"))
+			return fmt.Errorf("mail user can not be empty!")
 		}
 		constants.MAIL_USER = mailUser
 	}
+	return nil
 }
 
 func StartMasterRpcServer() {

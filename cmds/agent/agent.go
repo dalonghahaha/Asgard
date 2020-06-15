@@ -28,34 +28,12 @@ func GetCmd() *cobra.Command {
 	return agentCmd
 }
 
-func PreRun(cmd *cobra.Command, args []string) {
-	confPath := cmd.Flag("conf").Value.String()
-	viper.SetConfigName("app")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath(confPath)
-	err := viper.ReadInConfig()
-	if err != nil {
-		panic(err)
-	}
-	err = logger.Register()
-	if err != nil {
-		panic(err)
-	}
-	systemMoniter := viper.GetInt("system.moniter")
-	if systemMoniter > 0 {
-		constants.SYSTEM_MONITER = systemMoniter
-	}
-	systemTimer := viper.GetInt("system.timer")
-	if systemMoniter > 0 {
-		constants.SYSTEM_TIMER = systemTimer
-	}
-}
-
 var agentCmd = &cobra.Command{
-	Use:    "agent",
-	Short:  "run as agent",
-	PreRun: PreRun,
+	Use:   "agent",
+	Short: "run as agent",
 	Run: func(cmd *cobra.Command, args []string) {
+		confPath := cmd.Flag("conf").Value.String()
+		runtimes.ParseConfig(confPath)
 		if err := InitAgent(); err != nil {
 			fmt.Println(err)
 			return
@@ -67,6 +45,9 @@ var agentCmd = &cobra.Command{
 }
 
 func InitAgent() error {
+	if err := logger.Register(); err != nil {
+		return fmt.Errorf("init logger failed:%+v", err)
+	}
 	agentIP := viper.GetString("agent.rpc.ip")
 	agentPort := viper.GetString("agent.rpc.port")
 	if agentIP == "" && agentPort == "" {

@@ -53,3 +53,81 @@ Asgard是设计用于综合解决常驻进程应用、计划任务、定时任�
 ### Asgard agent status
 
 查看agent节点运行的常驻进程应用、计划任务、定时任务综合信息
+
+## 配置说明
+
+web节点、master节点、agent节点都需要一个名为**app.yaml**的配置文件。
+
+默认读取运行目录下名为**conf**的目录，如果需要指向配置文件的目录可以在启动命令中通过**conf**参数指定。
+
+### master节点配置项示例及说明
+
+``` yaml
+master:
+    port: 9527                          #master节点监听端口
+component:
+    db:
+        asgard:                         #mysql数据库配置
+            host: "127.0.0.1"           #mysql数据库地址
+            port: 3306                  #mysql数据库端口
+            user: "xxxxxx"              #mysql数据库用户名
+            password: "xxxxxx"          #mysql数据库密码
+            database: "Asgard"          #mysql数据库库名
+    redis:                              #redis配置
+        asgard:
+            host: "127.0.0.1"           #redis地址
+            port: 6379                  #redis端口号
+            password: ""                #redis密码
+            db: 0                       #redis库索引
+    log:                                #日志配置
+        console: true                   #是否输出到控制台
+        level: "debug"                  #日志级别
+        dir: "runtime/"                 #日志存放根目录
+```
+
+### web节点配置项示例及说明
+
+``` yaml
+web:
+    port: 12345                         #web节点监听端口
+    domain: "asgard.dalong.me"          #web节点域名
+    cookie_salt: "sdswqeqx"             #web节点身份验证加密值(必须为8位字符串)
+component:
+    db:
+        asgard:                         #mysql数据库配置
+            host: "127.0.0.1"           #mysql数据库地址
+            port: 3306                  #mysql数据库端口
+            user: "xxxxxx"              #mysql数据库用户名
+            password: "xxxxxx"          #mysql数据库密码
+            database: "Asgard"          #mysql数据库库名
+    redis:                              #redis配置
+        asgard:
+            host: "127.0.0.1"           #redis地址
+            port: 6379                  #redis端口号
+            password: ""                #redis密码
+            db: 0                       #redis库索引
+    log:                                #日志配置
+        console: true                   #是否输出到控制台
+        level: "debug"                  #日志级别
+        dir: "runtime/"                 #日志存放根目录
+```
+
+### agent节点配置项示例及说明
+
+``` yaml
+system:
+    moniter: 10                         #监控指标上报周期，单位秒
+    timer: 10                           #定时任务轮询周期，单位秒
+agent:
+    master:                             #master节点地址
+        ip: "127.0.0.1"                 #master节点端口
+        port: 9527
+    rpc:
+        ip: "127.0.0.1"                 #agent节点地址
+        port: 27149                     #agent节点端口
+component:
+    log:                                #日志配置
+        console: true                   #是否输出到控制台
+        level: "debug"                  #日志级别
+        dir: "runtime/"                 #日志存放根目录
+```

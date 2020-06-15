@@ -20,34 +20,12 @@ func GetCmd() *cobra.Command {
 	return webCmd
 }
 
-func PreRun(cmd *cobra.Command, args []string) {
-	confPath := cmd.Flag("conf").Value.String()
-	viper.SetConfigName("app")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath(confPath)
-	err := viper.ReadInConfig()
-	if err != nil {
-		panic(err)
-	}
-	err = logger.Register()
-	if err != nil {
-		panic(err)
-	}
-	systemMoniter := viper.GetInt("system.moniter")
-	if systemMoniter > 0 {
-		constants.SYSTEM_MONITER = systemMoniter
-	}
-	systemTimer := viper.GetInt("system.timer")
-	if systemMoniter > 0 {
-		constants.SYSTEM_TIMER = systemTimer
-	}
-}
-
 var webCmd = &cobra.Command{
-	Use:    "web",
-	Short:  "run as web server",
-	PreRun: PreRun,
+	Use:   "web",
+	Short: "run as web server",
 	Run: func(cmd *cobra.Command, args []string) {
+		confPath := cmd.Flag("conf").Value.String()
+		runtimes.ParseConfig(confPath)
 		if err := InitWebServer(); err != nil {
 			fmt.Println(err)
 			return
@@ -58,13 +36,14 @@ var webCmd = &cobra.Command{
 }
 
 func InitWebServer() error {
-	err := db.Register()
-	if err != nil {
-		return err
+	if err := logger.Register(); err != nil {
+		return fmt.Errorf("init logger failed:%+v", err)
 	}
-	err = cache.Register()
-	if err != nil {
-		return err
+	if err := db.Register(); err != nil {
+		return fmt.Errorf("init db failed:%+v", err)
+	}
+	if err := cache.Register(); err != nil {
+		return fmt.Errorf("init cache failed:%+v", err)
 	}
 	port := viper.GetInt("web.port")
 	if port != 0 {
