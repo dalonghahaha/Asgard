@@ -1,0 +1,39 @@
+project_name: Asgard
+before:
+    hooks:
+        - go mod download
+        - go generate ./...
+builds:
+    - 
+        env:
+            - CGO_ENABLED=0
+        goos:
+            - darwin
+            - linux
+        goarch:
+            - 386
+            - amd64
+            - arm
+            - arm64
+archives:
+    - 
+        name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+        replacements:
+            386: i386
+            amd64: x86_64
+        files:
+            - web/assets/*
+            - web/views/*
+            - scripts/*
+            - LICENSE
+            - README.md
+checksum:
+    name_template: "checksums.txt"
+snapshot:
+    name_template: "{{ .Tag }}-next"
+changelog:
+    sort: asc
+    filters:
+        exclude:
+            - "^docs:"
+            - "^test:"
