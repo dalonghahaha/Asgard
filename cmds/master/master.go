@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"syscall"
 	"time"
 
 	"github.com/dalonghahaha/avenger/components/cache"
@@ -12,11 +13,13 @@ import (
 	"github.com/dalonghahaha/avenger/components/mail"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
 	"Asgard/constants"
 	"Asgard/models"
 	"Asgard/providers"
+	"Asgard/registry"
 	"Asgard/rpc"
 	"Asgard/runtimes"
 	"Asgard/server"
@@ -26,6 +29,8 @@ func GetCmd() *cobra.Command {
 	masterCmd.PersistentFlags().StringP("conf", "c", "conf", "config path")
 	return masterCmd
 }
+
+var rpcServer *grpc.Server
 
 var masterCmd = &cobra.Command{
 	Use:   "master",
@@ -37,7 +42,8 @@ var masterCmd = &cobra.Command{
 			fmt.Println(err)
 			return
 		}
-		go StartMasterRpcServer()
+		go RegisterRpcServer()
+		go StartRpcServer()
 		go MoniterMaster()
 		runtimes.Wait(StopMaster)
 	},
@@ -78,33 +84,57 @@ func InitMaster() error {
 		}
 		constants.MAIL_USER = mailUser
 	}
+	err := registry.RegisterRegistry([]string{"http://localhost:2379"})
+	if err != nil {
+		return fmt.Errorf("init registry failed:%+v", err)
+	}
 	return nil
 }
 
-func StartMasterRpcServer() {
+func RegisterRpcServer() {
+	if err := recover(); err != nil {
+		logger.Error("RegisterRpcServer panic:", err)
+		runtimes.ExitSinal <- syscall.SIGTERM
+		return
+	}
+	registry.Register("Asgard", "master-1", "127.0.0.1", constants.MASTER_PORT)
+}
+
+func StartRpcServer() {
+	if err := recover(); err != nil {
+		logger.Error("RegisterRpcServer panic:", err)
+		runtimes.ExitSinal <- syscall.SIGTERM
+		return
+	}
 	listen, err := net.Listen("tcp", fmt.Sprintf(":%s", constants.MASTER_PORT))
 	if err != nil {
 		logger.Error("failed to listen:", err)
-		panic(err)
+		runtimes.ExitSinal <- syscall.SIGTERM
+		return
 	}
-	s := server.NewRPCServer()
-	rpc.RegisterMasterServer(s, &server.MasterServer{})
-	reflection.Register(s)
+	rpcServer := server.NewRPCServer()
+	rpc.RegisterMasterServer(rpcServer, &server.MasterServer{})
+	reflection.Register(rpcServer)
 	logger.Info("Master Rpc Server Started!")
 	logger.Debugf("Server Port:%s", constants.MASTER_PORT)
 	logger.Debugf("Server Pid:%d", os.Getpid())
 	logger.Debugf("Moniter Notify:%v", constants.MASTER_NOTIFY)
 	logger.Debugf("Moniter Loop:%d", constants.MASTER_MONITER)
-	err = s.Serve(listen)
+	err = rpcServer.Serve(listen)
 	if err != nil {
 		logger.Error("failed to serve:", err)
-		panic(err)
+		runtimes.ExitSinal <- syscall.SIGTERM
+		return
 	}
 }
 
 func StopMaster() {
-	logger.Info("Master Rpc Server Stop!")
+	if rpcServer != nil {
+		rpcServer.GracefulStop()
+	}
+	registry.UnRegister("Asgard", "master-1")
 	constants.MASTER_TICKER.Stop()
+	logger.Info("Master Rpc Server Stop!")
 }
 
 func MoniterMaster() {

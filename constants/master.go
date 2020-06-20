@@ -9,4 +9,6 @@ var (
 	MASTER_NOTIFY   = false
 	MASTER_RECEIVER = ""
 	MASTER_TICKER   *time.Ticker
+	MASTER_TTL      = int64(10)
+	MASTER_SCHEMA   = "Asgard"
 )

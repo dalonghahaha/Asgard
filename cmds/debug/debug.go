@@ -10,6 +10,11 @@ func GetCmd() *cobra.Command {
 	debugCmd.PersistentFlags().StringP("conf", "c", "conf", "config path")
 	mailCmd.PersistentFlags().StringP("receiver", "r", "", "mail receiver")
 	debugCmd.AddCommand(mailCmd)
+	serverCmd.PersistentFlags().StringP("id", "i", "", "server id")
+	serverCmd.PersistentFlags().StringP("port", "p", "", "server port")
+	rpcCmd.AddCommand(serverCmd)
+	rpcCmd.AddCommand(clientCmd)
+	debugCmd.AddCommand(rpcCmd)
 	return debugCmd
 }
 

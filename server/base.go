@@ -2,19 +2,19 @@ package server
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"os/exec"
+	"path"
 	"strconv"
 	"strings"
+	"time"
 
-	"github.com/sirupsen/logrus"
+	"github.com/dalonghahaha/avenger/components/logger"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"google.golang.org/grpc"
 
 	"Asgard/rpc"
-)
-
-var (
-	grpcLogger *logrus.Logger
 )
 
 type baseServer struct{}
@@ -27,14 +27,28 @@ func (s *baseServer) Error(msg string) (*rpc.Response, error) {
 	return &rpc.Response{Code: rpc.Error, Message: msg}, nil
 }
 
+func accessLoggerInterceptor() grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		service := path.Dir(info.FullMethod)[1:]
+		method := path.Base(info.FullMethod)
+		begin := time.Now()
+		resp, err := handler(ctx, req)
+		finish := time.Now()
+		nanoseconds := finish.Sub(begin).Nanoseconds()
+		milliseconds := fmt.Sprintf("%d.%d", nanoseconds/1e6, nanoseconds%1e6)
+		logger.Debugf("rpc call:[%s][%s][%s]", service, method, milliseconds)
+		return resp, err
+	}
+}
+
 func NewRPCServer() *grpc.Server {
-	// grpc_logrus.ReplaceGrpcLogger(logrus.NewEntry(grpcLogger))
-	// option := grpc_middleware.WithUnaryServerChain(
-	// 	recoverInterceptor(),
-	// )
+	option := grpc_middleware.WithUnaryServerChain(
+		accessLoggerInterceptor(),
+	)
 	return grpc.NewServer(
 		grpc.MaxRecvMsgSize(1024*1024*1024),
 		grpc.MaxSendMsgSize(1024*1024*1024),
+		option,
 	)
 }
 
