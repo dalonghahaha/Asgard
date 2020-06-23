@@ -5,7 +5,6 @@ import (
 	"Asgard/constants"
 	"Asgard/rpc"
 	"Asgard/runtimes"
-	"fmt"
 	"syscall"
 	"time"
 
@@ -22,22 +21,18 @@ type AgentManager struct {
 	exitSingel    chan bool
 }
 
-func NewAgentManager() (*AgentManager, error) {
-	masterClient, err := clients.NewMaster(constants.MASTER_IP, constants.MASTER_PORT)
-	if err != nil {
-		return nil, fmt.Errorf("init master client failed:%s", err.Error())
-	}
+func NewAgentManager(master *clients.Master) (*AgentManager, error) {
 	appManager := NewAppManager()
-	appManager.SetMaster(masterClient)
+	appManager.SetMaster(master)
 	jobManager := NewJobManager()
-	jobManager.SetMaster(masterClient)
+	jobManager.SetMaster(master)
 	timingManager := NewTimingManager()
-	timingManager.SetMaster(masterClient)
+	timingManager.SetMaster(master)
 	manager := &AgentManager{
 		appManager:    appManager,
 		jobManager:    jobManager,
 		timingManager: timingManager,
-		masterClient:  masterClient,
+		masterClient:  master,
 		ticker:        time.NewTicker(time.Second * time.Duration(constants.AGENT_MONITER)),
 		exitSingel:    make(chan bool, 1),
 	}

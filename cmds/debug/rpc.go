@@ -42,7 +42,7 @@ var serverCmd = &cobra.Command{
 	PreRun: preRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
-		agentManager, err = managers.NewAgentManager()
+		agentManager, err = managers.NewAgentManager(nil)
 		if err != nil {
 			fmt.Printf("init agentManager failed:%+v", err)
 			return

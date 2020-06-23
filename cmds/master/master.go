@@ -30,7 +30,10 @@ func GetCmd() *cobra.Command {
 	return masterCmd
 }
 
-var rpcServer *grpc.Server
+var (
+	leaderFlag bool
+	rpcServer  *grpc.Server
+)
 
 var masterCmd = &cobra.Command{
 	Use:   "master",
@@ -42,7 +45,10 @@ var masterCmd = &cobra.Command{
 			fmt.Println(err)
 			return
 		}
-		go RegisterRpcServer()
+		if constants.MASTER_CLUSTER {
+			go RegisterRpcServer()
+			go registry.Campaign("/Asgard/leader", constants.MASTER_CLUSTER_ID)
+		}
 		go StartRpcServer()
 		go MoniterMaster()
 		runtimes.Wait(StopMaster)
@@ -84,9 +90,17 @@ func InitMaster() error {
 		}
 		constants.MAIL_USER = mailUser
 	}
-	err := registry.RegisterRegistry([]string{"http://localhost:2379"})
-	if err != nil {
-		return fmt.Errorf("init registry failed:%+v", err)
+	cluster := viper.GetBool("master.cluster")
+	if cluster {
+		constants.MASTER_CLUSTER = true
+		constants.MASTER_CLUSTER_REGISTRY = viper.GetStringSlice("master.cluster_registry")
+		constants.MASTER_CLUSTER_NAME = viper.GetString("master.cluster_name")
+		constants.MASTER_CLUSTER_ID = viper.GetString("master.cluster_id")
+		constants.MASTER_CLUSTER_IP = viper.GetString("master.cluster_ip")
+		err := registry.RegisterRegistry(constants.MASTER_CLUSTER_REGISTRY)
+		if err != nil {
+			return fmt.Errorf("init registry failed:%+v", err)
+		}
 	}
 	return nil
 }
@@ -97,7 +111,13 @@ func RegisterRpcServer() {
 		runtimes.ExitSinal <- syscall.SIGTERM
 		return
 	}
-	registry.Register("Asgard", "master-1", "127.0.0.1", constants.MASTER_PORT)
+	logger.Info("Master Rpc Server Registered!")
+	registry.Register(
+		constants.MASTER_CLUSTER_NAME,
+		constants.MASTER_CLUSTER_ID,
+		constants.MASTER_CLUSTER_IP,
+		constants.MASTER_PORT,
+	)
 }
 
 func StartRpcServer() {
@@ -132,7 +152,9 @@ func StopMaster() {
 	if rpcServer != nil {
 		rpcServer.GracefulStop()
 	}
-	registry.UnRegister("Asgard", "master-1")
+	if constants.MASTER_CLUSTER {
+		registry.UnRegister(constants.MASTER_CLUSTER_NAME, constants.MASTER_CLUSTER_ID)
+	}
 	constants.MASTER_TICKER.Stop()
 	logger.Info("Master Rpc Server Stop!")
 }
@@ -140,9 +162,13 @@ func StopMaster() {
 func MoniterMaster() {
 	constants.MASTER_TICKER = time.NewTicker(time.Second * time.Duration(constants.MASTER_MONITER))
 	for range constants.MASTER_TICKER.C {
-		agentList := providers.AgentService.GetUsageAgent()
-		for _, agent := range agentList {
-			go checkAgent(agent)
+		// only leader do check
+		if registry.IsLeader() {
+			logger.Info("agent check")
+			agentList := providers.AgentService.GetUsageAgent()
+			for _, agent := range agentList {
+				go checkAgent(agent)
+			}
 		}
 	}
 }

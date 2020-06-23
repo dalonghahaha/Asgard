@@ -7,8 +7,11 @@ import (
 
 	"github.com/dalonghahaha/avenger/components/logger"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/balancer/roundrobin"
+	"google.golang.org/grpc/resolver"
 
 	"Asgard/constants"
+	"Asgard/registry"
 	"Asgard/rpc"
 	"Asgard/runtimes"
 )
@@ -47,7 +50,36 @@ func NewMaster(ip, port string) (*Master, error) {
 	if err != nil {
 		return nil, err
 	}
-	master := Master{
+	return initMaster(conn), nil
+}
+
+func NewClusterMaster(endpoint []string) (*Master, error) {
+	r, err := registry.NewResolver(endpoint)
+	if err != nil {
+		return nil, err
+	}
+	resolver.Register(r)
+	ctx, cancel := context.WithTimeout(context.Background(), constants.RPC_TIMEOUT)
+	defer cancel()
+	option := grpc.WithDefaultCallOptions(
+		grpc.MaxCallRecvMsgSize(constants.RPC_MESSAGE_SIZE),
+		grpc.MaxCallSendMsgSize(constants.RPC_MESSAGE_SIZE),
+	)
+	conn, err := grpc.DialContext(
+		ctx,
+		r.Scheme()+"://author/"+constants.MASTER_CLUSTER_NAME,
+		grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"loadBalancingPolicy":"%s"}`, roundrobin.Name)),
+		grpc.WithInsecure(),
+		option,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return initMaster(conn), nil
+}
+
+func initMaster(conn *grpc.ClientConn) *Master {
+	return &Master{
 		agent: &rpc.AgentInfo{
 			Ip:   constants.AGENT_IP,
 			Port: constants.AGENT_PORT,
@@ -56,10 +88,10 @@ func NewMaster(ip, port string) (*Master, error) {
 		Reports:   new(sync.Map),
 
 		AgentMonitorChan:  make(chan runtimes.AgentMonitor, 100),
+		AppMonitorChan:    make(chan runtimes.AppMonitor, 100),
 		JobMonitorChan:    make(chan runtimes.JobMonitor, 100),
 		TimingMonitorChan: make(chan runtimes.TimingMonitor, 100),
 
-		AppMonitorChan:    make(chan runtimes.AppMonitor, 100),
 		AppArchiveChan:    make(chan runtimes.AppArchive, 100),
 		JobArchiveChan:    make(chan runtimes.JobArchive, 100),
 		TimingArchiveChan: make(chan runtimes.TimingArchive, 100),
@@ -68,7 +100,6 @@ func NewMaster(ip, port string) (*Master, error) {
 		JobExceptionChan:    make(chan runtimes.JobException, 100),
 		TimingExceptionChan: make(chan runtimes.TimingException, 100),
 	}
-	return &master, nil
 }
 
 func (c *Master) IsRunning() bool {

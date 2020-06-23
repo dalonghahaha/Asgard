@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/viper"
 	"google.golang.org/grpc/reflection"
 
+	"Asgard/clients"
 	"Asgard/constants"
 	"Asgard/managers"
 	"Asgard/rpc"
@@ -68,8 +69,23 @@ func InitAgent() error {
 	if duration != 0 {
 		constants.AGENT_MONITER = duration
 	}
+	var master *clients.Master
 	var err error
-	agentManager, err = managers.NewAgentManager()
+	cluster := viper.GetBool("agent.master.cluster")
+	if cluster {
+		constants.MASTER_CLUSTER_REGISTRY = viper.GetStringSlice("agent.master.cluster_registry")
+		constants.MASTER_CLUSTER_NAME = viper.GetString("agent.master.cluster_name")
+		master, err = clients.NewClusterMaster(constants.MASTER_CLUSTER_REGISTRY)
+		if err != nil {
+			return fmt.Errorf("init cluster master client failed:%s", err.Error())
+		}
+	} else {
+		master, err = clients.NewMaster(constants.MASTER_IP, constants.MASTER_PORT)
+		if err != nil {
+			return fmt.Errorf("init master client failed:%s", err.Error())
+		}
+	}
+	agentManager, err = managers.NewAgentManager(master)
 	if err != nil {
 		return fmt.Errorf("init agentManager failed:" + err.Error())
 	}

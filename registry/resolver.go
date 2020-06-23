@@ -63,7 +63,7 @@ func (r *etcdResolver) Build(target resolver.Target, conn resolver.ClientConn, o
 }
 
 func (r *etcdResolver) Scheme() string {
-	return constants.MASTER_SCHEMA
+	return constants.MASTER_CLUSTER_SCHEMA
 }
 
 func (r *etcdResolver) ResolveNow(rn resolver.ResolveNowOptions) {
