@@ -95,6 +95,10 @@ func (c *AppController) Add(ctx *gin.Context) {
 }
 
 func (c *AppController) Create(ctx *gin.Context) {
+	if utils.FormDefaultInt64(ctx, "agent_id", 0) == 0 {
+		utils.APIError(ctx, "运行实例未选择")
+		return
+	}
 	app := new(models.App)
 	app.GroupID = utils.FormDefaultInt64(ctx, "group_id", 0)
 	app.AgentID = utils.FormDefaultInt64(ctx, "agent_id", 0)
@@ -135,7 +139,6 @@ func (c *AppController) Edit(ctx *gin.Context) {
 func (c *AppController) Update(ctx *gin.Context) {
 	app := utils.GetApp(ctx)
 	app.GroupID = utils.FormDefaultInt64(ctx, "group_id", 0)
-	app.AgentID = utils.FormDefaultInt64(ctx, "agent_id", 0)
 	app.Name = ctx.PostForm("name")
 	app.Dir = ctx.PostForm("dir")
 	app.Program = ctx.PostForm("program")
@@ -148,6 +151,9 @@ func (c *AppController) Update(ctx *gin.Context) {
 	}
 	if ctx.PostForm("is_monitor") != "" {
 		app.IsMonitor = 1
+	}
+	if utils.FormDefaultInt64(ctx, "agent_id", 0) != 0 {
+		app.AgentID = utils.FormDefaultInt64(ctx, "agent_id", 0)
 	}
 	ok := providers.AppService.UpdateApp(app)
 	if !ok {

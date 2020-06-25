@@ -95,6 +95,10 @@ func (c *TimingController) Add(ctx *gin.Context) {
 }
 
 func (c *TimingController) Create(ctx *gin.Context) {
+	if utils.FormDefaultInt64(ctx, "agent_id", 0) == 0 {
+		utils.APIError(ctx, "运行实例未选择")
+		return
+	}
 	timing := new(models.Timing)
 	timing.GroupID = utils.FormDefaultInt64(ctx, "group_id", 0)
 	timing.AgentID = utils.FormDefaultInt64(ctx, "agent_id", 0)
@@ -134,7 +138,6 @@ func (c *TimingController) Edit(ctx *gin.Context) {
 func (c *TimingController) Update(ctx *gin.Context) {
 	timing := utils.GetTiming(ctx)
 	timing.GroupID = utils.FormDefaultInt64(ctx, "group_id", 0)
-	timing.AgentID = utils.FormDefaultInt64(ctx, "agent_id", 0)
 	timing.Name = ctx.PostForm("name")
 	timing.Dir = ctx.PostForm("dir")
 	timing.Program = ctx.PostForm("program")
@@ -146,6 +149,9 @@ func (c *TimingController) Update(ctx *gin.Context) {
 	timing.Creator = utils.GetUserID(ctx)
 	if ctx.PostForm("is_monitor") != "" {
 		timing.IsMonitor = 1
+	}
+	if utils.FormDefaultInt64(ctx, "agent_id", 0) != 0 {
+		timing.AgentID = utils.FormDefaultInt64(ctx, "agent_id", 0)
 	}
 	ok := providers.TimingService.UpdateTiming(timing)
 	if !ok {

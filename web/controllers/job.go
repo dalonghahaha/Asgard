@@ -95,6 +95,10 @@ func (c *JobController) Add(ctx *gin.Context) {
 }
 
 func (c *JobController) Create(ctx *gin.Context) {
+	if utils.FormDefaultInt64(ctx, "agent_id", 0) == 0 {
+		utils.APIError(ctx, "运行实例未选择")
+		return
+	}
 	if !utils.Required(ctx, ctx.PostForm("spec"), "运行配置不能为空") {
 		return
 	}
@@ -140,7 +144,6 @@ func (c *JobController) Update(ctx *gin.Context) {
 	}
 	job := utils.GetJob(ctx)
 	job.GroupID = utils.FormDefaultInt64(ctx, "group_id", 0)
-	job.AgentID = utils.FormDefaultInt64(ctx, "agent_id", 0)
 	job.Name = ctx.PostForm("name")
 	job.Dir = ctx.PostForm("dir")
 	job.Program = ctx.PostForm("program")
@@ -152,6 +155,9 @@ func (c *JobController) Update(ctx *gin.Context) {
 	job.Updator = utils.GetUserID(ctx)
 	if ctx.PostForm("is_monitor") != "" {
 		job.IsMonitor = 1
+	}
+	if utils.FormDefaultInt64(ctx, "agent_id", 0) != 0 {
+		job.AgentID = utils.FormDefaultInt64(ctx, "agent_id", 0)
 	}
 	ok := providers.JobService.UpdateJob(job)
 	if !ok {

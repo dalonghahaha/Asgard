@@ -7,7 +7,6 @@ import (
 )
 
 func CmdConfigVerify(ctx *gin.Context) {
-	agentID := utils.FormDefaultInt64(ctx, "agent_id", 0)
 	name := ctx.PostForm("name")
 	dir := ctx.PostForm("dir")
 	program := ctx.PostForm("program")
@@ -30,11 +29,6 @@ func CmdConfigVerify(ctx *gin.Context) {
 		return
 	}
 	if !utils.Required(ctx, stdErr, "错误输出路径不能为空") {
-		ctx.Abort()
-		return
-	}
-	if agentID == 0 {
-		utils.APIBadRequest(ctx, "运行实例不能为空")
 		ctx.Abort()
 		return
 	}

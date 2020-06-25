@@ -15,7 +15,7 @@
 # vendor/
 
 dist
-./Asgard
+Asgard
 conf
 output
 runtime
