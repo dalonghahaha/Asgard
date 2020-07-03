@@ -20,7 +20,7 @@
     <div class="col-md-6">
         <div class="mb-2">
             <label class="form-label">运行实例</label>
-            <select id="agent_id" name="agent_id" class="form-select" required {{if ne .Info.Status 2}} disabled{{end}}>
+            <select id="agent_id" name="agent_id" class="form-select" required {{if .Info}} {{if ne .Info.Status 2}} disabled{{end}} {{end}}>
                 <option value="">请选择</option>
                 {{- range .AgentList}}
                 {{if $.Info}}
