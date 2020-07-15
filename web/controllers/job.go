@@ -155,6 +155,8 @@ func (c *JobController) Update(ctx *gin.Context) {
 	job.Updator = utils.GetUserID(ctx)
 	if ctx.PostForm("is_monitor") != "" {
 		job.IsMonitor = 1
+	} else {
+		job.IsMonitor = 0
 	}
 	if utils.FormDefaultInt64(ctx, "agent_id", 0) != 0 {
 		job.AgentID = utils.FormDefaultInt64(ctx, "agent_id", 0)

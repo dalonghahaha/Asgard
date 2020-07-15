@@ -114,6 +114,8 @@ func (c *TimingController) Create(ctx *gin.Context) {
 	timing.Creator = utils.GetUserID(ctx)
 	if ctx.PostForm("is_monitor") != "" {
 		timing.IsMonitor = 1
+	} else {
+		timing.IsMonitor = 0
 	}
 	ok := providers.TimingService.CreateTiming(timing)
 	if !ok {

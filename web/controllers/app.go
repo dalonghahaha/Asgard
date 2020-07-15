@@ -148,9 +148,13 @@ func (c *AppController) Update(ctx *gin.Context) {
 	app.Updator = utils.GetUserID(ctx)
 	if ctx.PostForm("auto_restart") != "" {
 		app.AutoRestart = 1
+	} else {
+		app.AutoRestart = 0
 	}
 	if ctx.PostForm("is_monitor") != "" {
 		app.IsMonitor = 1
+	} else {
+		app.IsMonitor = 0
 	}
 	if utils.FormDefaultInt64(ctx, "agent_id", 0) != 0 {
 		app.AgentID = utils.FormDefaultInt64(ctx, "agent_id", 0)
