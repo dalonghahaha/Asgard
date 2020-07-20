@@ -76,31 +76,6 @@ web节点、master节点、agent节点都需要一个名为**app.yaml**的配置
 
 启动web节点需要用到web目录中的**assets**和**views**两部分静态资源
 
-### master节点配置项示例及说明
-
-``` yaml
-master:
-    port: 9527                          #master节点监听端口
-component:
-    db:
-        asgard:                         #mysql数据库配置
-            host: "127.0.0.1"           #mysql数据库地址
-            port: 3306                  #mysql数据库端口
-            user: "xxxxxx"              #mysql数据库用户名
-            password: "xxxxxx"          #mysql数据库密码
-            database: "Asgard"          #mysql数据库库名
-    redis:                              #redis配置
-        asgard:
-            host: "127.0.0.1"           #redis地址
-            port: 6379                  #redis端口号
-            password: ""                #redis密码
-            db: 0                       #redis库索引
-    log:                                #日志配置
-        console: true                   #是否输出到控制台
-        level: "debug"                  #日志级别
-        dir: "runtime/"                 #日志存放根目录
-```
-
 ### web节点配置项示例及说明
 
 ``` yaml
@@ -128,16 +103,90 @@ component:
         dir: "runtime/"                 #日志存放根目录
 ```
 
-### agent节点配置项示例及说明
+### 单节点master节点配置项示例及说明
 
 ``` yaml
-system:
-    moniter: 10                         #监控指标上报周期，单位秒
-    timer: 10                           #定时任务轮询周期，单位秒
+master:
+    port: 9527                          #master节点监听端口
+component:
+    db:
+        asgard:                         #mysql数据库配置
+            host: "127.0.0.1"           #mysql数据库地址
+            port: 3306                  #mysql数据库端口
+            user: "xxxxxx"              #mysql数据库用户名
+            password: "xxxxxx"          #mysql数据库密码
+            database: "Asgard"          #mysql数据库库名
+    redis:                              #redis配置
+        asgard:
+            host: "127.0.0.1"           #redis地址
+            port: 6379                  #redis端口号
+            password: ""                #redis密码
+            db: 0                       #redis库索引
+    log:                                #日志配置
+        console: true                   #是否输出到控制台
+        level: "debug"                  #日志级别
+        dir: "runtime/"                 #日志存放根目录
+```
+
+### 单节点agent节点配置项示例及说明
+
+``` yaml
 agent:
-    master:                             #master节点地址
-        ip: "127.0.0.1"                 #master节点端口
-        port: 9527
+    moniter: 10                         #监控指标上报周期，单位秒
+    master:
+        ip: "127.0.0.1"                 #master节点地址
+        port: 9527                      #master节点端口
+    rpc:
+        ip: "127.0.0.1"                 #agent节点地址
+        port: 27149                     #agent节点端口
+component:
+    log:                                #日志配置
+        console: true                   #是否输出到控制台
+        level: "debug"                  #日志级别
+        dir: "runtime/"                 #日志存放根目录
+```
+
+### 高可用master节点配置项示例及说明
+
+``` yaml
+master:
+    port: 9527                          #master节点监听端口
+    cluster: true                       #标记启用集群模式
+    cluster_registry:                   #etcd集群节点列表
+        - "127.0.0.1:2379"
+    cluster_name: "asgard"              #集群名称
+    cluster_id: "master-1"              #集群节点ID
+    cluster_ip: "127.0.0.1"             #集群节点IP
+component:
+    db:
+        asgard:                         #mysql数据库配置
+            host: "127.0.0.1"           #mysql数据库地址
+            port: 3306                  #mysql数据库端口
+            user: "xxxxxx"              #mysql数据库用户名
+            password: "xxxxxx"          #mysql数据库密码
+            database: "Asgard"          #mysql数据库库名
+    redis:                              #redis配置
+        asgard:
+            host: "127.0.0.1"           #redis地址
+            port: 6379                  #redis端口号
+            password: ""                #redis密码
+            db: 0                       #redis库索引
+    log:                                #日志配置
+        console: true                   #是否输出到控制台
+        level: "debug"                  #日志级别
+        dir: "runtime/"                 #日志存放根目录
+```
+
+### 高可用agent节点配置项示例及说明
+
+``` yaml
+agent:
+    moniter: 10                         #监控指标上报周期，单位秒
+    master:
+        cluster: true                   #标记启用集群模式
+        cluster_registry:               #etcd集群节点列表
+            - "127.0.0.1:2379"
+        cluster_name: "asgard"          #集群名称
     rpc:
         ip: "127.0.0.1"                 #agent节点地址
         port: 27149                     #agent节点端口

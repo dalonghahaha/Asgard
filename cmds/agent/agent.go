@@ -56,13 +56,6 @@ func InitAgent() error {
 	}
 	constants.AGENT_IP = agentIP
 	constants.AGENT_PORT = agentPort
-	masterIP := viper.GetString("agent.master.ip")
-	masterPort := viper.GetString("agent.master.port")
-	if masterIP == "" && masterPort == "" {
-		return fmt.Errorf("agent master config error")
-	}
-	constants.MASTER_IP = masterIP
-	constants.MASTER_PORT = masterPort
 	constants.AGENT_PID = os.Getpid()
 	constants.AGENT_UUID = uuid.GenerateV4()
 	duration := viper.GetInt("agent.moniter")
@@ -80,6 +73,13 @@ func InitAgent() error {
 			return fmt.Errorf("init cluster master client failed:%s", err.Error())
 		}
 	} else {
+		masterIP := viper.GetString("agent.master.ip")
+		masterPort := viper.GetString("agent.master.port")
+		if masterIP == "" && masterPort == "" {
+			return fmt.Errorf("agent master config error")
+		}
+		constants.MASTER_IP = masterIP
+		constants.MASTER_PORT = masterPort
 		master, err = clients.NewMaster(constants.MASTER_IP, constants.MASTER_PORT)
 		if err != nil {
 			return fmt.Errorf("init master client failed:%s", err.Error())
