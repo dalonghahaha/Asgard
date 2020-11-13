@@ -162,9 +162,8 @@ func StopMaster() {
 func MoniterMaster() {
 	constants.MASTER_TICKER = time.NewTicker(time.Second * time.Duration(constants.MASTER_MONITER))
 	for range constants.MASTER_TICKER.C {
-		// only leader do check
-		if registry.IsLeader() {
-			logger.Info("agent check")
+		if !constants.MASTER_CLUSTER || registry.IsLeader() {
+			//logger.Info("agent check")
 			agentList := providers.AgentService.GetUsageAgent()
 			for _, agent := range agentList {
 				go checkAgent(agent)
