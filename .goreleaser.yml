@@ -11,7 +11,7 @@ builds:
             - darwin
             - linux
         goarch:
-            - 386
+            - i386
             - amd64
             - arm
             - arm64
@@ -19,7 +19,7 @@ archives:
     - 
         name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
         replacements:
-            386: i386
+            i386: i386
             amd64: x86_64
         files:
             - web/assets/*
