@@ -174,5 +174,5 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户信息';
 
 INSERT INTO `users` (`id`, `nickname`, `avatar`, `email`, `mobile`, `role`, `salt`, `password`, `status`, `created_at`, `updated_at`)
-VALUES	(1, 'admin', '', 'admin@admin.com', '13888888888', 'Administrator', 'PWxWFtzI', '00bcdd0b332639433268af7eeff20e5a', 1, '2020-01-08 16:38:05', '2020-05-20 08:01:57');
+VALUES	(1, 'admin', '', 'admin@admin.com', '13888888888', 'Administrator', 'PWxWFtzI', 'd55d350c7d70b3f5fa295ca05f98af73', 1, '2020-01-08 16:38:05', '2020-05-20 08:01:57');
 

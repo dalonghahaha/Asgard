@@ -70,6 +70,8 @@ Asgard是设计用于综合解决常驻进程应用、计划任务、定时任�
 
 运行**scripts/Asgard.sql**初始化mysql数据表。monitors数据表按月分表，格式"monitors_202006",需要提前创建。
 
+初始登录名：admin,初始密码：123456
+
 web节点、master节点、agent节点都需要一个名为**app.yaml**的配置文件。
 
 默认读取运行目录下名为**conf**的目录，如果需要指向配置文件的目录可以在启动命令中通过**conf**参数指定。

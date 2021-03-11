@@ -16,6 +16,7 @@ func setupRouter() {
 	server.POST("/register", useController.DoRegister)
 	server.GET("/login", useController.Login)
 	server.POST("/login", useController.DoLogin)
+	server.GET("/logout", useController.Logout)
 	user := server.Group("/user")
 	user.Use(middlewares.Login)
 	{
