@@ -54,8 +54,6 @@ func Wait(function func()) {
 		syscall.SIGINT,
 		syscall.SIGQUIT,
 		syscall.SIGTERM,
-		syscall.SIGUSR1,
-		syscall.SIGUSR2,
 	)
 	for s := range ExitSinal {
 		switch s {
@@ -63,10 +61,6 @@ func Wait(function func()) {
 			logger.Infof("signal:%+v", s)
 			function()
 			os.Exit(0)
-		case syscall.SIGUSR1:
-			logger.Infof("usr1:%+v", s)
-		case syscall.SIGUSR2:
-			logger.Infof("usr2:%+v", s)
 		}
 	}
 }

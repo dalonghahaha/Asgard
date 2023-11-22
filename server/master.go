@@ -31,6 +31,7 @@ func (s *MasterServer) Register(ctx context.Context, request *rpc.AgentInfo) (*r
 	agent = new(models.Agent)
 	agent.IP = request.GetIp()
 	agent.Port = request.GetPort()
+	agent.Master = constants.MASTER_IP
 	agent.Status = constants.AGENT_ONLINE
 	ok := providers.AgentService.CreateAgent(agent)
 	if !ok {

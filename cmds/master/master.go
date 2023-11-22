@@ -65,6 +65,10 @@ func InitMaster() error {
 	if err := cache.Register(); err != nil {
 		return fmt.Errorf("init cache failed:%+v", err)
 	}
+	ip := viper.GetString("master.ip")
+	if ip != "" {
+		constants.MASTER_PORT = ip
+	}
 	port := viper.GetString("master.port")
 	if port != "" {
 		constants.MASTER_PORT = port
@@ -163,7 +167,7 @@ func MoniterMaster() {
 	constants.MASTER_TICKER = time.NewTicker(time.Second * time.Duration(constants.MASTER_MONITER))
 	for range constants.MASTER_TICKER.C {
 		if !constants.MASTER_CLUSTER || registry.IsLeader() {
-			//logger.Info("agent check")
+			logger.Debug("agent checking ......")
 			agentList := providers.AgentService.GetUsageAgent()
 			for _, agent := range agentList {
 				go checkAgent(agent)
