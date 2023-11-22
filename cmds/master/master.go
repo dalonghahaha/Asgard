@@ -168,7 +168,7 @@ func MoniterMaster() {
 	for range constants.MASTER_TICKER.C {
 		if !constants.MASTER_CLUSTER || registry.IsLeader() {
 			logger.Debug("agent checking ......")
-			agentList := providers.AgentService.GetUsageAgent()
+			agentList := providers.AgentService.GetMasterAgent()
 			for _, agent := range agentList {
 				go checkAgent(agent)
 			}
