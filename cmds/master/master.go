@@ -67,7 +67,7 @@ func InitMaster() error {
 	}
 	ip := viper.GetString("master.ip")
 	if ip != "" {
-		constants.MASTER_PORT = ip
+		constants.MASTER_IP = ip
 	}
 	port := viper.GetString("master.port")
 	if port != "" {
