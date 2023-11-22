@@ -180,12 +180,18 @@ func checkAgent(agent models.Agent) {
 	usageApps := providers.AppService.GetUsageAppByAgentID(agent.ID)
 	usageJobs := providers.JobService.GetUsageJobByAgentID(agent.ID)
 	usageTimings := providers.TimingService.GetUsageTimingByAgentID(agent.ID)
-	client, err := providers.GetAgent(&agent)
-	if err != nil {
-		return
-	}
-	_, err = client.GetStat()
-	if err != nil {
+	// client, err := providers.GetAgent(&agent)
+	// if err != nil {
+	// 	return
+	// }
+	// _, err = client.GetStat()
+
+	//检查端口是否开启
+	logger.Debugf("check agent:%s[%s:%s]", agent.Alias, agent.IP, agent.Port)
+	tong := checkPort(agent.IP, agent.Port)
+
+	if !tong {
+		logger.Warnf("agent offline:%s[%s:%s] offline", agent.Alias, agent.IP, agent.Port)
 		//标记实例状态为离线
 		agent.Status = constants.AGENT_OFFLINE
 		providers.AgentService.UpdateAgent(&agent)
@@ -206,9 +212,12 @@ func checkAgent(agent models.Agent) {
 		//标记实例状态为在线
 		agent.Status = constants.AGENT_ONLINE
 		providers.AgentService.UpdateAgent(&agent)
+		client, err := providers.GetAgent(&agent)
+		if err != nil {
+			return
+		}
 		//更新实例应用运行状态
 		apps, err := client.GetAppList()
-		//logger.Debugf("%s runing apps:%d", agent.Alias, len(apps))
 		if err != nil {
 			logger.Error("checkOnlineAgent GetAgentAppList Error:", err)
 		} else {
@@ -216,7 +225,6 @@ func checkAgent(agent models.Agent) {
 		}
 		//更新实例计划任务运行状态
 		jobs, err := client.GetJobList()
-		//logger.Debugf("%s runing jobs:%d", agent.Alias, len(jobs))
 		if err != nil {
 			logger.Error("checkOnlineAgent GetAgentJobList Error:", err)
 		} else {
@@ -224,13 +232,21 @@ func checkAgent(agent models.Agent) {
 		}
 		//更新实例计划任务运行状态
 		timings, err := client.GetTimingList()
-		//logger.Debugf("%s runing timings:%d", agent.Alias, len(timings))
 		if err != nil {
 			logger.Error("checkOnlineAgent GetAgentTimingList Error:", err)
 		} else {
 			markTimigStatus(timings, usageTimings)
 		}
 	}
+}
+
+func checkPort(ip string, port string) bool {
+	conn, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%s", ip, port), time.Second*3)
+	if err != nil {
+		return false
+	}
+	defer conn.Close()
+	return true
 }
 
 func markAppStatus(apps []*rpc.App, usageApps []models.App) {
