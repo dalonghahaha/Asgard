@@ -86,7 +86,7 @@ func (s *AgentService) GetAgentPageList(where map[string]interface{}, page int, 
 			condition += fmt.Sprintf(" and %s=%v", key, val)
 		}
 	}
-	err := models.PageListbyWhereString(&models.Agent{}, condition, page, pageSize, "name asc", &list, &count)
+	err := models.PageListbyWhereString(&models.Agent{}, condition, page, pageSize, "alias asc", &list, &count)
 	if err != nil {
 		logger.Error("GetAgentPageList Error:", err)
 		return nil, 0
