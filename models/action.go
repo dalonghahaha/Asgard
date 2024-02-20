@@ -18,6 +18,10 @@ func Where(list interface{}, query string, args ...interface{}) error {
 	return db.Get(DB_NAME).Where(query, args...).Find(list).Error
 }
 
+func WhereAndOrder(list interface{}, order string, query string, args ...interface{}) error {
+	return db.Get(DB_NAME).Where(query, args...).Order(order).Find(list).Error
+}
+
 func Count(object interface{}, where map[string]interface{}, count *int) error {
 	return db.Get(DB_NAME).Model(object).Where(where).Count(count).Error
 }

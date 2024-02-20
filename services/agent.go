@@ -27,7 +27,7 @@ func (s *AgentService) buidCacheKeyIpPort(ip, port string) string {
 }
 
 func (s *AgentService) GetUsageAgent() (list []models.Agent) {
-	err := models.Where(&list, "status != ?", "-1")
+	err := models.WhereAndOrder(&list, "alias asc", "status != ?", "-1")
 	if err != nil {
 		logger.Error("GetUsageAgent Error:", err)
 		return nil
