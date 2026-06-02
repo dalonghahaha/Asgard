@@ -6,6 +6,7 @@ import (
 )
 
 func setupRouter() {
+	// 现有 HTML 路由（保持不变）
 	server.GET("/", middlewares.Login, indexController.Index)
 	server.GET("/no_login", controllers.Nologin)
 	server.GET("/auth_fail", controllers.AuthFail)
@@ -160,4 +161,9 @@ func setupRouter() {
 	{
 		operation.GET("/list", operationController.List)
 	}
+
+	// JSON API 路由（Phase 1 前后端分离）：与 HTML 路由并存
+	// 子路由注册拆到 web/routers/api_router.go，避免 setupRouter 单文件过大
+	api := server.Group("/api/v1")
+	setupAPIRouter(api)
 }
