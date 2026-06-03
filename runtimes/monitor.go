@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/dalonghahaha/avenger/components/logger"
-	"github.com/shirou/gopsutil/process"
+	"github.com/shirou/gopsutil/v3/process"
 
 	"Asgard/constants"
 )
