@@ -1,0 +1,45 @@
+ {
+   "compilerOptions": {
+     "target": "ES2022",
+     "useDefineForClassFields": true,
+     "module": "ESNext",
+     "lib": ["ES2022", "DOM", "DOM.Iterable"],
+     "skipLibCheck": true,
+     "moduleResolution": "bundler",
+     "allowImportingTsExtensions": false,
+     "resolveJsonModule": true,
+     "isolatedModules": true,
+     "esModuleInterop": true,
+     "noEmit": true,
+     "jsx": "preserve",
+     "strict": true,
+     "noImplicitAny": true,
+     "strictNullChecks": true,
+     "strictFunctionTypes": true,
+     "strictBindCallApply": true,
+     "strictPropertyInitialization": true,
+     "noImplicitThis": true,
+     "alwaysStrict": true,
+     "noUncheckedIndexedAccess": true,
+     "exactOptionalPropertyTypes": true,
+     "noUnusedLocals": false,
+     "noUnusedParameters": false,
+     "noFallthroughCasesInSwitch": true,
+     "noImplicitOverride": true,
+     "noImplicitReturns": true,
+     "forceConsistentCasingInFileNames": true,
+     "baseUrl": ".",
+     "paths": {
+       "@/*": ["src/*"]
+     },
+     "types": ["node", "vitest/globals", "element-plus/global"]
+   },
+   "include": [
+     "src/**/*.ts",
+     "src/**/*.d.ts",
+     "src/**/*.tsx",
+     "src/**/*.vue",
+   ],
+   "exclude": ["node_modules", "dist", "e2e"],
+   "references": [{ "path": "./tsconfig.node.json" }]
+ }

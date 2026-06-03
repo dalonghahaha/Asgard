@@ -133,51 +133,58 @@ Web (Gin) ──> master (DB) ──> agent gRPC ──> appManager / jobManager
 
 agent 的 `AgentManager.StartAll()` 顺序：上报协程 → 自身 `AgentMonitorReport` → `AgentRegister` → `AppsRegister/JobsRegister/TimingsRegister` → `StartAll(true)` 三个子 manager。
 
-## 6. Web 层（Gin + goview）
 
-### 6.1 装配
+## 6. Web 层（纯 JSON API + 独立前端）
 
-`web/server.go` 中 `Init()` 负责：路由 / 模板 / 静态资源（`web/assets` 静态文件由 `goreleaser` 打包进去）。`Run()` 调 `setupController()`（注入 viper → `constants.WEB_OUT_DIR`）后 `setupRouter()`。
+> 前后端分离已完成。`web/` 后端只剩 Gin 路由器 + JSON 控制器；前端是仓库内 `web-admin/`（Vue 3 + Vite + TS + Element Plus + Pinia），由独立 Dockerfile / Nginx 托管。详见 [doc/API.md](doc/API.md) 与 [web-admin/README.md](web-admin/README.md)。
 
-### 6.2 路由与中间件分层
+### 6.1 后端装配
 
-`web/router.go` 是一张平铺的对照表，业务上把每类资源（user/agent/group/app/job/timing/monitor/archive/out_log/err_log/exception/operation）分成一个 group：
+`web/server.go` 中 `Init()` 只做：Gin engine、Logger、Recover 三件事。`Run()` 把 `viper.GetString("log.dir")` 同步到 `constants.WEB_OUT_DIR` 后调 `setupRouter()`，启动监听 `web.port`（默认 12345）。
 
-- `*Init`（如 `AppInit/AppAgentInit/BatchAppAgentInit`）— 解析 query/post 里的 `id`，把 `*models.App` 之类的对象塞到 `gin.Context` 上，并把 `agent` 也一并塞好（带 `AGENT_ONLINE` 校验）。
-- `Admin` — 角色校验。
-- `Login` — 解析 `token` cookie（DES 加密 userID，盐来自 `web.cookie_salt`，**必须 8 字节字符串**）。
-- `CmdConfigVerify` — 提交时的非空校验。
+子路由在 `web/routers/api_router.go` 的 `SetupAPIRouter(api *gin.RouterGroup)` 里挂载；当前只挂 `/api/v1` 这一棵 group，里面再分 `auth/users/agents/groups/apps/jobs/timings/monitor/archives/{out,err}_logs/{exceptions,operations}/sse`。
 
-> 修改任何 `*Init` 的语义请同时核对 `web/utils/request.go` 里的 `GetApp/GetAppAgent/...` 提取函数。
+### 6.2 公共中间件
 
-### 6.3 控制器写法
+全局只挂两个 API 中间件（按顺序）：
 
-以 `controllers.AppController` 为代表（`/Users/dengjialong/git/github/Asgard/web/controllers/app.go`）：
+- `CORS`（`web/middlewares/cors.go`）— 处理 OPTIONS 预检、放开 `Authorization/Content-Type` 头。
+- `APIAuth`（`web/middlewares/api_auth.go`）— 双轨鉴权：先看 `Authorization: Bearer <jwt>`，再回落到现有 DES cookie；通过后把 `*models.User` 注入 `gin.Context`，复用 `utils.GetUser/GetUserID`。
+- `APIAuthAdmin` — 复用 `APIAuth` 注入的 user 做管理员校验（用户/实例/部分接口上挂）。
 
-- 列表页用 `where := map[string]interface{}{}` + `providers.XService.GetXPageList`，**普通用户自动按 `creator` 过滤**。
-- 操作类接口（start/restart/pause/delete/copy）的标准顺序是：`utils.GetApp(ctx)` → `utils.GetAgent(ctx)`（中间件塞好的）→ `providers.GetAgent(agent)` → 通过 gRPC 推 agent → `providers.XService.ChangeXStatus` 改库 → `utils.OpetationLog(...)` 写操作日志 → `utils.APIOK(ctx)`。
+### 6.3 API 控制器
 
-> 注意：批量接口的中间件把对象装到 `app_agent / job_agent / timing_agent` map，controller 用 `utils.GetAppAgent(ctx)` 拿。
+全部放在 `web/controllers/api_*.go`，按资源分文件。写法约定：
 
-### 6.4 响应与模板
+- 列表统一用 `utils.APIPage(ctx, list, total, page, pageSize)` 返回 `{code, message, data:{list,total,page,page_size}}`。
+- 资源加载、权限校验内联在每个方法里（替代了原来的 `*Init` 中间件），普通用户的 creator 过滤在 `where["creator"] = user.ID` 一行搞定。
+- 启停类操作走 `loadXxxAgentForUser → providers.GetAgent → gRPC Add/Update/RemoveXxx → providers.XService.ChangeXStatus → utils.OpetationLog → utils.APIOK`。
+- 实时数据走 SSE，handler 在 `api_sse.go`，事件类型分 `log/point/ping`。
 
-`web/utils/respose.go` 提供了 `Render / APIOK / APIError / Warning / JumpWarning / JumpError` 一组小工具；HTML 模板用 goview 的"layouts + partials"机制（`web/views/layouts/master.html` + `web/views/templates/*.html`）。`web/utils/html.go` 的 `PagerHtml` 是后端拼好的分页 HTML。
+### 6.4 响应工具
 
-> 注意：`web/utils/opetation.go` 写的是 `OpetationLog`（**注意拼写**：是 *opetation*，不是 *operation*）；`utils.OpetationLog` 是控制器里实际调用的名字，不要去"修正"它。
+`web/utils/respose.go` 只剩 `APIOK/APIData/APIPage/APIBadRequest/APIError`。HTML 渲染相关（`Render/JumpWarning/Warning/JumpError`）已删除。分页参数读取用 `web/utils/query.go` 的 `QueryInt/QueryInt64/PathInt64`。
 
-### 6.5 资源视图
+### 6.5 前端工程
 
-`web/views/` 的每个子目录对应控制器的实体：agent / app / archive / exception / group / job / log / monitor / operation / timing / user + 顶层 `index.html` 和 `warning.html`。`web/assets/js/asgard.js` 里有 `Asgard.getData / postData` 这种统一 ajax 包装，约定成功码是 `200`。
+`web-admin/` 是独立 Vite 工程（独立 `package.json` / `Dockerfile` / `vitest.config.ts` / `playwright.config.ts`）。要点：
 
-## 7. 配置与数据
+- 开发期 `vite.config.ts` 把 `/api/*` 代理到 `VITE_BACKEND_TARGET`（默认 `http://localhost:12345`）。
+- 鉴权走 `Authorization: Bearer <jwt>`，Pinia store 用 localStorage 持久化；401 由 `src/api/http.ts` 拦截器统一跳 `/login`。
+- 路由表（`src/router/index.ts`）按 11 个资源 group 一一对应：users / agents / groups / apps / jobs / timings / monitor / archive / logs / exception / operation + 5 个错误页。
+- 公共组件：`components/MonitorChart.vue`（ECharts 折线）、`components/TerminalLog.vue`（xterm 实时日志）。
 
-### 7.1 app.yaml 关键项
+### 6.6 旧 HTML 资产归档
 
-viper 读 `app.yaml`，按节点类型只读对应前缀：
+为方便对比与回溯，旧的 goview HTML 资产已迁移到 `web/legacy/` 与 `doc/legacy-templates/`：
 
-- 公共：`system.moniter / system.timer`、`component.{db,redis,log,mail}.*`
-- `web.*`：`port / mode / domain / cookie_salt`（详见 `cmds/web/web.go` 和 `constants/web.go`）
-- `master.*`：`port / cluster / cluster_registry / cluster_name / cluster_id / cluster_ip / moniter / notify / receiver`（详见 `cmds/master/master.go`）
+- `web/legacy/controllers/` — 12 个旧 HTML 控制器
+- `web/legacy/middlewares/` — 8 个旧 HTML 中间件
+- `web/legacy/utils/` — `html.go / request.go`（分页 HTML、context 提取函数）
+- `doc/legacy-templates/` — 旧 goview 模板（`web/views/` 全量搬过来）
+- `web/assets/` — 旧静态资源已删除；如需参考可从 git 历史恢复。
+
+这些文件加了 `//go:build ignore`，不参与编译；只作为历史参考。新代码禁止 import `web/legacy/`。
 - `agent.*`：`moniter / master.{ip,port} | master.{cluster,cluster_registry,cluster_name}` / `rpc.{ip,port}`（详见 `cmds/agent/agent.go`）
 
 > viper 读不到配置就直接 `panic`，所以部署前请保证 `conf/app.yaml` 存在。`.gitignore` 已经忽略 `conf/` 目录。

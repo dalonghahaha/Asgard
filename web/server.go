@@ -1,93 +1,41 @@
-package web
+ package web
 
-import (
-	"fmt"
-	"html/template"
-	"strings"
+ import (
+ 	"fmt"
 
-	common_middlewares "github.com/dalonghahaha/avenger/middlewares/gin"
-	"github.com/dalonghahaha/avenger/tools/file"
-	"github.com/foolin/goview"
-	"github.com/foolin/goview/supports/ginview"
-	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
+ 	common_middlewares "github.com/dalonghahaha/avenger/middlewares/gin"
+ 	"github.com/gin-gonic/gin"
+ 	"github.com/spf13/viper"
 
-	"Asgard/constants"
-	"Asgard/web/controllers"
-	"Asgard/web/utils"
-)
+ 	"Asgard/constants"
+ )
 
-var (
-	server              *gin.Engine
-	appController       *controllers.AppController
-	jobController       *controllers.JobController
-	agentController     *controllers.AgentController
-	useController       *controllers.UserController
-	groupController     *controllers.GroupController
-	timingController    *controllers.TimingController
-	monitorController   *controllers.MonitorController
-	archiveController   *controllers.ArchiveController
-	logController       *controllers.LogController
-	exceptionController *controllers.ExceptionController
-	operationController *controllers.OperationController
-	indexController     *controllers.IndexController
-)
+ // 前后端分离后 web 层只承载纯 JSON API；HTML 渲染相关（goview、controllers）已下线。
+ // 旧 HTML 控制器/中间件/模板/静态资源已迁移到 web/legacy/ 与 doc/legacy-templates/。
 
-func Server() *gin.Engine {
-	return server
-}
+ var server *gin.Engine
 
-func Init() error {
-	if constants.WEB_MODE == "release" {
-		gin.SetMode(gin.ReleaseMode)
-	}
-	server = gin.New()
-	server.Use(common_middlewares.Logger)
-	server.Use(common_middlewares.Recover)
-	viewConfig := goview.DefaultConfig
-	viewConfig.Root = "web/views"
-	viewConfig.Extension = ".html"
-	viewConfig.Master = "layouts/master"
-	fileList, err := file.ReadDir("web/views/templates")
-	if err != nil {
-		return err
-	}
-	partials := []string{}
-	for _, file := range fileList {
-		partial := "templates/" + strings.Replace(file.Name(), viewConfig.Extension, "", -1)
-		partials = append(partials, partial)
-	}
-	viewConfig.Partials = partials
-	viewConfig.DisableCache = true
-	viewConfig.Funcs = template.FuncMap{
-		"unescaped": utils.Unescaped,
-	}
-	server.HTMLRender = ginview.New(viewConfig)
-	server.Static("/assets", "web/assets")
-	return nil
-}
+ func Server() *gin.Engine {
+ 	return server
+ }
 
-func setupController() {
-	outDir := viper.GetString("log.dir")
-	if outDir != "" {
-		constants.WEB_OUT_DIR = outDir
-	}
-	useController = controllers.NewUserController()
-	agentController = controllers.NewAgentController()
-	groupController = controllers.NewGroupController()
-	appController = controllers.NewAppController()
-	jobController = controllers.NewJobController()
-	timingController = controllers.NewTimingController()
-	indexController = controllers.NewIndexController()
-	monitorController = controllers.NewMonitorController()
-}
+ func Init() error {
+ 	if constants.WEB_MODE == "release" {
+ 		gin.SetMode(gin.ReleaseMode)
+ 	}
+ 	server = gin.New()
+ 	server.Use(common_middlewares.Logger)
+ 	server.Use(common_middlewares.Recover)
+ 	return nil
+ }
 
-func Run() {
-	setupController()
-	setupRouter()
-	addr := fmt.Sprintf(":%d", constants.WEB_PORT)
-	err := server.Run(addr)
-	if err != nil {
-		panic("web服务启动失败!")
-	}
-}
+ func Run() {
+ 	if outDir := viper.GetString("log.dir"); outDir != "" {
+ 		constants.WEB_OUT_DIR = outDir
+ 	}
+ 	setupRouter()
+ 	addr := fmt.Sprintf(":%d", constants.WEB_PORT)
+ 	if err := server.Run(addr); err != nil {
+ 		panic("web服务启动失败!")
+ 	}
+ }

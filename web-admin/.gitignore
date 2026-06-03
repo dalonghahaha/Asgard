@@ -1,0 +1,29 @@
+# Vite/Vue dev artifacts
+node_modules
+dist
+dist-ssr
+.vite
+*.local
+
+# Editor / IDE
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Test / coverage / e2e artifacts
+coverage
+playwright-report
+test-results
+e2e/test-results
+e2e/playwright-report
+playwright/.cache
+
+# Env overrides (commit .env / .env.example; ignore machine-specific overrides)
+.env.local
+.env.*.local

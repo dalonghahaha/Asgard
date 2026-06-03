@@ -5,6 +5,8 @@ var (
 	WEB_MODE           = "release"
 	WEB_DOMAIN         = "localhost"
 	WEB_COOKIE_SALT    = "sdswqeqx"
+	WEB_JWT_SECRET     = "asgard-jwt-secret-2026"
+	WEB_JWT_TTL        = 7200
 	WEB_LANG           = "cn"
 	WEB_TIME_LOCATION  = "Asia/Shanghai"
 	WEB_TIME_LAYOUT    = "2006-01-02 15:04"

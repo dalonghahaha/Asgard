@@ -1,0 +1,51 @@
+{
+   "name": "asgard-web-admin",
+   "version": "1.0.0",
+   "private": true,
+   "type": "module",
+   "description": "Asgard management console (Vue 3 + Vite + TypeScript + Element Plus + Pinia)",
+   "scripts": {
+      "dev": "vite",
+      "build": "vue-tsc --noEmit && vite build",
+      "preview": "vite preview --port 4173",
+      "lint": "eslint . --ext .vue,.ts,.tsx --fix",
+      "format": "prettier --write \"src/**/*.{vue,ts,tsx,css,scss,md}\"",
+      "typecheck": "vue-tsc --noEmit",
+      "test": "vitest run",
+      "test:watch": "vitest",
+      "e2e": "playwright test",
+      "e2e:install": "playwright install --with-deps chromium"
+   },
+   "dependencies": {
+      "@element-plus/icons-vue": "^2.3.1",
+      "axios": "^1.7.7",
+      "echarts": "^5.5.1",
+      "element-plus": "^2.8.4",
+      "pinia": "^2.2.4",
+      "vue": "^3.5.12",
+      "vue-echarts": "^7.0.3",
+      "vue-router": "^4.4.5",
+      "xterm": "^5.3.0",
+      "xterm-addon-fit": "^0.8.0"
+   },
+   "devDependencies": {
+      "@playwright/test": "^1.48.0",
+      "@types/node": "^22.7.5",
+      "@typescript-eslint/eslint-plugin": "^7.18.0",
+      "@typescript-eslint/parser": "^7.18.0",
+      "@vitejs/plugin-vue": "^5.1.4",
+      "@vue/test-utils": "^2.4.6",
+      "eslint": "^8.57.1",
+      "eslint-config-prettier": "^9.1.0",
+      "eslint-plugin-vue": "^9.28.0",
+      "jsdom": "^25.0.1",
+      "prettier": "^3.3.3",
+      "sass": "^1.79.4",
+      "typescript": "^5.6.3",
+      "unplugin-auto-import": "^0.18.3",
+      "unplugin-vue-components": "^0.27.4",
+      "vite": "^5.4.8",
+      "vitest": "^2.1.2",
+      "vue-tsc": "^2.1.10"
+   }
+}

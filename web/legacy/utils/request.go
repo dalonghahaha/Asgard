@@ -1,0 +1,189 @@
+//go:build ignore
+// +build ignore
+
+// DEPRECATED: 仅作历史参考；前后端分离后已下线，详见 doc/TASKS.md Phase 5。
+// 原 import 路径已变；如需恢复，请同步修改 import 路径与 package 名。
+
+package legacy
+
+import (
+	"strconv"
+
+	"github.com/gin-gonic/gin"
+
+	"Asgard/models"
+)
+
+func GetReferer(ctx *gin.Context) string {
+	return ctx.Request.Header.Get("Referer")
+}
+
+func GetID(ctx *gin.Context) (int64, bool) {
+	var id int64
+	if ctx.Request.Method == "GET" {
+		id = DefaultInt64(ctx, "id", 0)
+		if id == 0 {
+			JumpWarning(ctx, "请求参数异常")
+			return 0, false
+		}
+	} else if ctx.Request.Method == "POST" {
+		id = FormDefaultInt64(ctx, "id", 0)
+		if id == 0 {
+			APIError(ctx, "请求参数异常")
+			return 0, false
+		}
+	}
+	return id, true
+}
+
+func DefaultInt(ctx *gin.Context, key string, defaultVal int) int {
+	val := ctx.Query(key)
+	if val == "" {
+		return defaultVal
+	}
+	_val, err := strconv.Atoi(val)
+	if err != nil {
+		return defaultVal
+	}
+	return _val
+}
+
+func DefaultInt64(ctx *gin.Context, key string, defaultVal int64) int64 {
+	val := ctx.Query(key)
+	if val == "" {
+		return defaultVal
+	}
+	_val, err := strconv.ParseInt(val, 10, 64)
+	if err != nil {
+		return defaultVal
+	}
+	return _val
+}
+
+func FormDefaultInt(ctx *gin.Context, key string, defaultVal int) int {
+	val := ctx.PostForm(key)
+	if val == "" {
+		return defaultVal
+	}
+	_val, err := strconv.Atoi(val)
+	if err != nil {
+		return defaultVal
+	}
+	return _val
+}
+
+func FormDefaultInt64(ctx *gin.Context, key string, defaultVal int64) int64 {
+	val := ctx.PostForm(key)
+	if val == "" {
+		return defaultVal
+	}
+	_val, err := strconv.ParseInt(val, 10, 64)
+	if err != nil {
+		return defaultVal
+	}
+	return _val
+}
+
+func Required(ctx *gin.Context, val string, message string) bool {
+	if val == "" {
+		APIBadRequest(ctx, message)
+		return false
+	}
+	return true
+}
+
+func GetAgent(ctx *gin.Context) *models.Agent {
+	agent, ok := ctx.Get("agent")
+	if !ok {
+		return nil
+	}
+	_agent, ok := agent.(*models.Agent)
+	if !ok {
+		return nil
+	}
+	return _agent
+}
+
+func GetGroup(ctx *gin.Context) *models.Group {
+	group, ok := ctx.Get("group")
+	if !ok {
+		return nil
+	}
+	_group, ok := group.(*models.Group)
+	if !ok {
+		return nil
+	}
+	return _group
+}
+
+func GetApp(ctx *gin.Context) *models.App {
+	app, ok := ctx.Get("app")
+	if !ok {
+		return nil
+	}
+	_app, ok := app.(*models.App)
+	if !ok {
+		return nil
+	}
+	return _app
+}
+
+func GetJob(ctx *gin.Context) *models.Job {
+	job, ok := ctx.Get("job")
+	if !ok {
+		return nil
+	}
+	_job, ok := job.(*models.Job)
+	if !ok {
+		return nil
+	}
+	return _job
+}
+
+func GetTiming(ctx *gin.Context) *models.Timing {
+	timing, ok := ctx.Get("timing")
+	if !ok {
+		return nil
+	}
+	_timing, ok := timing.(*models.Timing)
+	if !ok {
+		return nil
+	}
+	return _timing
+}
+
+func GetAppAgent(ctx *gin.Context) map[*models.App]*models.Agent {
+	appAgents, ok := ctx.Get("app_agent")
+	if !ok {
+		return map[*models.App]*models.Agent{}
+	}
+	_appAgents, ok := appAgents.(map[*models.App]*models.Agent)
+	if !ok {
+		return map[*models.App]*models.Agent{}
+	}
+	return _appAgents
+}
+
+func GetJobAgent(ctx *gin.Context) map[*models.Job]*models.Agent {
+	jobAgents, ok := ctx.Get("job_agent")
+	if !ok {
+		return map[*models.Job]*models.Agent{}
+	}
+	_jobAgents, ok := jobAgents.(map[*models.Job]*models.Agent)
+	if !ok {
+		return map[*models.Job]*models.Agent{}
+	}
+	return _jobAgents
+}
+
+func GetTimingAgent(ctx *gin.Context) map[*models.Timing]*models.Agent {
+	timingAgents, ok := ctx.Get("timing_agent")
+	if !ok {
+		return map[*models.Timing]*models.Agent{}
+	}
+	_timingAgents, ok := timingAgents.(map[*models.Timing]*models.Agent)
+	if !ok {
+		return map[*models.Timing]*models.Agent{}
+	}
+	return _timingAgents
+}

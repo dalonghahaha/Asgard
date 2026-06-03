@@ -8,7 +8,6 @@ require (
 	github.com/coreos/etcd v3.3.18+incompatible
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf // indirect
 	github.com/dalonghahaha/avenger v0.0.0-20200529073728-6d3abb1db7e1
-	github.com/foolin/goview v0.2.0
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/gin-gonic/gin v1.5.0
 	github.com/go-ole/go-ole v1.2.4 // indirect

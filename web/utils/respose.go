@@ -1,60 +1,43 @@
-package utils
+ package utils
 
-import (
-	"Asgard/constants"
-	"net/http"
+ import (
+ 	"net/http"
 
-	"github.com/gin-gonic/gin"
-)
+ 	"github.com/gin-gonic/gin"
+ )
 
-func Render(ctx *gin.Context, url string, data gin.H) {
-	ctx.HTML(http.StatusOK, url, data)
-}
+ // 前后端分离后，web 层只剩 JSON 响应工具；HTML 渲染（Render/JumpWarning 等）已下线。
 
-func APIOK(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{"code": http.StatusOK})
-}
+ // APIOK 简单成功响应。
+ func APIOK(ctx *gin.Context) {
+ 	ctx.JSON(http.StatusOK, gin.H{"code": http.StatusOK})
+ }
 
-func APIData(ctx *gin.Context, data interface{}) {
-	ctx.JSON(http.StatusOK, gin.H{"code": http.StatusOK, "data": data})
-}
+ // APIData 带 data 的成功响应。
+ func APIData(ctx *gin.Context, data interface{}) {
+ 	ctx.JSON(http.StatusOK, gin.H{"code": http.StatusOK, "data": data})
+ }
 
-func APIBadRequest(ctx *gin.Context, message string) {
-	ctx.JSON(http.StatusOK, gin.H{"code": http.StatusBadRequest, "message": message})
-}
+ // APIPage 分页数据响应：{code, message, data:{list, total, page, page_size}}
+ func APIPage(ctx *gin.Context, list interface{}, total int, page int, pageSize int) {
+ 	ctx.JSON(http.StatusOK, gin.H{
+ 		"code":    http.StatusOK,
+ 		"message": "ok",
+ 		"data": gin.H{
+ 			"list":      list,
+ 			"total":     total,
+ 			"page":      page,
+ 			"page_size": pageSize,
+ 		},
+ 	})
+ }
 
-func APIError(ctx *gin.Context, message string) {
-	ctx.JSON(http.StatusOK, gin.H{"code": http.StatusInternalServerError, "message": message})
-}
+ // APIBadRequest 业务参数错误。
+ func APIBadRequest(ctx *gin.Context, message string) {
+ 	ctx.JSON(http.StatusOK, gin.H{"code": http.StatusBadRequest, "message": message})
+ }
 
-func APIErrorByCode(ctx *gin.Context, code int) {
-	ctx.JSON(http.StatusOK, gin.H{"code": code, "message": GetErrorMessage(code)})
-}
-
-func JumpWarning(ctx *gin.Context, message string) {
-	ctx.HTML(http.StatusOK, "warning", gin.H{"Message": message})
-}
-
-func JumpWarningByCode(ctx *gin.Context, code int) {
-	ctx.HTML(http.StatusOK, "warning", gin.H{"Message": GetErrorMessage(code)})
-}
-
-func Warning(ctx *gin.Context, message string) {
-	if ctx.Request.Method == "GET" {
-		JumpWarning(ctx, message)
-	} else if ctx.Request.Method == "POST" {
-		APIError(ctx, message)
-	}
-}
-
-func WarningByCode(ctx *gin.Context, code int) {
-	if ctx.Request.Method == "GET" {
-		JumpWarningByCode(ctx, code)
-	} else if ctx.Request.Method == "POST" {
-		APIErrorByCode(ctx, code)
-	}
-}
-
-func JumpError(ctx *gin.Context) {
-	ctx.Redirect(http.StatusInternalServerError, constants.WEB_ERROR_URL)
-}
+ // APIError 业务异常。
+ func APIError(ctx *gin.Context, message string) {
+ 	ctx.JSON(http.StatusOK, gin.H{"code": http.StatusInternalServerError, "message": message})
+ }

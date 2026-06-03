@@ -11,6 +11,8 @@
 
 USER="root"
 WORKDIR="/data/Asgard"
+# T-406：纯 JSON API 模式不再依赖 web/views/、web/assets/；
+# 旧 HTML 路由在过渡期保留但已无模板（goview 已移除）。
 CMD="$WORKDIR/Asgard web"
 NAME="Asgard-web"
 

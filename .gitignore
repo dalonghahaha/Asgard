@@ -1,22 +1,70 @@
+# ---------------------------------------------------------------------------
+# Asgard repository — files that should NOT be committed
+# ---------------------------------------------------------------------------
+
+# --- Go build / runtime artifacts ---
 # Binaries for programs and plugins
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
-
+# Compiled main binary (output of `go build -o Asgard .`)
+Asgard
+Asgard.exe
 # Test binary, built with `go test -c`
 *.test
-
-# Output of the go coverage tool, specifically when used with LiteIDE
+# Output of the go coverage tool
 *.out
+coverage.txt
+coverage.html
+# Dependency directories
+# vendor/   # uncomment if vendoring
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
-
-.vscode
-dist
-Asgard
+# --- Runtime / deploy outputs ---
+# Per-node config, log, pid, upload — never tracked, generated per host
 conf
 output
 runtime
+# User-uploaded files (e.g. app stdout/stderr redirection targets)
+web/assets/upload/
+
+# --- Frontend (web-admin/) ---
+# Node deps
+web-admin/node_modules
+# Vite build output (also covered by top-level `dist`)
+web-admin/dist
+# Vite dev cache
+web-admin/.vite
+# Vitest / coverage
+web-admin/coverage
+# Playwright artifacts
+web-admin/e2e/test-results
+web-admin/e2e/playwright-report
+web-admin/playwright/.cache
+web-admin/test-results
+# Local env overrides (e.g. VITE_BACKEND_TARGET)
+# Commit .env.example; ignore local overrides
+web-admin/.env
+web-admin/.env.*.local
+web-admin/.env.local
+# Allow committing a shared .env.example if/when added
+!web-admin/.env.example
+
+# --- Editor / IDE / OS ---
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+# Generic local overrides
+*.local
+# Scratch / temp
+tmp
+temp
+*.log
+# Pre-commit / lint caches
+.cache
+.eslintcache

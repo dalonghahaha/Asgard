@@ -22,9 +22,10 @@ archives:
             i386: i386
             amd64: x86_64
         files:
-            - web/assets/*
-            - web/views/*
             - scripts/*
+            - deploy/nginx.conf
+            - doc/API.md
+            - web-admin/dist/**/*
             - LICENSE
             - README.md
 checksum:
